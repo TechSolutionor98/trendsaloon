@@ -463,6 +463,8 @@ const AddProduct = () => {
       .trim("-")
   }
 
+
+  
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
     const normalizedValue = name === "seoTitle" ? limitWords(value, SEO_TITLE_MAX_WORDS) : value
