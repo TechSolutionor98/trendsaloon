@@ -565,12 +565,10 @@ const Profile = () => {
                   </div>
                 </div>
 
-                {/* Somebody who unsubscribed gets no more email, so there is no
-                    link left for them to follow. This is where they turn it
-                    back on. */}
-                <div className="md:col-span-2">
+                {/* Marketing Email Subscription Card - commented out as requested */}
+                {/* <div className="md:col-span-2">
                   <EmailSubscriptionCard />
-                </div>
+                </div> */}
               </div>
             </div>
           )}

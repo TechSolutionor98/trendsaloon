@@ -48,12 +48,12 @@ function Layout() {
   // Matches: /blogs, /blogs/slug, /ae-en/blogs, /ae-en/blogs/slug, /ar/blogs, etc.
   const isBlogPage = location.pathname.match(/^\/([a-z]{2}(-[a-z]{2})?\/)?blogs(\/|$)/i)
   
-  // Check if current path is a full bleed salon page (home or services)
+  // Check if current path is a full bleed salon page (home, services, products, or contact)
   const isFullBleedPage =
     location.pathname === "/" ||
     location.pathname === "/select-country" ||
     Boolean(location.pathname.match(/^\/[a-z]{2}(-[a-z]{2})?\/?$/i)) ||
-    Boolean(location.pathname.match(/^\/([a-z]{2}(-[a-z]{2})?\/)?(services|services-and-products)(\/|$)/i))
+    Boolean(location.pathname.match(/^\/([a-z]{2}(-[a-z]{2})?\/)?(services|services-and-products|products|contact|contact-us)(\/|$)/i))
   // The pages that carry a sticky action bar on a phone: the product page's
   // Buy Now / Add to Cart, and the cart's total and Checkout. Both put a button
   // exactly where the WhatsApp bubble floats.

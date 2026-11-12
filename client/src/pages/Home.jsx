@@ -610,7 +610,7 @@ export default function Home() {
 
                 {/* Shop Now Button */}
                 <button
-                  onClick={() => navigate(getLocalizedPath("/services"))}
+                  onClick={() => navigate(getLocalizedPath("/products"))}
                   className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-xs px-4 py-2 rounded-full inline-flex items-center gap-1 shadow-md shadow-[#dfa742]/20 transition-all duration-200 hover:scale-105 active:scale-95"
                 >
                   <span>Shop All</span>
@@ -620,12 +620,12 @@ export default function Home() {
             )}
           </div>
 
-          {/* User Request: 6 products ke baad See More button -> navigates to next page */}
+          {/* User Request: 6 products ke baad See More button -> navigates to products page */}
           {products.length > 6 && (
             <div className="text-center mt-8">
               <button
                 type="button"
-                onClick={() => navigate(getLocalizedPath("/services"))}
+                onClick={() => navigate(getLocalizedPath("/products"))}
                 className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-xs sm:text-sm font-semibold border-2 border-[#dfa742] text-gray-900 bg-white hover:bg-[#dfa742] hover:text-black transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
               >
                 <span>See More</span>

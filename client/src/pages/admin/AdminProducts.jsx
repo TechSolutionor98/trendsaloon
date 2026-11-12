@@ -8,7 +8,7 @@ import ProductForm from "../../components/admin/ProductForm"
 import MoveProductsModal from "../../components/admin/MoveProductsModal"
 import ConfirmDialog from "../../components/admin/ConfirmDialog"
 import { useToast } from "../../context/ToastContext"
-import { Plus, Edit, Trash2, Search, Tag, Eye, EyeOff, Download, CheckSquare, Square, MoveRight, Copy, Upload, ChevronDown, Pause, Play, Columns, Check, X, ChevronLeft, ChevronRight } from "lucide-react"
+import { Plus, Edit, Trash2, Search, Tag, Eye, EyeOff, Download, CheckSquare, Square, MoveRight, Copy, Upload, ChevronDown, Pause, Play, Columns, Check, X, ChevronLeft, ChevronRight, Scissors, ShoppingBag } from "lucide-react"
 import { getFullImageUrl } from "../../utils/imageUtils"
 
 import config from "../../config/config"

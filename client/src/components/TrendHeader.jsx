@@ -1,10 +1,21 @@
 "use client"
 
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useState, useRef, useEffect } from "react"
+import { useNavigate, Link } from "react-router-dom"
+import { useAuth } from "../context/AuthContext"
 import { useCart } from "../context/CartContext"
 import { useLanguage } from "../context/LanguageContext"
-import { ShoppingBag, Menu, X } from "lucide-react"
+import {
+  ShoppingBag,
+  Menu,
+  X,
+  User,
+  ChevronDown,
+  Package,
+  Truck,
+  LogOut,
+  Settings,
+} from "lucide-react"
 
 export function TrendLogo() {
   const navigate = useNavigate()
@@ -50,12 +61,40 @@ export function TrendLogo() {
 
 export default function TrendHeader({ active = "home" }) {
   const navigate = useNavigate()
+  const { user, isAuthenticated, logout, isAdminAuthenticated } = useAuth()
   const { cartCount, openCart } = useCart()
   const { getLocalizedPath } = useLanguage()
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const profileRef = useRef(null)
+  const profileButtonRef = useRef(null)
+
+  // Close profile dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(e.target) &&
+        profileButtonRef.current &&
+        !profileButtonRef.current.contains(e.target)
+      ) {
+        setIsProfileOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  const handleLogout = () => {
+    logout()
+    setIsProfileOpen(false)
+    navigate(getLocalizedPath("/"))
+  }
 
   const handleNav = (tab, path, hash = "") => {
     setMobileMenuOpen(false)
+    setIsProfileOpen(false)
     if (hash && window.location.pathname.endsWith(path)) {
       const el = document.getElementById(hash)
       if (el) el.scrollIntoView({ behavior: "smooth" })
@@ -63,6 +102,11 @@ export default function TrendHeader({ active = "home" }) {
     }
     navigate(getLocalizedPath(path + (hash ? `#${hash}` : "")))
   }
+
+  // Display user name: first word or full name
+  const displayName = isAuthenticated
+    ? (user?.name?.split(" ")[0] || user?.name || "Account")
+    : "Account"
 
   return (
     <header className="sticky top-0 z-50 bg-[#0e0e10]/95 backdrop-blur-md border-b border-white/10 transition-all duration-300">
@@ -93,7 +137,7 @@ export default function TrendHeader({ active = "home" }) {
             Services
           </button>
           <button
-            onClick={() => handleNav("products", "/services", "products")}
+            onClick={() => handleNav("products", "/products")}
             className={`text-sm font-medium tracking-wide transition-colors ${
               active === "products"
                 ? "text-[#dfa742] border-b-2 border-[#dfa742] pb-0.5"
@@ -103,36 +147,170 @@ export default function TrendHeader({ active = "home" }) {
             Products
           </button>
           <button
-            onClick={() => {
-              const el = document.getElementById("contact")
-              if (el) el.scrollIntoView({ behavior: "smooth" })
-              else handleNav("contact", "/", "contact")
-            }}
-            className="text-gray-300 hover:text-[#dfa742] text-sm font-medium tracking-wide transition-colors"
+            onClick={() => handleNav("contact", "/contact")}
+            className={`text-sm font-medium tracking-wide transition-colors ${
+              active === "contact"
+                ? "text-[#dfa742] border-b-2 border-[#dfa742] pb-0.5"
+                : "text-gray-300 hover:text-[#dfa742]"
+            }`}
           >
             Contact
           </button>
         </nav>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-4">
-          {/* Book Appointment CTA Button (Matching Mockup) */}
-          <button
-            onClick={() => handleNav("services", "/services")}
-            className="hidden sm:inline-flex items-center gap-1.5 bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-xs sm:text-sm px-4 py-2 rounded-full shadow-md shadow-[#dfa742]/20 transition-all duration-200 hover:scale-105 active:scale-95"
-          >
-            <span>📅</span>
-            <span>Book Appointment</span>
-          </button>
+        <div className="flex items-center gap-3 sm:gap-4">
+          {/* User Account / Profile Section (Replaces Book Appointment Button) */}
+          <div className="relative">
+            <button
+              ref={profileButtonRef}
+              onClick={() => setIsProfileOpen((prev) => !prev)}
+              className="flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-3 py-1.5 rounded-full hover:bg-white/10 text-white transition-all duration-200 border border-transparent hover:border-white/10"
+              aria-label="Account"
+            >
+              <div className="w-8 h-8 rounded-full bg-[#dfa742]/15 border border-[#dfa742]/30 flex items-center justify-center text-[#dfa742] shadow-sm">
+                <User className="w-4 h-4" />
+              </div>
+              <div className="hidden sm:flex flex-col text-left leading-tight">
+                <span className="text-[10px] text-gray-400 whitespace-nowrap">
+                  {isAuthenticated ? "Hello," : "Hello, Sign in"}
+                </span>
+                <span className="text-xs sm:text-[13px] font-semibold text-white whitespace-nowrap max-w-[110px] truncate">
+                  {displayName}
+                </span>
+              </div>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 hidden sm:block ${
+                  isProfileOpen ? "rotate-180 text-[#dfa742]" : ""
+                }`}
+              />
+            </button>
+
+            {/* Account Dropdown Menu */}
+            {isProfileOpen && (
+              <div
+                ref={profileRef}
+                className="absolute right-0 mt-2 w-56 rounded-xl bg-[#16161a] text-white shadow-2xl border border-white/15 py-2 z-50 backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-150"
+              >
+                {isAuthenticated ? (
+                  <>
+                    {/* User Info Header */}
+                    <div className="px-4 py-2.5 border-b border-white/10 bg-white/5">
+                      <p className="text-[11px] text-gray-400">Signed in as</p>
+                      <p className="text-sm font-bold text-[#dfa742] truncate">
+                        {user?.name || "Customer"}
+                      </p>
+                      {user?.email && (
+                        <p className="text-[11px] text-gray-400 truncate">{user.email}</p>
+                      )}
+                    </div>
+
+                    <div className="py-1">
+                      <Link
+                        to={getLocalizedPath("/profile")}
+                        onClick={() => setIsProfileOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-gray-200 hover:text-[#dfa742] hover:bg-white/5 transition-colors"
+                      >
+                        <User className="w-3.5 h-3.5 text-[#dfa742]" />
+                        <span>My Profile</span>
+                      </Link>
+
+                      <Link
+                        to={getLocalizedPath("/orders")}
+                        onClick={() => setIsProfileOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-gray-200 hover:text-[#dfa742] hover:bg-white/5 transition-colors"
+                      >
+                        <Package className="w-3.5 h-3.5 text-[#dfa742]" />
+                        <span>My Orders</span>
+                      </Link>
+
+                      <Link
+                        to={getLocalizedPath("/track-order")}
+                        onClick={() => setIsProfileOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-gray-200 hover:text-[#dfa742] hover:bg-white/5 transition-colors"
+                      >
+                        <Truck className="w-3.5 h-3.5 text-[#dfa742]" />
+                        <span>Track Order</span>
+                      </Link>
+
+                      {(isAdminAuthenticated || user?.role === "admin" || user?.role === "superadmin") && (
+                        <Link
+                          to="/admin"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#dfa742] font-semibold hover:bg-white/5 transition-colors border-t border-white/10"
+                        >
+                          <Settings className="w-3.5 h-3.5 text-[#dfa742]" />
+                          <span>Admin Dashboard</span>
+                        </Link>
+                      )}
+                    </div>
+
+                    <div className="pt-1 mt-1 border-t border-white/10">
+                      <button
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-2.5 px-4 py-2 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="px-4 py-2.5 border-b border-white/10">
+                      <p className="text-xs font-semibold text-white">Welcome to Trend Salon</p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">Manage your orders & appointments</p>
+                    </div>
+
+                    <div className="p-3 space-y-2">
+                      <button
+                        onClick={() => {
+                          setIsProfileOpen(false)
+                          navigate(getLocalizedPath("/login"))
+                        }}
+                        className="w-full py-2 px-3 text-xs font-bold rounded-lg bg-[#dfa742] text-black hover:bg-[#caa638] transition-colors shadow-md shadow-[#dfa742]/20"
+                      >
+                        Sign In / Login
+                      </button>
+
+                      <div className="text-center text-[11px] text-gray-400 pt-1">
+                        New customer?{" "}
+                        <button
+                          onClick={() => {
+                            setIsProfileOpen(false)
+                            navigate(getLocalizedPath("/register"))
+                          }}
+                          className="text-[#dfa742] hover:underline font-semibold"
+                        >
+                          Register
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="pt-1 border-t border-white/10">
+                      <Link
+                        to={getLocalizedPath("/track-order")}
+                        onClick={() => setIsProfileOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs text-gray-300 hover:text-[#dfa742] hover:bg-white/5 transition-colors"
+                      >
+                        <Truck className="w-3.5 h-3.5 text-[#dfa742]" />
+                        <span>Track Order</span>
+                      </Link>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Cart Icon - Opens Slide-over Cart Sidebar */}
           <button
             onClick={openCart}
-            className="relative p-2 text-white hover:text-[#dfa742] transition-colors"
+            className="relative p-2 text-white hover:text-[#dfa742] transition-colors rounded-full hover:bg-white/10"
             aria-label="Open Cart"
           >
             <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="absolute -top-1 -right-1 bg-[#dfa742] text-black text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-sm">
+            <span className="absolute -top-0.5 -right-0.5 bg-[#dfa742] text-black text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-sm">
               {cartCount || 0}
             </span>
           </button>
@@ -168,25 +346,92 @@ export default function TrendHeader({ active = "home" }) {
             Services
           </button>
           <button
-            onClick={() => handleNav("products", "/services", "products")}
-            className="block w-full text-left text-gray-200 hover:text-[#dfa742] text-base py-1"
+            onClick={() => handleNav("products", "/products")}
+            className={`block w-full text-left font-semibold text-base py-1 ${
+              active === "products" ? "text-[#dfa742]" : "text-gray-200"
+            }`}
           >
             Products
           </button>
           <button
-            onClick={() => {
-              setMobileMenuOpen(false)
-              const el = document.getElementById("contact")
-              if (el) el.scrollIntoView({ behavior: "smooth" })
-              else handleNav("contact", "/", "contact")
-            }}
-            className="block w-full text-left text-gray-200 hover:text-[#dfa742] text-base py-1"
+            onClick={() => handleNav("contact", "/contact")}
+            className={`block w-full text-left font-semibold text-base py-1 ${
+              active === "contact" ? "text-[#dfa742]" : "text-gray-200"
+            }`}
           >
             Contact
           </button>
+
+          {/* Mobile Account Section */}
+          <div className="pt-3 border-t border-white/10 mt-3 space-y-2">
+            {isAuthenticated ? (
+              <>
+                <div className="flex items-center gap-3 px-3 py-2 bg-white/5 rounded-lg border border-white/10">
+                  <div className="w-8 h-8 rounded-full bg-[#dfa742]/20 border border-[#dfa742]/40 flex items-center justify-center text-[#dfa742]">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <div className="truncate">
+                    <p className="text-[11px] text-gray-400">Signed in as</p>
+                    <p className="text-sm font-semibold text-[#dfa742] truncate">
+                      {user?.name || "Customer"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    navigate(getLocalizedPath("/profile"))
+                  }}
+                  className="block w-full text-left px-2 py-1.5 text-sm text-gray-300 hover:text-[#dfa742]"
+                >
+                  My Profile
+                </button>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    navigate(getLocalizedPath("/orders"))
+                  }}
+                  className="block w-full text-left px-2 py-1.5 text-sm text-gray-300 hover:text-[#dfa742]"
+                >
+                  My Orders
+                </button>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    handleLogout()
+                  }}
+                  className="block w-full text-left px-2 py-1.5 text-sm text-red-400 hover:text-red-300"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <div className="space-y-2 pt-1">
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    navigate(getLocalizedPath("/login"))
+                  }}
+                  className="w-full py-2 px-4 text-sm font-bold rounded-lg bg-[#dfa742] text-black hover:bg-[#caa638] transition-colors"
+                >
+                  Sign In / Login
+                </button>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    navigate(getLocalizedPath("/register"))
+                  }}
+                  className="w-full py-1.5 px-4 text-xs text-center text-gray-400 hover:text-white"
+                >
+                  Don't have an account? <span className="text-[#dfa742] underline">Register</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </header>
   )
 }
+
 

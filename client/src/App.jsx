@@ -30,6 +30,7 @@ import { useLocation } from "react-router-dom"
 // Import pages
 import Home from "./pages/Home"
 import ServicesProducts from "./pages/ServicesProducts"
+import ProductsPage from "./pages/ProductsPage"
 import NotFound from "./pages/NotFound"
 
 const Shop = lazyWithRetry(() => import("./pages/Shop"))
@@ -104,11 +105,7 @@ function RouteCanonical() {
 }
 
 function RootRedirect() {
-  const hasCountry = typeof window !== "undefined" && localStorage.getItem("selected-country-code")
   const savedLang = typeof window !== "undefined" && localStorage.getItem("preferred-language")
-  if (!hasCountry) {
-    return <Navigate to="/select-country" replace />
-  }
   return <Navigate to={savedLang === "ar" ? "/ae-ar" : "/ae-en"} replace />
 }
 
@@ -189,7 +186,7 @@ function App() {
                     {/* Home Route - Redirect directly to /ae-en for Trend Salon storefront */}
                     <Route index element={<Navigate to="/ae-en" replace />} />
                     <Route path="/" element={<Navigate to="/ae-en" replace />} />
-                    <Route path="/select-country" element={<CountrySelector />} />
+                    <Route path="/select-country" element={<Navigate to="/ae-en" replace />} />
                   
 
                   
@@ -237,8 +234,7 @@ function App() {
                     <Route index element={<Home />} />
                     <Route path="services" element={<ServicesProducts />} />
                     <Route path="services-and-products" element={<ServicesProducts />} />
-                    <Route path="services" element={<ServicesProducts />} />
-                    <Route path="services-and-products" element={<ServicesProducts />} />
+                    <Route path="products" element={<ProductsPage />} />
                     <Route path="shop" element={<Shop />} />
                     <Route path="shop/:parentCategory" element={<Shop />} />
                     <Route path="shop/:parentCategory/:subcategory" element={<Shop />} />
@@ -350,8 +346,7 @@ function App() {
                     <Route index element={<Home />} />
                     <Route path="services" element={<ServicesProducts />} />
                     <Route path="services-and-products" element={<ServicesProducts />} />
-                    <Route path="services" element={<ServicesProducts />} />
-                    <Route path="services-and-products" element={<ServicesProducts />} />
+                    <Route path="products" element={<ProductsPage />} />
                     <Route path="shop" element={<Shop />} />
                     <Route path="shop/:parentCategory" element={<Shop />} />
                     <Route path="shop/:parentCategory/:subcategory" element={<Shop />} />
@@ -462,6 +457,7 @@ function App() {
                   >
                     <Route path="services" element={<ServicesProducts />} />
                     <Route path="services-and-products" element={<ServicesProducts />} />
+                    <Route path="products" element={<ProductsPage />} />
                     <Route path="shop" element={<Shop />} />
                     <Route path="shop/:parentCategory" element={<Shop />} />
                     <Route path="shop/:parentCategory/:subcategory" element={<Shop />} />

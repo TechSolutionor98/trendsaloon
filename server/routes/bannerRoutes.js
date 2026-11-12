@@ -59,7 +59,7 @@ const sanitizeTargetCountries = (targetCountries) => {
   return cleaned
 }
 
-// @desc    Get salon main page banners (Home Hero & Services Hero)
+// @desc    Get salon main page banners (Home Hero, Services Hero & Products Hero)
 // @route   GET /api/banners/salon-banners
 // @access  Public
 router.get(
@@ -68,6 +68,7 @@ router.get(
     try {
       const homeBanner = await Banner.findOne({ position: "home-hero", isActive: true })
       const servicesBanner = await Banner.findOne({ position: "services-hero", isActive: true })
+      const productsBanner = await Banner.findOne({ position: "products-hero", isActive: true })
 
       res.json({
         home: homeBanner
@@ -98,6 +99,18 @@ router.get(
               subtitle: "Professional Care. Premium Quality.",
               image: "/salon/services-man.png",
             },
+        products: productsBanner
+          ? {
+              _id: productsBanner._id,
+              title: productsBanner.title,
+              subtitle: productsBanner.subtitle || "Premium Grooming & Care Products for the Modern Gentleman.",
+              image: productsBanner.image || "/salon/services-man.png",
+            }
+          : {
+              title: "Our Products",
+              subtitle: "Premium Grooming & Care Products for the Modern Gentleman.",
+              image: "/salon/services-man.png",
+            },
       })
     } catch (err) {
       console.error("Error fetching salon banners:", err)
@@ -114,6 +127,11 @@ router.get(
           subtitle: "Professional Care. Premium Quality.",
           image: "/salon/services-man.png",
         },
+        products: {
+          title: "Our Products",
+          subtitle: "Premium Grooming & Care Products for the Modern Gentleman.",
+          image: "/salon/services-man.png",
+        },
       })
     }
   }),
@@ -127,7 +145,7 @@ router.put(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const { home, services } = req.body
+    const { home, services, products } = req.body
 
     if (home) {
       await Banner.findOneAndUpdate(
@@ -154,6 +172,21 @@ router.put(
           subtitle: services.subtitle || "Professional Care. Premium Quality.",
           image: services.image || "/salon/services-hero.jpg",
           position: "services-hero",
+          isActive: true,
+          createdBy: req.user._id,
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      )
+    }
+
+    if (products) {
+      await Banner.findOneAndUpdate(
+        { position: "products-hero" },
+        {
+          title: products.title || "Our Products",
+          subtitle: products.subtitle || "Premium Grooming & Care Products for the Modern Gentleman.",
+          image: products.image || "/salon/services-hero.jpg",
+          position: "products-hero",
           isActive: true,
           createdBy: req.user._id,
         },
