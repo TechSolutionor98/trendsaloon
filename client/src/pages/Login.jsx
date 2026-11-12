@@ -1,14 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { useToast } from "../context/ToastContext"
-import { Eye, EyeOff, Mail, Lock } from "lucide-react"
-import { Fragment } from "react"
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Star, ShieldCheck, Sparkles } from "lucide-react"
 import { useLanguage } from "../context/LanguageContext"
 import TranslatedText from "../components/TranslatedText"
 import { resolvePostAuthPath, clearReturnPath } from "../utils/authRedirect"
+import { TrendLogo } from "../components/TrendHeader"
 
 const Login = () => {
   const navigate = useNavigate()
@@ -16,7 +16,7 @@ const Login = () => {
   const { login } = useAuth()
   const { showToast } = useToast()
   const { getLocalizedPath } = useLanguage()
-  
+
   // Check if user is coming from checkout page
   const isFromCheckout = location.state?.from?.pathname === "/checkout"
 
@@ -28,17 +28,14 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  // The address to verify, set only when sign-in failed because the email was
-  // never confirmed. Empty the rest of the time, so a wrong password does not
-  // get offered a verification link it has no use for.
   const [verifyEmail, setVerifyEmail] = useState("")
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    })
+    }))
   }
 
   const togglePasswordVisibility = () => {
@@ -52,28 +49,23 @@ const Login = () => {
       setLoading(true)
       setError("")
 
-      // Convert email to lowercase before sending to API
       const loginData = {
-        email: formData.email.trim().toLowerCase(), // Add this conversion
-        password: formData.password
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
       }
 
       const result = await login(loginData)
 
       if (result.success) {
         showToast && showToast("Logged in successfully!", "success")
-        // "/" renders the country selector, so fall back to the localized home
-        // page and prefer wherever the shopper actually came from.
         const redirectTo = resolvePostAuthPath(location.state, getLocalizedPath)
         clearReturnPath()
         navigate(redirectTo, { replace: true })
       } else {
         setError(result.message)
-        // An account that exists but was never verified is a dead end without
-        // somewhere to go, so remember the address and offer to send a new code.
         setVerifyEmail(result.requiresVerification ? result.email || loginData.email : "")
       }
-    } catch (error) {
+    } catch (err) {
       setError("An unexpected error occurred. Please try again.")
       setVerifyEmail("")
     } finally {
@@ -82,165 +74,215 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="w-full max-w-4xl flex flex-col md:flex-row bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-        {/* Left: Login Form */}
-        <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-10">
-          <div className="max-w-md w-full space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight"><TranslatedText>Welcome back</TranslatedText></h2>
+    <div className="min-h-[80vh] flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-4xl flex flex-col md:flex-row bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+        {/* Left Side: Login Form */}
+        <div className="w-full md:w-1/2 flex items-center justify-center p-6 sm:p-10">
+          <div className="max-w-md w-full space-y-6">
+            {/* Header Brand & Title */}
+            <div className="text-center space-y-2">
+              <div className="flex justify-center mb-1">
+                <TrendLogo />
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 tracking-tight">
+                <TranslatedText>Welcome Back</TranslatedText>
+              </h2>
+              <p className="text-xs sm:text-sm text-gray-500">
+                {isFromCheckout ? (
+                  <span>Sign in to complete your salon booking and checkout</span>
+                ) : (
+                  <span>Sign in to access your appointments and orders</span>
+                )}
+              </p>
             </div>
+
+            {/* Error Message */}
             {error && (
-              <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm border border-red-100 animate-fade-in">
+              <div className="p-3.5 bg-red-50 text-red-700 rounded-xl text-xs sm:text-sm border border-red-100 animate-fadeIn">
                 <div>{error}</div>
                 {verifyEmail && (
                   <Link
                     to={getLocalizedPath(`/verify-email?email=${encodeURIComponent(verifyEmail)}`)}
-                    className="mt-2 inline-block font-semibold text-green-700 underline underline-offset-2 hover:text-green-800"
+                    className="mt-1.5 inline-block font-semibold text-[#dfa742] underline underline-offset-2 hover:text-[#caa638]"
                   >
-                    <TranslatedText>Verify here</TranslatedText>
+                    Resend verification code
                   </Link>
                 )}
               </div>
             )}
-            <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-              <div className="space-y-5">
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    <TranslatedText>Email address</TranslatedText>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-colors"
-                      placeholder="Enter your email"
-                    />
-                  </div>
-                </div>
 
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                    <TranslatedText>Password</TranslatedText>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      id="password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="current-password"
-                      required
-                      value={formData.password}
-                      onChange={handleChange}
-                      className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-colors"
-                      placeholder="Enter your password"
-                    />
-                    <button
-                      type="button"
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-                      onClick={togglePasswordVisibility}
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
+            {/* Form */}
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              {/* Email Field */}
+              <div className="space-y-1.5">
+                <label htmlFor="email" className="block text-xs font-semibold text-gray-700">
+                  <TranslatedText>Email Address</TranslatedText>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                    <Mail className="w-4 h-4" />
                   </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
                   <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 text-gray-900 focus:ring-gray-900 border-gray-300 rounded transition-colors"
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="block w-full pl-10 pr-3.5 py-3 text-sm bg-gray-50/70 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:border-[#dfa742] focus:ring-2 focus:ring-[#dfa742]/20 transition-all"
+                    placeholder="Enter your email address"
                   />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                    <TranslatedText>Remember me</TranslatedText>
-                  </label>
-                </div>
-
-                <div className="text-sm">
-                  <Link to={getLocalizedPath("/forgot-password")} className="font-medium text-lime-600 hover:text-lime-800 transition-colors">
-                    <TranslatedText>Forgot password?</TranslatedText>
-                  </Link>
                 </div>
               </div>
 
-              <div>
-                <button
-                  type="submit"
-                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-lime-500 hover:bg-lime-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <div className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <TranslatedText>Signing in...</TranslatedText>
-                    </div>
-                  ) : (
-                    <TranslatedText>Sign in</TranslatedText>
-                  )}
-                </button>
-                
-                <p className="mt-4 text-md text-gray-600">
-                  <TranslatedText>Don't have an account?</TranslatedText>{" "}
-                  <Link 
-                    to={getLocalizedPath("/register")} 
-                    state={isFromCheckout ? { from: { pathname: "/checkout" } } : undefined}
-                    className="font-semibold text-gray-900 hover:text-gray-700 transition-colors"
-                  >
-                    <TranslatedText>Sign up</TranslatedText>
-                  </Link>
-                </p>
-
-                {/* Continue as Guest - Always visible with divider */}
-                <div className="mt-6">
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-300"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-white text-gray-500">
-                        <TranslatedText>Or</TranslatedText>
-                      </span>
-                    </div>
+              {/* Password Field */}
+              <div className="space-y-1.5">
+                <label htmlFor="password" className="block text-xs font-semibold text-gray-700">
+                  <TranslatedText>Password</TranslatedText>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                    <Lock className="w-4 h-4" />
                   </div>
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="block w-full pl-10 pr-10 py-3 text-sm bg-gray-50/70 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:border-[#dfa742] focus:ring-2 focus:ring-[#dfa742]/20 transition-all"
+                    placeholder="Enter your password"
+                  />
                   <button
                     type="button"
-                    className="mt-4 w-full flex justify-center items-center gap-2 py-3 px-4 border-2 border-lime-500 rounded-lg shadow-sm text-sm font-semibold text-lime-600 bg-white hover:bg-lime-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lime-500 transition-all duration-200"
-                    onClick={() => navigate(getLocalizedPath("/guest"))}
+                    onClick={togglePasswordVisibility}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <TranslatedText>Continue as Guest</TranslatedText>
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+              </div>
+
+              {/* Remember Me & Forgot Password */}
+              <div className="flex items-center justify-between pt-1">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 text-[#dfa742] border-gray-300 rounded focus:ring-[#dfa742] cursor-pointer"
+                  />
+                  <span className="text-xs text-gray-600">
+                    <TranslatedText>Remember me</TranslatedText>
+                  </span>
+                </label>
+
+                <Link
+                  to={getLocalizedPath("/forgot-password")}
+                  className="text-xs font-semibold text-[#b38743] hover:text-[#dfa742] transition-colors"
+                >
+                  <TranslatedText>Forgot password?</TranslatedText>
+                </Link>
+              </div>
+
+              {/* Submit Button (Gold Pill) */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#dfa742] hover:bg-[#caa638] text-black font-bold py-3.5 px-6 rounded-full shadow-lg shadow-[#dfa742]/25 text-sm transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    <span>Signing in...</span>
+                  </div>
+                ) : (
+                  <>
+                    <span>Sign In</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+
+              {/* Divider */}
+              <div className="relative py-2">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="px-3 bg-white text-gray-400 uppercase tracking-wider font-semibold">
+                    <TranslatedText>Or</TranslatedText>
+                  </span>
+                </div>
+              </div>
+
+              {/* Guest Checkout Option */}
+              <button
+                type="button"
+                onClick={() => navigate(getLocalizedPath("/guest"))}
+                className="w-full py-3 px-4 border-2 border-[#dfa742] rounded-full text-xs sm:text-sm font-bold text-[#b38743] hover:bg-amber-50/50 hover:text-[#8f641e] transition-all flex items-center justify-center gap-2"
+              >
+                <User className="w-4 h-4" />
+                <span>
+                  <TranslatedText>Continue as Guest</TranslatedText>
+                </span>
+              </button>
+
+              {/* Sign Up Link */}
+              <div className="text-center pt-2 text-xs text-gray-600">
+                <TranslatedText>Don't have an account?</TranslatedText>{" "}
+                <Link
+                  to={getLocalizedPath("/register")}
+                  state={isFromCheckout ? { from: { pathname: "/checkout" } } : undefined}
+                  className="font-bold text-[#b38743] hover:text-[#dfa742] hover:underline"
+                >
+                  <TranslatedText>Sign up</TranslatedText>
+                </Link>
               </div>
             </form>
           </div>
         </div>
-        {/* Right: Image */}
-        <div className="hidden md:block md:w-1/2 bg-white relative">
+
+        {/* Right Side: Luxury Salon Visual */}
+        <div className="hidden md:block md:w-1/2 relative bg-[#0e0e10] overflow-hidden">
           <img
-            src="/login1.png"
-            alt="Login Visual"
-            className="w-full h-full object-cover object-center"
+            src="/salon/hero-barber.jpg"
+            alt="Trend Salon Grooming"
+            className="w-full h-full object-cover filter brightness-80"
           />
+          {/* Dark Luxury Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+
+          {/* Luxury Salon Overlay Content */}
+          <div className="absolute inset-0 p-8 sm:p-10 flex flex-col justify-between text-white z-10">
+            {/* Top Stars & Badge */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 text-[#dfa742] fill-current" />
+                ))}
+              </div>
+              <div className="bg-black/60 backdrop-blur-md border border-[#dfa742]/40 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest text-[#dfa742]">
+                VIP Grooming
+              </div>
+            </div>
+
+            {/* Bottom Quote & Location */}
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-[#dfa742] font-semibold">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Look Good • Feel Great</span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-serif font-bold text-white leading-snug">
+                Premium Grooming & Wellness for the Modern Gentleman
+              </h3>
+              <p className="text-xs text-gray-300 font-light flex items-center gap-1.5 pt-1">
+                <ShieldCheck className="w-4 h-4 text-green-400" />
+                <span>Al Yasmeen - Ajman • UAE</span>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

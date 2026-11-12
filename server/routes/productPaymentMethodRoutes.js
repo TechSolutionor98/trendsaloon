@@ -1,5 +1,6 @@
 import express from "express"
 import asyncHandler from "express-async-handler"
+import mongoose from "mongoose"
 import Product from "../models/productModel.js"
 import Category from "../models/categoryModel.js"
 import SubCategory from "../models/subCategoryModel.js"
@@ -11,17 +12,23 @@ const router = express.Router()
 
 // Helper to resolve payment methods for a single product
 const resolveProductPaymentMethods = async (productId) => {
-  const product = await Product.findById(productId)
-    .populate("parentCategory")
-    .populate("category")
-    .populate("subCategory2")
-    .populate("subCategory3")
-    .populate("subCategory4")
-    .populate("brand")
-
-  if (!product) {
-    return ["card", "cod"]
+  // If not a valid MongoDB ObjectId (e.g. mockup items), return default payment methods
+  if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+    return ["card", "cod", "tabby", "tamara"]
   }
+
+  try {
+    const product = await Product.findById(productId)
+      .populate("parentCategory")
+      .populate("category")
+      .populate("subCategory2")
+      .populate("subCategory3")
+      .populate("subCategory4")
+      .populate("brand")
+
+    if (!product) {
+      return ["card", "cod", "tabby", "tamara"]
+    }
 
   // 1. Product specific
   if (product.paymentMethods && product.paymentMethods.length > 0) {
@@ -59,7 +66,11 @@ const resolveProductPaymentMethods = async (productId) => {
   }
 
   // Default fallback
-  return ["card", "cod"]
+  return ["card", "cod", "tabby", "tamara"]
+  } catch (err) {
+    console.warn(`Error resolving payment methods for productId ${productId}:`, err.message)
+    return ["card", "cod", "tabby", "tamara"]
+  }
 }
 
 // @desc    Resolve payment methods for a list of product IDs (takes intersection)

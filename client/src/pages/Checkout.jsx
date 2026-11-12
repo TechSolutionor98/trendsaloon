@@ -35,7 +35,7 @@ import { STORES } from "../data/stores"
 // One look for every field in the address modal.
 const addressLabelClass = "mb-1 block text-xs font-medium text-gray-700"
 const addressInputClass =
-  "h-11 w-full rounded-lg border border-gray-300 bg-white px-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-lime-500 focus:outline-none focus:ring-2 focus:ring-lime-200"
+  "h-11 w-full rounded-xl border border-gray-300 bg-white px-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#dfa742] focus:outline-none focus:ring-2 focus:ring-[#dfa742]/30"
 const addressSelectClass = addressInputClass + " appearance-none pr-9"
 
 // The phone inputs store numbers in international form (+971501234567). Older saved
@@ -166,22 +166,22 @@ const renderPaymentLogos = (id) => {
 const DEFAULT_OPEN_SECTIONS = [2, 3]
 
 const ReviewSection = ({ id, number, title, summary, extra, open, onToggle, children }) => (
-  <div id={id} className={`scroll-mt-4 rounded-xl border bg-white ${open ? "border-lime-400 shadow-sm" : "border-gray-200"}`}>
+  <div id={id} className={`scroll-mt-4 rounded-2xl border bg-white transition-all duration-200 ${open ? "border-[#dfa742] shadow-md shadow-[#dfa742]/10" : "border-gray-200"}`}>
     {extra && <div className="px-4 pt-3">{extra}</div>}
     <button
       type="button"
       onClick={onToggle}
       aria-expanded={open}
-      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left"
+      className="w-full flex items-center gap-2.5 px-4 py-3 text-left"
     >
-      <span className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-full bg-lime-500 text-white text-xs font-bold">
+      <span className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-full bg-[#dfa742] text-black text-xs font-bold shadow-sm">
         {number}
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-bold text-gray-900">{title}</span>
         {!open && <span className="mt-0.5 block text-[13px] text-gray-500">{summary}</span>}
       </span>
-      <span className="flex-shrink-0 text-sm font-medium text-lime-700">
+      <span className="flex-shrink-0 text-sm font-semibold text-[#b38743] hover:text-[#dfa742]">
         <TranslatedText>{open ? "Close" : "Change"}</TranslatedText>
       </span>
     </button>
@@ -767,12 +767,12 @@ const Checkout = () => {
       },
       order_reference_id: `ORDER_${Date.now()}`,
       order_number: `ORD_${Date.now()}`,
-      description: `Order for ${cartItems.length} items from Graba2z`,
+      description: `Order for ${cartItems.length} items from Trend Gents Saloon`,
       country_code: "AE",
       payment_type: "PAY_BY_INSTALMENTS",
       instalments: 3,
       locale: "en_US",
-      platform: "Graba2z Online Store",
+      platform: "Trend Gents Saloon",
       is_mobile: window.innerWidth <= 768,
       consumer: {
         first_name: formData.name.split(" ")[0] || "Customer",
@@ -1155,12 +1155,12 @@ const Checkout = () => {
           },
           order_reference_id: orderId,
           order_number: `ORD_${orderId}`,
-          description: `Order for ${cartItems.length} items from Graba2z`,
+          description: `Order for ${cartItems.length} items from Trend Gents Saloon`,
           country_code: "AE",
           payment_type: "PAY_BY_INSTALMENTS",
           instalments: 3,
           locale: "en_US",
-          platform: "Graba2z Online Store",
+          platform: "Trend Gents Saloon",
           is_mobile: window.innerWidth <= 768,
           consumer: {
             first_name: formData.name.split(" ")[0] || "Customer",
@@ -1861,7 +1861,7 @@ const Checkout = () => {
       <div className="max-w-5xl mx-auto px-4 py-10 text-center">
         <h2 className="text-2xl font-bold mb-4"><TranslatedText>Your cart is empty</TranslatedText></h2>
         <p className="text-gray-600 mb-6"><TranslatedText>Add some items to your cart before checkout.</TranslatedText></p>
-        <button onClick={() => navigate(getLocalizedPath("/"))} className="bg-lime-500 hover:bg-lime-600 text-white rounded-lg px-6 py-2">
+        <button onClick={() => navigate(getLocalizedPath("/"))} className="bg-[#dfa742] hover:bg-[#c99535] text-black font-bold rounded-full px-6 py-2.5 shadow-md shadow-[#dfa742]/20 transition-all">
           <TranslatedText>Continue Shopping</TranslatedText>
         </button>
       </div>
@@ -1887,7 +1887,7 @@ const Checkout = () => {
                     value="home"
                     checked={deliveryType === "home"}
                     onChange={() => setDeliveryType("home")}
-                    className="accent-lime-500 mr-2"
+                    className="accent-[#dfa742] mr-2"
                   />
                   <span className="font-semibold text-sm"><TranslatedText>Home Delivery</TranslatedText></span>
                 </label>
@@ -1898,7 +1898,7 @@ const Checkout = () => {
                     value="pickup"
                     checked={deliveryType === "pickup"}
                     onChange={() => setDeliveryType("pickup")}
-                    className="accent-lime-500 mr-2"
+                    className="accent-[#dfa742] mr-2"
                   />
                   <span className="font-semibold text-sm"><TranslatedText>Pickup From Store</TranslatedText></span>
                 </label>
@@ -1948,7 +1948,7 @@ const Checkout = () => {
                                 <button
                                   type="button"
                                   onClick={() => setShowAddressList(true)}
-                                  className="text-sm font-semibold text-lime-700 hover:underline"
+                                  className="text-sm font-bold text-[#b38743] hover:text-[#dfa742] hover:underline"
                                 >
                                   <TranslatedText>Change / Edit</TranslatedText>
                                 </button>
@@ -1960,9 +1960,9 @@ const Checkout = () => {
                                   ) || savedAddresses[0]
                                 if (!selectedAddr) return null
                                 return (
-                                  <div className="flex items-start gap-3 rounded-xl border-2 border-lime-500 bg-lime-50/40 p-3">
-                                    <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 border-lime-600">
-                                      <span className="h-2.5 w-2.5 rounded-full bg-lime-600" />
+                                  <div className="flex items-start gap-3 rounded-2xl border-2 border-[#dfa742] bg-amber-50/40 p-4">
+                                    <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 border-[#dfa742]">
+                                      <span className="h-2.5 w-2.5 rounded-full bg-[#dfa742]" />
                                     </span>
                                     <div className="min-w-0">
                                       <p className="font-bold text-gray-900">{selectedAddr.name}</p>
@@ -2010,7 +2010,7 @@ const Checkout = () => {
                                           // Amazon collapses back to the chosen address once picked.
                                           setShowAddressList(false)
                                         }}
-                                        className="mt-1 h-4 w-4 shrink-0 accent-lime-600"
+                                        className="mt-1 h-4 w-4 shrink-0 accent-[#dfa742]"
                                       />
                                       <div className="min-w-0">
                                         <p className="font-bold text-gray-900">{addr.name}</p>
@@ -2026,7 +2026,7 @@ const Checkout = () => {
                                           <button
                                             type="button"
                                             onClick={(e) => handleEditAddressClick(e, addr)}
-                                            className="font-semibold text-lime-700 hover:underline"
+                                            className="font-bold text-[#b38743] hover:text-[#dfa742] hover:underline"
                                           >
                                             <TranslatedText>Edit address</TranslatedText>
                                           </button>
@@ -2051,7 +2051,7 @@ const Checkout = () => {
                                   })
                                   setShowAddressModal(true)
                                 }}
-                                className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-lime-700 hover:underline"
+                                className="mt-3 flex items-center gap-1.5 text-sm font-bold text-[#b38743] hover:text-[#dfa742] hover:underline"
                               >
                                 <Plus size={16} />
                                 <TranslatedText>Add a new delivery address</TranslatedText>
@@ -2071,7 +2071,7 @@ const Checkout = () => {
                           <button
                             type="button"
                             onClick={() => setShowAddressModal(true)}
-                            className="text-lime-500 text-sm mt-2 mr-4"
+                            className="text-[#b38743] hover:text-[#dfa742] font-semibold text-sm mt-2 mr-4"
                           >
                             <TranslatedText>Edit Address</TranslatedText>
                           </button>
@@ -2107,7 +2107,7 @@ const Checkout = () => {
                         )}
                         <button
                           type="submit"
-                          className="flex-1 bg-lime-500 hover:bg-lime-600 text-white font-semibold lg:py-3 lg:px-6 py-2 px-3 rounded-lg transition duration-300"
+                          className="flex-1 bg-gradient-to-r from-[#dfa742] via-[#e8be6d] to-[#dfa742] hover:brightness-105 text-black font-bold lg:py-3 lg:px-6 py-2.5 px-3 rounded-full shadow-md shadow-[#dfa742]/20 transition-all"
                         >
                           {inline ? (
                             <TranslatedText>Save changes</TranslatedText>
@@ -2146,7 +2146,7 @@ const Checkout = () => {
                           a narrow screen. */}
                       <div className="mb-4 hidden md:block">
                         <h4 className="font-semibold mb-4 flex items-center gap-2">
-                          <MapPin className="h-5 w-5 text-lime-500" />
+                          <MapPin className="h-5 w-5 text-[#dfa742]" />
                           <TranslatedText>Select Store</TranslatedText> *
                         </h4>
 
@@ -2156,8 +2156,8 @@ const Checkout = () => {
                             {STORES.filter(store => store.visible !== false).map((store) => (
                               <div
                                 key={store.storeId}
-                                className={`border rounded-lg p-4 cursor-pointer transition-all ${pickupDetails.storeId === store.storeId
-                                    ? "border-lime-500 bg-lime-50"
+                                className={`border rounded-xl p-4 cursor-pointer transition-all ${pickupDetails.storeId === store.storeId
+                                    ? "border-[#dfa742] bg-amber-50/50"
                                     : "border-gray-200 hover:border-gray-300"
                                   }`}
                               >
@@ -2167,12 +2167,12 @@ const Checkout = () => {
                                     name="store"
                                     checked={pickupDetails.storeId === store.storeId}
                                     onChange={() => handleStoreSelection(store)}
-                                    className="mt-1 accent-lime-500"
+                                    className="mt-1 accent-[#dfa742]"
                                   />
                                   <div className="flex-1">
                                     <div className="font-semibold text-gray-900">{store.name}</div>
                                     <div className="text-sm text-gray-600 mt-1 leading-relaxed">{store.address}</div>
-                                    <div className="text-sm text-lime-600 mt-2 font-medium">{store.phone}</div>
+                                    <div className="text-sm text-[#b38743] mt-2 font-bold">{store.phone}</div>
                                   </div>
                                 </label>
                               </div>
@@ -2214,7 +2214,7 @@ const Checkout = () => {
                       {!hideActions && (
                       <button
                         type="submit"
-                        className="bg-lime-500 hover:bg-lime-600 text-white rounded-lg px-6 py-2 disabled:opacity-50"
+                        className="bg-gradient-to-r from-[#dfa742] via-[#e8be6d] to-[#dfa742] hover:brightness-105 text-black font-bold rounded-full px-8 py-2.5 shadow-md shadow-[#dfa742]/20 disabled:opacity-50 transition-all"
                         disabled={!pickupDetails.phone || !pickupDetails.storeId}
                       >
                         {inline ? <TranslatedText>Save changes</TranslatedText> : <TranslatedText>Continue</TranslatedText>}
@@ -2273,7 +2273,7 @@ const Checkout = () => {
                       <textarea
                         value={customerNotes}
                         onChange={(e) => setCustomerNotes(e.target.value)}
-                        className="w-full border rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent"
+                        className="w-full border rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#dfa742] focus:border-[#dfa742]"
                         rows="3"
                         placeholder="Special delivery instructions, gift message, or any other notes..."
                         maxLength="500"
@@ -2286,7 +2286,7 @@ const Checkout = () => {
                     <button
                       type="button"
                       onClick={() => setOpenReviewStep(null)}
-                      className="bg-lime-500 hover:bg-lime-600 text-white rounded-lg px-6 py-2"
+                      className="bg-gradient-to-r from-[#dfa742] via-[#e8be6d] to-[#dfa742] hover:brightness-105 text-black font-bold rounded-full shadow-md shadow-[#dfa742]/20 px-8 py-2.5 transition-all"
                     >
                       <TranslatedText>Done</TranslatedText>
                     </button>
@@ -2294,13 +2294,13 @@ const Checkout = () => {
                     <div className="flex gap-4">
                       <button
                         onClick={() => setStep(1)}
-                        className="border border-gray-300 text-gray-700 rounded-lg px-6 py-2"
+                        className="border border-gray-300 text-gray-700 rounded-full px-6 py-2.5"
                       >
                         <TranslatedText>Back</TranslatedText>
                       </button>
                       <button
                         onClick={handleContinueToPayment}
-                        className="bg-lime-500 hover:bg-lime-600 text-white rounded-lg px-6 py-2"
+                        className="bg-gradient-to-r from-[#dfa742] via-[#e8be6d] to-[#dfa742] hover:brightness-105 text-black font-bold rounded-full shadow-md shadow-[#dfa742]/20 px-8 py-2.5 transition-all"
                       >
                         <TranslatedText>Continue to Payment</TranslatedText>
                       </button>
@@ -2323,9 +2323,9 @@ const Checkout = () => {
         : "No pickup store selected yet"
   const deliveryRadioDot = (active) => (
     <span
-      className={`grid h-4 w-4 place-items-center rounded-full border-2 ${active ? "border-lime-600" : "border-gray-300"}`}
+      className={`grid h-4 w-4 place-items-center rounded-full border-2 ${active ? "border-[#dfa742]" : "border-gray-300"}`}
     >
-      {active && <span className="h-2 w-2 rounded-full bg-lime-600" />}
+      {active && <span className="h-2 w-2 rounded-full bg-[#dfa742]" />}
     </span>
   )
   // The Home Delivery / Pickup toggle, shown in the collapsed card too. It uses clickable
@@ -2353,9 +2353,9 @@ const Checkout = () => {
             role="radio"
             aria-checked={deliveryType === type}
             onClick={selectDelivery(type)}
-            className={`flex h-12 flex-1 items-center justify-center rounded-lg border-2 px-2 text-center text-sm font-semibold leading-tight transition-colors ${
+            className={`flex h-12 flex-1 items-center justify-center rounded-xl border-2 px-2 text-center text-sm font-bold leading-tight transition-all ${
               deliveryType === type
-                ? "border-lime-600 bg-lime-600 text-white"
+                ? "border-[#dfa742] bg-[#dfa742] text-black shadow-sm"
                 : "border-gray-300 bg-white text-gray-700"
             }`}
           >
@@ -2372,17 +2372,17 @@ const Checkout = () => {
           the section header summary underneath. */}
       {deliveryType === "pickup" && showStorePicker && (
         <div className="mt-2 space-y-2">
-          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500">
-            <MapPin className="h-4 w-4 text-lime-500" />
+          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-gray-500">
+            <MapPin className="h-4 w-4 text-[#dfa742]" />
             <TranslatedText>Collect from</TranslatedText>
           </p>
 
           {STORES.filter((store) => store.visible !== false).map((store) => (
             <div
               key={store.storeId}
-              className={`rounded-lg border-2 p-3 transition-all ${
+              className={`rounded-xl border-2 p-3 transition-all ${
                 pickupDetails.storeId === store.storeId
-                  ? "border-lime-500 bg-lime-50"
+                  ? "border-[#dfa742] bg-amber-50/50"
                   : "border-gray-200 bg-white"
               }`}
             >
@@ -2392,12 +2392,12 @@ const Checkout = () => {
                   name="store-mobile"
                   checked={pickupDetails.storeId === store.storeId}
                   onChange={() => handleStoreSelection(store)}
-                  className="mt-0.5 h-4 w-4 flex-shrink-0 accent-lime-500"
+                  className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[#dfa742]"
                 />
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold text-gray-900">{store.name}</span>
                   <span className="mt-0.5 block text-xs leading-relaxed text-gray-600">{store.address}</span>
-                  <span className="mt-1 block text-xs font-medium text-lime-600">{store.phone}</span>
+                  <span className="mt-1 block text-xs font-bold text-[#b38743]">{store.phone}</span>
                 </span>
               </label>
             </div>
@@ -2422,7 +2422,7 @@ const Checkout = () => {
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block border-t border-gray-200 bg-white px-3 py-2.5 text-center text-sm font-semibold text-lime-700"
+                className="block border-t border-gray-200 bg-white px-3 py-2.5 text-center text-sm font-bold text-[#b38743] hover:text-[#dfa742]"
               >
                 <TranslatedText>Get directions</TranslatedText>
               </a>
@@ -2436,7 +2436,7 @@ const Checkout = () => {
                 setShowStorePicker(false)
                 closeSection(1)
               }}
-              className="h-12 w-full rounded-lg bg-lime-600 text-base font-semibold text-white transition-colors hover:bg-lime-700"
+              className="h-12 w-full rounded-full bg-gradient-to-r from-[#dfa742] via-[#e8be6d] to-[#dfa742] text-base font-bold text-black transition-all hover:brightness-105 shadow-md shadow-[#dfa742]/20"
             >
               <TranslatedText>Done</TranslatedText>
             </button>
@@ -2514,7 +2514,7 @@ const Checkout = () => {
     <div className="mb-4 divide-y divide-gray-100 rounded-lg border border-gray-200">
       {orderDetailRows.map(({ step, icon: Icon, label, lines }) => (
         <div key={step} className="flex items-start gap-2.5 px-3 py-2.5">
-          <Icon className="mt-0.5 h-4 w-4 flex-shrink-0 text-lime-600" />
+          <Icon className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#dfa742]" />
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
               <TranslatedText>{label}</TranslatedText>
@@ -2531,7 +2531,7 @@ const Checkout = () => {
           <button
             type="button"
             onClick={() => editSection(step)}
-            className="flex flex-shrink-0 items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold text-lime-700 hover:bg-lime-50"
+            className="flex flex-shrink-0 items-center gap-1 rounded-md px-1.5 py-1 text-xs font-bold text-[#b38743] hover:text-[#dfa742] hover:bg-amber-50/60 transition-colors"
           >
             <Pencil size={12} />
             <TranslatedText>Edit</TranslatedText>
@@ -2573,7 +2573,7 @@ const Checkout = () => {
                 <button
                   type="button"
                   onClick={handleSaveDelivery}
-                  className="w-full sm:w-auto bg-lime-500 hover:bg-lime-600 text-white font-semibold rounded-lg px-6 py-2"
+                  className="w-full sm:w-auto bg-gradient-to-r from-[#dfa742] via-[#e8be6d] to-[#dfa742] hover:brightness-105 text-black font-bold rounded-full shadow-md shadow-[#dfa742]/20 px-8 py-2.5 transition-all"
                 >
                   <TranslatedText>Save &amp; continue</TranslatedText>
                 </button>
@@ -2590,11 +2590,11 @@ const Checkout = () => {
               onToggle={() => toggleSection(2)}
             >
               {renderSummaryContent(true, true)}
-              <div className="mt-2">
+              <div className="mt-4">
                 <button
                   type="button"
                   onClick={() => advanceSection(2, 3)}
-                  className="w-full sm:w-auto bg-lime-500 hover:bg-lime-600 text-white font-semibold rounded-lg px-6 py-2"
+                  className="w-full sm:w-auto bg-gradient-to-r from-[#dfa742] via-[#e8be6d] to-[#dfa742] hover:brightness-105 text-black font-bold rounded-full shadow-md shadow-[#dfa742]/20 px-8 py-2.5 transition-all"
                 >
                   <TranslatedText>Save &amp; continue</TranslatedText>
                 </button>
@@ -2634,7 +2634,7 @@ const Checkout = () => {
                           <div className="mt-2 flex items-center gap-2">
                             <input
                               type="text"
-                              className="flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-lime-500 focus:outline-none focus:ring-2 focus:ring-lime-100"
+                              className="flex-1 rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm focus:border-[#dfa742] focus:outline-none focus:ring-2 focus:ring-[#dfa742]/20"
                               placeholder="Enter code"
                               value={coupon ? coupon.code : couponInput}
                               onChange={(e) => setCouponInput(e.target.value)}
@@ -2676,7 +2676,7 @@ const Checkout = () => {
                         <button
                           type="button"
                           onClick={handleOpenCouponsModal}
-                          className="inline-flex items-center gap-1.5 text-sm font-semibold text-lime-700 hover:underline"
+                          className="inline-flex items-center gap-1.5 text-sm font-bold text-[#b38743] hover:text-[#dfa742] hover:underline"
                         >
                           <Ticket size={16} />
                           <TranslatedText>Available Coupons</TranslatedText>
@@ -2686,12 +2686,12 @@ const Checkout = () => {
                         <button
                           type="button"
                           onClick={() => setShowPointsModal(true)}
-                          className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-700 hover:underline"
+                          className="inline-flex items-center gap-1.5 text-sm font-bold text-[#b38743] hover:text-[#dfa742] hover:underline"
                         >
                           <GrabCoin size={16} />
                           <TranslatedText>Use Grabian Points</TranslatedText>
                           {loyaltyPointsToRedeem > 0 && (
-                            <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-bold text-green-700">
+                            <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
                               − {formatPrice(appliedLoyaltyDiscount)}
                             </span>
                           )}
@@ -2702,12 +2702,12 @@ const Checkout = () => {
                         <button
                           type="button"
                           onClick={() => setShowReferralModal(true)}
-                          className="inline-flex items-center gap-1.5 text-sm font-semibold text-lime-700 hover:underline"
+                          className="inline-flex items-center gap-1.5 text-sm font-bold text-[#b38743] hover:text-[#dfa742] hover:underline"
                         >
                           <Gift size={16} />
                           <TranslatedText>Use Referral Discount</TranslatedText>
                           {referralRewardId && appliedReferralDiscount > 0 && (
-                            <span className="ml-1 rounded-full bg-lime-100 px-2 py-0.5 text-xs font-bold text-lime-700">
+                            <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
                               − {formatPrice(appliedReferralDiscount)}
                             </span>
                           )}
@@ -2738,14 +2738,14 @@ const Checkout = () => {
                           key={method.id}
                           className={`transition-all duration-200 ${
                             isSelected
-                              ? "border-2 border-blue-600 -mt-px -mx-px z-10 relative first:rounded-t-2xl last:rounded-b-2xl bg-white shadow-sm"
+                              ? "border-2 border-[#dfa742] -mt-px -mx-px z-10 relative first:rounded-t-2xl last:rounded-b-2xl bg-white shadow-sm"
                               : "border-b border-gray-200 last:border-b-0"
                           }`}
                         >
                           {/* Header row */}
                           <div
                             className={`flex items-center justify-between px-4 py-2.5 cursor-pointer select-none ${
-                              isSelected ? "bg-[#f4f8ff]/50" : "hover:bg-gray-50/50"
+                              isSelected ? "bg-amber-50/40" : "hover:bg-gray-50/50"
                             }`}
                             onClick={() => handlePaymentMethodSelect(method.id)}
                           >
@@ -2753,8 +2753,8 @@ const Checkout = () => {
                               {/* Custom Radio Button */}
                               <div className="flex items-center justify-center">
                                 {isSelected ? (
-                                  <div className="w-5 h-5 rounded-full border-2 border-blue-600 flex items-center justify-center bg-white">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+                                  <div className="w-5 h-5 rounded-full border-2 border-[#dfa742] flex items-center justify-center bg-white">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-[#dfa742]" />
                                   </div>
                                 ) : (
                                   <div className="w-5 h-5 rounded-full border-2 border-gray-300 bg-white" />
@@ -2874,18 +2874,18 @@ const Checkout = () => {
                             aria-label="Decrease quantity"
                             onClick={() => updateQuantity(item._id, item.quantity - 1)}
                             disabled={item.quantity <= 1}
-                            className="grid h-7 w-8 place-items-center bg-red-500 text-white hover:bg-red-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
+                            className="grid h-7 w-8 place-items-center bg-gray-100 text-gray-700 hover:bg-[#dfa742] hover:text-black disabled:bg-gray-100 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
                           >
                             <Minus size={14} />
                           </button>
-                          <span className="min-w-[2rem] px-1 text-center text-sm font-semibold text-gray-900">
+                          <span className="min-w-[2rem] px-1 text-center text-sm font-bold text-gray-900">
                             {item.quantity}
                           </span>
                           <button
                             type="button"
                             aria-label="Increase quantity"
                             onClick={() => updateQuantity(item._id, item.quantity + 1)}
-                            className="grid h-7 w-8 place-items-center bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
+                            className="grid h-7 w-8 place-items-center bg-gray-100 text-gray-700 hover:bg-[#dfa742] hover:text-black disabled:bg-gray-100 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
                           >
                             <Plus size={14} />
                           </button>
@@ -2915,14 +2915,14 @@ const Checkout = () => {
                       return (
                         <label
                           key={opt._id}
-                          className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2.5 text-sm ${
-                            isSelected ? "border-lime-500 bg-lime-50" : "border-gray-200 hover:border-gray-300"
+                          className={`flex cursor-pointer items-start gap-2 rounded-xl border p-2.5 text-sm ${
+                            isSelected ? "border-[#dfa742] bg-amber-50/50" : "border-gray-200 hover:border-gray-300"
                           } ${!quote.available ? "cursor-not-allowed opacity-50" : ""}`}
                         >
                           <input
                             type="radio"
                             name="checkoutDeliveryOption"
-                            className="mt-0.5 accent-lime-600"
+                            className="mt-0.5 accent-[#dfa742]"
                             checked={isSelected}
                             disabled={!quote.available}
                             onChange={() => setSelectedDelivery(opt)}
@@ -2959,11 +2959,18 @@ const Checkout = () => {
                     type="button"
                     onClick={handlePlaceOrder}
                     disabled={loading || !selectedPaymentMethod || deliveryBlocked}
-                    className="rounded-lg bg-lime-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-lime-600 disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="rounded-full bg-gradient-to-r from-[#dfa742] via-[#e8be6d] to-[#dfa742] hover:brightness-105 px-6 py-2.5 text-sm font-bold text-black shadow-md shadow-[#dfa742]/20 disabled:opacity-50 flex items-center justify-center gap-2 transition-all"
                   >
                     {loading ? (
                       <>
-                        <img src="/g.png" alt="Loading..." style={{ width: 20, height: 20, animation: "bounce 1s infinite" }} />
+                        <svg className="animate-spin h-4 w-4 text-black" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
                         <TranslatedText>Processing...</TranslatedText>
                       </>
                     ) : deliveryBlocked ? (
@@ -2983,8 +2990,8 @@ const Checkout = () => {
           <div className="lg:col-span-1 mt-4">
             <div className="rounded-lg border border-gray-200 shadow-sm p-4 lg:sticky lg:top-[130px] text-sm">
               <div className="flex items-center mb-4">
-                <div className="bg-lime-100 p-1.5 rounded-full">
-                  <Truck className="h-5 w-5 text-lime-600" />
+                <div className="bg-amber-50 border border-[#dfa742]/40 p-1.5 rounded-full">
+                  <Truck className="h-5 w-5 text-[#dfa742]" />
                 </div>
                 <div className="ml-2.5">
                   <h2 className="text-base font-bold text-black"><TranslatedText>Your Invoice</TranslatedText></h2>
@@ -3144,15 +3151,18 @@ const Checkout = () => {
               <button
                 onClick={handlePlaceOrder}
                 disabled={loading || !selectedPaymentMethod || deliveryBlocked}
-                className="mt-4 w-full bg-lime-500 hover:bg-lime-600 text-white font-bold rounded-lg px-6 py-2.5 text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                className="mt-4 w-full bg-gradient-to-r from-[#dfa742] via-[#e8be6d] to-[#dfa742] hover:brightness-105 text-black font-bold rounded-full shadow-lg shadow-[#dfa742]/20 px-6 py-3 text-sm disabled:opacity-50 flex items-center justify-center gap-2 transition-all"
               >
                 {loading ? (
                   <>
-                    <img
-                      src="/g.png"
-                      alt="Loading..."
-                      style={{ width: 24, height: 24, animation: "bounce 1s infinite" }}
-                    />
+                    <svg className="animate-spin h-5 w-5 text-black" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
                     <TranslatedText>Processing...</TranslatedText>
                   </>
                 ) : deliveryBlocked ? (
@@ -3164,10 +3174,10 @@ const Checkout = () => {
                 )}
               </button>
 
-              <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+              <div className="mt-6 bg-amber-50/40 border border-[#dfa742]/30 p-4 rounded-2xl">
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <Shield className="h-7 w-7 text-lime-500" />
+                    <Shield className="h-7 w-7 text-[#dfa742]" />
                   </div>
                   <div className="ml-2">
                     <p className="text-xs text-gray-700">
@@ -3356,7 +3366,7 @@ const Checkout = () => {
                         type="checkbox"
                         checked={addressDetails.isDefault}
                         onChange={(e) => setAddressDetails({ ...addressDetails, isDefault: e.target.checked })}
-                        className="h-4 w-4 rounded border-gray-300 text-lime-600 focus:ring-lime-500"
+                        className="h-4 w-4 rounded border-gray-300 text-[#dfa742] focus:ring-[#dfa742] accent-[#dfa742]"
                       />
                       <TranslatedText>Set as default address</TranslatedText>
                     </label>
@@ -3367,11 +3377,11 @@ const Checkout = () => {
                   <button
                     type="button"
                     onClick={() => setShowAddressModal(false)}
-                    className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    className="rounded-full border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
                     <TranslatedText>Cancel</TranslatedText>
                   </button>
-                  <button type="submit" className="rounded-lg bg-lime-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-lime-700">
+                  <button type="submit" className="rounded-full bg-gradient-to-r from-[#dfa742] via-[#e8be6d] to-[#dfa742] hover:brightness-105 px-6 py-2.5 text-sm font-bold text-black shadow-md shadow-[#dfa742]/20 transition-all">
                     <TranslatedText>Save Address</TranslatedText>
                   </button>
                 </div>

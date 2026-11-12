@@ -307,8 +307,31 @@ router.post(
         calculatedItemsPrice += protectionPrice * (Number(item.quantity) || 1)
       } else {
         // Regular product item
-        const product = await Product.findById(item.product)
+        let product = null
+        if (item.product && mongoose.Types.ObjectId.isValid(item.product)) {
+          product = await Product.findById(item.product)
+        }
+
         if (!product || !product.isActive) {
+          // If product is not found in DB (e.g. initial salon catalog items before admin creates them in DB),
+          // allow placing the order with the cart item's details.
+          if (item.name && item.price !== undefined) {
+            const fallbackPrice = Number(item.price) || 0
+            const quantity = Number(item.quantity) || 1
+            const verifiedItem = {
+              name: item.name,
+              quantity,
+              image: item.image || "/placeholder.svg",
+              price: fallbackPrice,
+            }
+            if (item.product && mongoose.Types.ObjectId.isValid(item.product)) {
+              verifiedItem.product = item.product
+            }
+            verifiedOrderItems.push(verifiedItem)
+            calculatedItemsPrice += fallbackPrice * quantity
+            continue
+          }
+
           res.status(400)
           throw new Error(`Product not found or inactive: ${item.name}`)
         }
@@ -509,7 +532,7 @@ router.post(
         } else if (coupon.appliesTo === "categories") {
           const targetCategoryIds = new Set((coupon.categories || []).map((id) => id.toString()))
           for (const item of verifiedOrderItems) {
-            if (item.product) {
+            if (item.product && mongoose.Types.ObjectId.isValid(item.product)) {
               const product = await Product.findById(item.product).lean()
               if (product && product.parentCategory && targetCategoryIds.has(product.parentCategory.toString())) {
                 totalEligibleAmount += item.price * item.quantity
@@ -519,7 +542,7 @@ router.post(
         } else if (coupon.appliesTo === "subcategories") {
           const targetSubcategoryIds = new Set((coupon.subcategories || []).map((id) => id.toString()))
           for (const item of verifiedOrderItems) {
-            if (item.product) {
+            if (item.product && mongoose.Types.ObjectId.isValid(item.product)) {
               const product = await Product.findById(item.product).lean()
               const subCatId = product && (product.category || product.subCategory)
               if (product && subCatId && targetSubcategoryIds.has(subCatId.toString())) {

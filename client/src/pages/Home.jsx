@@ -1,2253 +1,723 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import axios from "axios"
-import { generateShopURL } from "../utils/urlUtils"
-import { getFullImageUrl } from "../utils/imageUtils"
-import { resolveProductCategoryInfo } from "../utils/productCategory"
-
-import BigSaleSection from "../components/BigSaleSection"
-import {
-  Star,
-  Heart,
-  ChevronRight,
-  CreditCard,
-  Truck,
-  Headphones,
-  CheckCircle,
-  Shield,
-  Award,
-  Bell,
-  Tag,
-  Calendar,
-  ShoppingBag,
-  Zap,
-} from "lucide-react"
-import { Link, useNavigate } from "react-router-dom"
-import BannerSlider from "../components/BannerSlider"
-import CategorySliderUpdated from "../components/CategorySliderUpdated"
-import { useWishlist } from "../context/WishlistContext"
+import config from "../config/config"
 import { useCart } from "../context/CartContext"
 import { useLanguage } from "../context/LanguageContext"
-import { useCurrency } from "../context/CurrencyContext"
-import BrandSlider from "../components/BrandSlider"
-import DynamicSection from "../components/DynamicSection"
-import TranslatedText from "../components/TranslatedText"
-import PromoPopup from "../components/PromoPopup"
-import TipTapRenderer from "../components/TipTapRenderer"
-
-import config from "../config/config"
-
-
-const API_BASE_URL = `${config.API_URL}`
-
-const NOTIF_POPUP_KEY = "notif_popup_shown"
-const OBJECT_ID_REGEX = /^[0-9a-fA-F]{24}$/
-
-const NEWSLETTER_OPTIONS = [
-  { label: "Updates", value: "all", icon: <Bell className="inline mr-2 w-4 h-4" /> },
-  { label: "Promotions", value: "promotions", icon: <Tag className="inline mr-2 w-4 h-4" /> },
-  { label: "Events", value: "events", icon: <Calendar className="inline mr-2 w-4 h-4" /> },
-]
-
-const MOBILE_RESERVED_HEIGHTS = {
-  dynamicAboveFold: 260,
-  featuredProducts: 430,
-  deferredSection: 220,
-}
-
-const runWhenIdle = (callback, timeout = 1200) => {
-  if (typeof window === "undefined") return () => {}
-  if ("requestIdleCallback" in window) {
-    const id = window.requestIdleCallback(callback, { timeout })
-    return () => window.cancelIdleCallback(id)
-  }
-  const id = window.setTimeout(callback, Math.min(timeout, 900))
-  return () => window.clearTimeout(id)
-}
-
-const MobileReservedSkeleton = ({ height = MOBILE_RESERVED_HEIGHTS.deferredSection, className = "" }) => (
-  // Holds the space so the page does not jump when the real thing arrives,
-  // without showing a grey box while it waits.
-  <div className={`md:hidden mx-3 rounded-2xl ${className}`} style={{ height }} aria-hidden="true" />
-)
-
-const getHomeImageProps = (image, fallbackSrc = "", sizes = undefined) => ({
-  src: getFullImageUrl(image) || fallbackSrc,
-  srcSet: undefined,
-  sizes,
-})
-
-const getMobileHeroCardImageProps = (image, fallbackSrc = "") =>
-  getHomeImageProps(image, fallbackSrc, "(max-width: 767px) calc(50vw - 1rem), 260px")
-
-const getMobileSingleBannerProps = (image, fallbackSrc = "") =>
-  getHomeImageProps(image, fallbackSrc, "(max-width: 767px) calc(100vw - 1.5rem), 360px")
-
-const getCategoryBannerProps = (image, fallbackSrc = "") =>
-  getHomeImageProps(image, fallbackSrc, "(max-width: 1023px) calc(100vw - 1.5rem), 1311px")
-
-const MobileDeferredContentPlaceholder = () => (
-  <div className="md:hidden space-y-4 mt-4">
-    <MobileReservedSkeleton height={160} />
-    <MobileReservedSkeleton height={280} />
-    <MobileReservedSkeleton height={160} />
-    <MobileReservedSkeleton height={280} />
-    <MobileReservedSkeleton height={220} />
-  </div>
-)
-
-const Home = () => {
-  const { getLocalizedPath } = useLanguage()
-  const [featuredProducts, setFeaturedProducts] = useState([])
-  const [categories, setCategories] = useState([])
-  const [banners, setBanners] = useState([])
-  const [heroBanners, setHeroBanners] = useState([])
-  const [mobileBanners, setMobileBanners] = useState([])
-  const [homeSeoContent, setHomeSeoContent] = useState("")
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [currentSlide, setCurrentSlide] = useState(0)
-  const [categorySlide, setCategorySlide] = useState(0)
-  const [mobileProductSlide, setMobileProductSlide] = useState(0)
-  const navigate = useNavigate()
-  const [brands, setBrands] = useState([])
-  const [brandSlide, setBrandSlide] = useState(0)
-  const [hpProducts, setHpProducts] = useState([])
-  const [dellProducts, setDellProducts] = useState([])
-  const [accessoriesProducts, setAccessoriesProducts] = useState([])
-  const [acerProducts, setAcerProducts] = useState([])
-  const [asusProducts, setAsusProducts] = useState([])
-  const [networkingProducts, setNetworkingProducts] = useState([])
-  const [msiProducts, setMsiProducts] = useState([])
-  const [lenovoProducts, setLenovoProducts] = useState([])
-  const [appleProducts, setAppleProducts] = useState([])
-  const [samsungProducts, setSamsungProducts] = useState([])
-  const [upgradeFeatures, setUpgradeFeatures] = useState([])
-  const [selectedBrand, setSelectedBrand] = useState(null)
-  const [isTransitioning, setIsTransitioning] = useState(false)
-  const [brandCurrentIndex, setBrandCurrentIndex] = useState(0)
-  const [brandIndex, setBrandIndex] = useState(0) // <-- moved here
-  const sliderRef = useRef(null)
-  const [scrollX, setScrollX] = useState(0)
-  const [isAutoScrolling, setIsAutoScrolling] = useState(true)
-  const [settings, setSettings] = useState(null)
-  const [homeSections, setHomeSections] = useState([])
-  const [homeBanners, setHomeBanners] = useState([]) // Dynamic home page banners
-  const [deviceType, setDeviceType] = useState(() => {
-    if (typeof window !== "undefined") {
-      return window.innerWidth < 768 ? "Mobile" : "Desktop"
-    }
-    return "Desktop"
-  })
-  const brandUrls = useMemo(
-    () => ({
-      HP: generateShopURL({ brand: "HP" }),
-      Dell: generateShopURL({ brand: "Dell" }),
-      ASUS: generateShopURL({ brand: "ASUS" }),
-      Acer: generateShopURL({ brand: "Acer" }),
-      MSI: generateShopURL({ brand: "MSI" }),
-      Lenovo: generateShopURL({ brand: "Lenovo" }),
-      Apple: generateShopURL({ brand: "Apple" }),
-      Samsung: generateShopURL({ brand: "Samsung" }),
-    }),
-    [],
-  )
-  const [showDeferredMobileContent, setShowDeferredMobileContent] = useState(false)
-  const isMobileViewport = deviceType === "Mobile"
-  const shouldRenderDeferredMobileContent = !isMobileViewport || showDeferredMobileContent
-  const { currentCountry } = useCurrency()
-  const activeCountryCode = currentCountry?.code || "AE"
-
-  const isBannerVisibleInCountry = (banner, countryCode) => {
-    if (!banner) return false
-    if (!banner.targetCountries || !Array.isArray(banner.targetCountries) || banner.targetCountries.length === 0) {
-      return true
-    }
-    if (banner.targetCountries.includes("ALL")) {
-      return true
-    }
-    if (!countryCode) return true
-    return banner.targetCountries.includes(String(countryCode).toUpperCase())
-  }
-
-  const filteredHeroBanners = useMemo(
-    () =>
-      heroBanners.filter(
-        (banner) =>
-          banner.deviceType &&
-          banner.deviceType.toLowerCase() === deviceType.toLowerCase() &&
-          isBannerVisibleInCountry(banner, activeCountryCode),
-      ),
-    [heroBanners, deviceType, activeCountryCode],
-  )
-  const homeBannersByKey = useMemo(() => {
-    const normalize = (value) => String(value || "").trim().toLowerCase()
-    const targetDevice = normalize(deviceType)
-    const bannerMap = new Map()
-
-    homeBanners.forEach((banner) => {
-      const bannerDevice = normalize(banner.deviceType)
-      if (bannerDevice && bannerDevice !== targetDevice) return
-      if (!isBannerVisibleInCountry(banner, activeCountryCode)) return
-      const key = `${normalize(banner.section)}::${normalize(banner.position)}`
-      const current = bannerMap.get(key) || []
-      current.push(banner)
-      bannerMap.set(key, current)
-    })
-
-    return bannerMap
-  }, [homeBanners, deviceType, activeCountryCode])
-
-  // Notification popup state
-  const [showNotifPopup, setShowNotifPopup] = useState(false)
-  const [notifStep, setNotifStep] = useState("ask") // 'ask' | 'email'
-  const [notifEmail, setNotifEmail] = useState("")
-  const [notifLoading, setNotifLoading] = useState(false)
-  const [notifError, setNotifError] = useState("")
-  const [notifSuccess, setNotifSuccess] = useState(false)
-  const [notifPrefs, setNotifPrefs] = useState([])
-
-  useEffect(() => {
-    function handleResize() {
-      setDeviceType(window.innerWidth < 768 ? "Mobile" : "Desktop")
-    }
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [])
-
-  useEffect(() => {
-    // The SEO block is per country, falling back to the default when that country has
-    // none of its own.
-    axios
-      .get(`${API_BASE_URL}/api/seo-pages/public/home`, { params: { country: activeCountryCode } })
-      .then((res) => {
-        setHomeSeoContent(res.data?.seo?.seoContent || "")
-      })
-      .catch((err) => {
-        console.error("Error loading home page SEO content:", err)
-      })
-  }, [activeCountryCode])
-
-  useEffect(() => {
-    if (!isMobileViewport) {
-      setShowDeferredMobileContent(true)
-      return
-    }
-    setShowDeferredMobileContent(false)
-    const cleanupDeferredIdle = runWhenIdle(() => setShowDeferredMobileContent(true), 1600)
-
-    const revealDeferredContent = () => setShowDeferredMobileContent(true)
-    const revealHeroAndDeferred = () => setShowDeferredMobileContent(true)
-
-    window.addEventListener("scroll", revealDeferredContent, { once: true, passive: true })
-    window.addEventListener("pointerdown", revealHeroAndDeferred, { once: true, passive: true })
-    window.addEventListener("touchstart", revealHeroAndDeferred, { once: true, passive: true })
-
-    return () => {
-      cleanupDeferredIdle()
-      window.removeEventListener("scroll", revealDeferredContent)
-      window.removeEventListener("pointerdown", revealHeroAndDeferred)
-      window.removeEventListener("touchstart", revealHeroAndDeferred)
-    }
-  }, [isMobileViewport])
-
-  useEffect(() => {
-    if (showNotifPopup) return
-    if (localStorage.getItem(NOTIF_POPUP_KEY)) return
-
-    let opened = false
-    const openPopup = () => {
-      if (opened) return
-      opened = true
-      setShowNotifPopup(true)
-    }
-
-    const interactionEvents = ["pointerdown", "keydown", "touchstart", "scroll"]
-    interactionEvents.forEach((eventName) => {
-      window.addEventListener(eventName, openPopup, { once: true, passive: true })
-    })
-
-    return () => {
-      interactionEvents.forEach((eventName) => {
-        window.removeEventListener(eventName, openPopup)
-      })
-    }
-  }, [showNotifPopup])
-
-  // Helper function to render dynamic section by position
-  const renderDynamicSection = (position, options = {}) => {
-    const section = homeSections.find(s => s.isActive && s.order === position)
-    if (section) {
-      // Create a unique key that includes settings to force re-render when settings change
-      const settingsKey = section.settings ? JSON.stringify(section.settings) : 'no-settings'
-      const uniqueKey = `${section._id}-${section.sectionType}-${settingsKey}`
-      return (
-        <DynamicSection
-          key={uniqueKey}
-          section={section}
-          reserveMobileLayout={options.reserveMobileLayout}
-          mobileReservedHeight={options.mobileReservedHeight}
-        />
-      )
-    }
-    // Reserve layout only during initial loading to avoid permanent blank placeholders
-    if (options.reserveMobileLayout && isMobileViewport && loading) {
-      return <MobileReservedSkeleton height={options.mobileReservedHeight || MOBILE_RESERVED_HEIGHTS.dynamicAboveFold} />
-    }
-    return null
-  }
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const homepageResponse = await axios.get(`${API_BASE_URL}/api/homepage`).catch(() => null)
-
-        const defaultSettings = {
-          homeSections: {
-            categoryCards: true,
-            brandsCards: true,
-            productsCards: true,
-            flashSaleCards: true,
-            limitedSaleCards: true,
-          },
-        }
-
-        const homePayload = homepageResponse?.data?.success ? homepageResponse.data.data : null
-
-        let categoriesData = []
-        let brandsData = []
-        let heroData = []
-        let promotionalBanners = []
-        let mobileData = []
-        let homeBannersData = []
-        let settingsData = defaultSettings
-        let sectionsData = []
-        let featured = []
-        let hpData = []
-        let dellData = []
-        let acerData = []
-        let asusData = []
-        let msiData = []
-        let lenovoData = []
-        let appleData = []
-        let samsungData = []
-
-        if (homePayload) {
-          categoriesData = Array.isArray(homePayload.categories) ? homePayload.categories : []
-          brandsData = Array.isArray(homePayload.brands) ? homePayload.brands : []
-          const bannerGroups = homePayload.banners || {}
-          heroData = Array.isArray(bannerGroups.hero) ? bannerGroups.hero : []
-          promotionalBanners = Array.isArray(bannerGroups.promotional) ? bannerGroups.promotional : []
-          mobileData = Array.isArray(bannerGroups.mobile) ? bannerGroups.mobile : []
-          homeBannersData = Array.isArray(bannerGroups.home) ? bannerGroups.home : []
-
-          const needsBannerHydration =
-            homeBannersData.length === 0 ||
-            homeBannersData.some(
-              (banner) =>
-                !String(banner?.section || "").trim() || !String(banner?.deviceType || "").trim(),
-            )
-
-          if (needsBannerHydration) {
-            try {
-              const { data: activeBannersRaw } = await axios.get(`${API_BASE_URL}/api/banners?active=true`)
-              const activeBanners = Array.isArray(activeBannersRaw) ? activeBannersRaw : []
-
-              if (activeBanners.length > 0) {
-                heroData = activeBanners.filter((banner) => banner.position === "hero")
-                promotionalBanners = activeBanners.filter((banner) => banner.position === "promotional")
-                mobileData = activeBanners.filter((banner) => banner.position === "mobile")
-                homeBannersData = activeBanners.filter(
-                  (banner) => banner.position && banner.position.startsWith("home-") && banner.isActive,
-                )
-              }
-            } catch (bannerHydrationError) {
-              console.warn("Banner hydration fallback failed:", bannerHydrationError)
-            }
-          }
-
-          settingsData = homePayload.settings || defaultSettings
-          sectionsData = Array.isArray(homePayload.homeSections) ? homePayload.homeSections : []
-          featured = Array.isArray(homePayload.featuredProducts) ? homePayload.featuredProducts : []
-
-          const byBrand = homePayload.brandProducts || {}
-          hpData = Array.isArray(byBrand.hp) ? byBrand.hp : []
-          dellData = Array.isArray(byBrand.dell) ? byBrand.dell : []
-          acerData = Array.isArray(byBrand.acer) ? byBrand.acer : []
-          asusData = Array.isArray(byBrand.asus) ? byBrand.asus : []
-          msiData = Array.isArray(byBrand.msi) ? byBrand.msi : []
-          lenovoData = Array.isArray(byBrand.lenovo) ? byBrand.lenovo : []
-          appleData = Array.isArray(byBrand.apple) ? byBrand.apple : []
-          samsungData = Array.isArray(byBrand.samsung) ? byBrand.samsung : []
-        } else {
-          const [categoriesResponse, brandsResponse, bannersResponse, settingsResponse, sectionsResponse] = await Promise.all([
-            axios.get(`${API_BASE_URL}/api/categories`),
-            axios.get(`${API_BASE_URL}/api/brands`),
-            axios.get(`${API_BASE_URL}/api/banners?active=true`),
-            axios.get(`${API_BASE_URL}/api/settings`).catch(() => ({ data: defaultSettings })),
-            axios.get(`${API_BASE_URL}/api/home-sections/active`).catch(() => ({ data: [] })),
-          ])
-
-          categoriesData = categoriesResponse.data
-          brandsData = brandsResponse.data
-          const bannersData = bannersResponse.data
-          settingsData = settingsResponse.data
-          sectionsData = sectionsResponse.data
-          heroData = bannersData.filter((banner) => banner.position === "hero")
-          promotionalBanners = bannersData.filter((banner) => banner.position === "promotional")
-          mobileData = bannersData.filter((banner) => banner.position === "mobile")
-          homeBannersData = bannersData.filter(
-            (banner) => banner.position && banner.position.startsWith("home-") && banner.isActive,
-          )
-        }
-
-        const leanValidCategories = Array.isArray(categoriesData)
-          ? categoriesData.filter((cat) => {
-              const isValid =
-                cat &&
-                typeof cat === "object" &&
-                cat.name &&
-                typeof cat.name === "string" &&
-                cat.name.trim() !== "" &&
-                cat.isActive !== false &&
-                !cat.isDeleted &&
-                !cat.name.match(/^[0-9a-fA-F]{24}$/)
-              return isValid
-            })
-          : []
-
-        const leanValidBrands = Array.isArray(brandsData)
-          ? brandsData.filter((brand) => {
-              const isValid =
-                brand &&
-                typeof brand === "object" &&
-                brand.name &&
-                typeof brand.name === "string" &&
-                brand.name.trim() !== "" &&
-                brand.isActive !== false &&
-                !brand.name.match(/^[0-9a-fA-F]{24}$/) &&
-                brand.logo &&
-                brand.logo.trim() !== ""
-              return isValid
-            })
-          : []
-
-        const brandIdMap = {}
-        for (const brand of leanValidBrands) {
-          if (brand?._id && brand?.name) {
-            brandIdMap[brand.name.toLowerCase()] = brand._id
-          }
-        }
-
-        const categoryById = new Map(
-          leanValidCategories
-            .filter((category) => category?._id)
-            .map((category) => [String(category._id), category]),
-        )
-
-        const hydrateParentCategoryFromCategoryList = (products = []) =>
-          (Array.isArray(products) ? products : []).map((product) => {
-            if (!product || typeof product !== "object") return product
-
-            if (typeof product.parentCategory === "string" && categoryById.has(product.parentCategory)) {
-              return {
-                ...product,
-                parentCategory: categoryById.get(product.parentCategory),
-              }
-            }
-
-            return product
-          })
-
-        const hasDisplayableCategoryValue = (value) => {
-          if (!value) return false
-
-          if (typeof value === "string") {
-            const normalized = value.trim()
-            return normalized.length > 0 && !OBJECT_ID_REGEX.test(normalized)
-          }
-
-          if (typeof value === "object") {
-            const nameCandidate =
-              value.displayName || value.name || value.title || value.label || value.categoryName || ""
-            const normalized = String(nameCandidate).trim()
-            return normalized.length > 0 && !OBJECT_ID_REGEX.test(normalized)
-          }
-
-          return false
-        }
-
-        const hasCategoryDetails = (product) => {
-          if (!product || typeof product !== "object") return false
-
-          const candidates = [
-            product.category,
-            product.subCategory,
-            product.subcategory,
-            product.subCategory2,
-            product.subCategory3,
-            product.subCategory4,
-            product.parentCategory,
-            product.categoryName,
-            product.subCategoryName,
-            product.parentCategoryName,
-          ]
-
-          return candidates.some(hasDisplayableCategoryValue)
-        }
-
-        const shouldRefetchForCategoryIntegrity = (products = []) => {
-          if (!Array.isArray(products) || products.length === 0) return true
-          return products.some((product) => !hasCategoryDetails(product))
-        }
-
-        const categoryIdMap = {}
-        for (const category of leanValidCategories) {
-          if (category?._id && category?.name) {
-            categoryIdMap[category.name.trim().toLowerCase()] = category._id
-          }
-        }
-
-        setCategories(leanValidCategories)
-        setBanners(promotionalBanners)
-        setHeroBanners(heroData)
-        setMobileBanners(mobileData)
-        setHomeBanners(homeBannersData)
-        setBrands(leanValidBrands)
-        setSettings(settingsData)
-        setHomeSections(sectionsData)
-
-        const fetchProducts = async (params) => {
-          const { data } = await axios.get(`${API_BASE_URL}/api/products`, { params })
-          return Array.isArray(data) ? data : []
-        }
-
-        const fetchByBrand = (brandId, limit) => (brandId ? fetchProducts({ brand: brandId, limit }) : Promise.resolve([]))
-        const fetchByParentCategory = (categoryId, limit) =>
-          categoryId ? fetchProducts({ parentCategory: categoryId, limit }) : Promise.resolve([])
-        const fetchNetworking = (limit) =>
-          categoryIdMap.networking ? fetchByParentCategory(categoryIdMap.networking, limit) : Promise.resolve([])
-        const resolveSectionProducts = async (preloadedProducts, fallbackFetcher) => {
-          const hydratedPreloaded = hydrateParentCategoryFromCategoryList(preloadedProducts)
-          if (!shouldRefetchForCategoryIntegrity(hydratedPreloaded)) {
-            return hydratedPreloaded
-          }
-
-          const fetchedProducts = await fallbackFetcher()
-          return hydrateParentCategoryFromCategoryList(fetchedProducts)
-        }
-
-        const [
-          featuredFallback,
-          hpFallback,
-          dellFallback,
-          acerFallback,
-          asusFallback,
-          msiFallback,
-          lenovoFallback,
-          appleFallback,
-          samsungFallback,
-          accessoriesData,
-          networkingData,
-        ] = await Promise.all([
-          resolveSectionProducts(featured, () => fetchProducts({ featured: true, limit: 12 })),
-          resolveSectionProducts(hpData, () => fetchByBrand(brandIdMap.hp, 3)),
-          resolveSectionProducts(dellData, () => fetchByBrand(brandIdMap.dell, 3)),
-          resolveSectionProducts(acerData, () => fetchByBrand(brandIdMap.acer, 3)),
-          resolveSectionProducts(asusData, () => fetchByBrand(brandIdMap.asus, 3)),
-          resolveSectionProducts(msiData, () => fetchByBrand(brandIdMap.msi, 3)),
-          resolveSectionProducts(lenovoData, () => fetchByBrand(brandIdMap.lenovo, 3)),
-          resolveSectionProducts(appleData, () => fetchByBrand(brandIdMap.apple, 3)),
-          resolveSectionProducts(samsungData, () => fetchByBrand(brandIdMap.samsung, 3)),
-          fetchByParentCategory(categoryIdMap.accessories, 8),
-          fetchNetworking(8),
-        ])
-
-        setFeaturedProducts(hydrateParentCategoryFromCategoryList(featuredFallback))
-        setHpProducts(hydrateParentCategoryFromCategoryList(hpFallback))
-        setDellProducts(hydrateParentCategoryFromCategoryList(dellFallback))
-        setAccessoriesProducts(hydrateParentCategoryFromCategoryList(accessoriesData))
-        setAcerProducts(hydrateParentCategoryFromCategoryList(acerFallback))
-        setAsusProducts(hydrateParentCategoryFromCategoryList(asusFallback))
-        setNetworkingProducts(hydrateParentCategoryFromCategoryList(networkingData))
-        setMsiProducts(hydrateParentCategoryFromCategoryList(msiFallback))
-        setLenovoProducts(hydrateParentCategoryFromCategoryList(lenovoFallback))
-        setAppleProducts(hydrateParentCategoryFromCategoryList(appleFallback))
-        setSamsungProducts(hydrateParentCategoryFromCategoryList(samsungFallback))
-        setLoading(false)
-      } catch (error) {
-        console.error("Error fetching data:", error)
-        setError("Failed to load data. Please try again later.")
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [])
-
-  // Infinite loop pixel-based auto-scroll for brands
-  useEffect(() => {
-    if (!brands.length) return
-    let animationFrameId
-    let lastTimestamp = null
-    const speed = 0.5 // px per frame, adjust for faster/slower scroll
-
-    function step(timestamp) {
-      if (!lastTimestamp) lastTimestamp = timestamp
-      const elapsed = timestamp - lastTimestamp
-      lastTimestamp = timestamp
-      if (!sliderRef.current) return
-      const track = sliderRef.current
-      const totalWidth = track.scrollWidth / 2 // width of one set
-      const nextScrollX = scrollX + speed
-      if (nextScrollX >= totalWidth) {
-        // Instantly reset to the start (no animation)
-        track.style.transition = "none"
-        setScrollX(0)
-        // Force reflow, then restore transition
-        setTimeout(() => {
-          if (track) track.style.transition = "transform 0.3s linear"
-        }, 20)
-        animationFrameId = requestAnimationFrame(step)
-        return
-      }
-      setScrollX(nextScrollX)
-      animationFrameId = requestAnimationFrame(step)
-    }
-
-    if (isAutoScrolling) {
-      animationFrameId = requestAnimationFrame(step)
-    }
-    return () => {
-      if (animationFrameId) cancelAnimationFrame(animationFrameId)
-    }
-    // eslint-disable-next-line
-  }, [brands.length, isAutoScrolling, scrollX])
-
-  useEffect(() => {
-    if (sliderRef.current) {
-      sliderRef.current.style.transform = `translateX(-${scrollX}px)`
-    }
-  }, [scrollX])
-
-  // Handle infinite loop transitions
-  useEffect(() => {
-    if (brandCurrentIndex === brands.length) {
-      setTimeout(() => {
-        setIsTransitioning(false)
-        setBrandCurrentIndex(0)
-      }, 300)
-    } else if (brandCurrentIndex === -1) {
-      setTimeout(() => {
-        setIsTransitioning(false)
-        setBrandCurrentIndex(brands.length - 1)
-      }, 300)
-    } else {
-      setIsTransitioning(true)
-    }
-  }, [brandCurrentIndex, brands.length])
-
-  const handleCategoryClick = (categoryOrItem) => {
-    const getNodeIdentifier = (nodeOrValue) => {
-      if (!nodeOrValue) return null
-      if (typeof nodeOrValue === "string") return nodeOrValue
-      return nodeOrValue.slug || nodeOrValue.name || nodeOrValue._id || null
-    }
-
-    // Handle if called with string (legacy compatibility) or object (new format)
-    if (typeof categoryOrItem === 'string') {
-      // Legacy: string name passed
-      const category = categories.find((cat) => cat.name === categoryOrItem)
-      if (category && category.name) {
-        navigate(generateShopURL({ parentCategory: getNodeIdentifier(category) }))
-      } else {
-        navigate(`/shop`)
-      }
-    } else if (categoryOrItem && typeof categoryOrItem === 'object') {
-      // New format: full item object passed from CategorySliderUpdated
-      const item = categoryOrItem
-
-      // Check if this is a subcategory (has category or parentSubCategory fields)
-      const isSubcategory = item.category || item.parentSubCategory
-
-      if (isSubcategory) {
-        // This is a subcategory - need to find its parent category and build proper URL
-        const parentCategoryId = typeof item.category === 'object' ? item.category._id : item.category
-        const parentCategory = categories.find((cat) => cat._id === parentCategoryId)
-
-        if (parentCategory) {
-          // Navigate with both parent category and subcategory
-          navigate(generateShopURL({
-            parentCategory: getNodeIdentifier(parentCategory),
-            subcategory: getNodeIdentifier(item)
-          }))
-        } else {
-          // Fallback: just navigate to the subcategory name
-          navigate(generateShopURL({ subcategory: getNodeIdentifier(item) }))
-        }
-      } else {
-        // This is a main category
-        navigate(generateShopURL({ parentCategory: getNodeIdentifier(item) }))
-      }
-    }
-  }
-
-  const handleBrandClick = (brandName) => {
-    navigate(generateShopURL({ brand: brandName }))
-  }
-
-  const nextSlide = () => {
-    if (currentSlide < featuredProducts.length - 4) {
-      setCurrentSlide(currentSlide + 1)
-    }
-  }
-
-  const prevSlide = () => {
-    if (currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1)
-    }
-  }
-
-  const nextCategorySlide = () => {
-    const itemsPerSlide = window.innerWidth >= 1024 ? 8 : window.innerWidth >= 768 ? 6 : 4
-    const maxSlides = Math.ceil(categories.length / itemsPerSlide) - 1
-    if (categorySlide < maxSlides) {
-      setCategorySlide(categorySlide + 1)
-    }
-  }
-
-  const prevCategorySlide = () => {
-    if (categorySlide > 0) {
-      setCategorySlide(categorySlide - 1)
-    }
-  }
-
-  const nextMobileProductSlide = () => {
-    if (mobileProductSlide < featuredProducts.length - 3) {
-      setMobileProductSlide(mobileProductSlide + 1)
-    }
-  }
-
-  const prevMobileProductSlide = () => {
-    if (mobileProductSlide > 0) {
-      setMobileProductSlide(mobileProductSlide - 1)
-    }
-  }
-
-  const nextBrandSlide = () => {
-    setBrandCurrentIndex((prev) => (prev + 1) % brands.length)
-  }
-
-  const prevBrandSlide = () => {
-    setBrandCurrentIndex((prev) => (prev - 1 + brands.length) % brands.length)
-  }
-
-  // Calculate how many brands are visible at once
-  const getVisibleCount = () => {
-    if (typeof window !== "undefined") {
-      if (window.innerWidth < 768) return 4
-      if (window.innerWidth < 1024) return 6
-    }
-    return 8
-  }
-  const visibleCount = getVisibleCount()
-  // Remove duplicate totalBrands declaration; use the one for featured brands section only
-  const totalBrands = brands.length
-  const getVisibleBrands = () => {
-    if (!brands.length) return []
-    const visible = []
-    for (let i = 0; i < visibleCount; i++) {
-      visible.push(brands[(brandIndex + i) % totalBrands])
-    }
-    return visible
-  }
-  const handlePrevBrand = () => {
-    setBrandIndex((prev) => (prev - 1 + totalBrands) % totalBrands)
-  }
-  const handleNextBrand = () => {
-    setBrandIndex((prev) => (prev + 1) % totalBrands)
-  }
-
-  // Helper function to get banners for a specific section and device type
-  const getBannersForSection = (section, position = null) => {
-    const normalize = (value) => String(value || "").trim().toLowerCase()
-    return homeBannersByKey.get(`${normalize(section)}::${normalize(position)}`) || []
-  }
-
-  const handleNotifDeny = () => {
-    setShowNotifPopup(false)
-    localStorage.setItem(NOTIF_POPUP_KEY, "1")
-  }
-  const handleNotifAllow = () => {
-    setNotifStep("email")
-  }
-  const handleNotifEmailChange = (e) => setNotifEmail(e.target.value)
-  const handleNotifPrefChange = (value) => {
-    setNotifPrefs((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]))
-  }
-  const handleNotifEmailSubmit = async (e) => {
-    e.preventDefault()
-    setNotifError("")
-    if (!notifPrefs.length) {
-      setNotifError("Please select at least one preference.")
-      return
-    }
-    setNotifLoading(true)
-    try {
-      await axios.post(`${API_BASE_URL}/api/newsletter/subscribe`, { email: notifEmail, preferences: notifPrefs })
-      setNotifSuccess(true)
-      localStorage.setItem(NOTIF_POPUP_KEY, "1")
-      setTimeout(() => setShowNotifPopup(false), 2000)
-    } catch (err) {
-      setNotifError("Failed to subscribe. Please try again.")
-    }
-    setNotifLoading(false)
-  }
-
-  // Helper function to get proper banner link with language prefix
-  const getBannerLink = (banner, fallbackUrl = "#") => {
-    if (!banner) return fallbackUrl
-    const link = banner.link || banner.buttonLink || fallbackUrl
-    // If it's an external link or already has language prefix, return as is
-    if (link.startsWith("http://") || link.startsWith("https://") || 
-        link.startsWith("/ae-en/") || link.startsWith("/ae-ar/")) {
-      return link
-    }
-    // Otherwise, add language prefix
-    return getLocalizedPath(link)
-  }
-
-  // A banner that will not load is hidden, never replaced with a sample image.
-  const hideBrokenImage = (e) => {
-    e.currentTarget.style.visibility = "hidden"
-  }
-
-  const handleBannerImageError = (e, bannerImage) => {
-    const img = e.currentTarget
-    if (!img.dataset.retryOriginal && bannerImage) {
-      img.dataset.retryOriginal = "1"
-      img.src = getFullImageUrl(bannerImage)
-      return
-    }
-    hideBrokenImage(e)
-  }
-
-  if (error) {
+import { useToast } from "../context/ToastContext"
+import TrendHeader from "../components/TrendHeader"
+import TrendFooter from "../components/TrendFooter"
+import {
+  fetchSalonCatalog,
+  DEFAULT_SERVICES,
+  DEFAULT_PRODUCTS,
+  SPECIAL_OFFER_COMBO,
+} from "../services/salonService"
+import {
+  Scissors,
+  Sparkles,
+  ShoppingBag,
+  ShoppingCart,
+  ArrowRight,
+  Check,
+  X,
+  ChevronDown,
+} from "lucide-react"
+
+// Custom Service Icon Renderer
+function ServiceIcon({ type }) {
+  if (type === "scissors") {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-500">{error}</p>
-      </div>
+      <svg className="w-5 h-5 text-[#dfa742]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="6" cy="6" r="3" />
+        <circle cx="6" cy="18" r="3" />
+        <line x1="20" y1="4" x2="8.12" y2="15.88" />
+        <line x1="14.47" y1="14.48" x2="20" y2="20" />
+        <line x1="8.12" y1="8.12" x2="12" y2="12" />
+      </svg>
     )
   }
-
+  if (type === "beard") {
+    return (
+      <svg className="w-5 h-5 text-[#dfa742]" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M4 8c0 3 1.5 6 4 7.5 1.5.9 3 1.5 4 1.5s2.5-.6 4-1.5c2.5-1.5 4-4.5 4-7.5 0-1-1-2-2-2h-3c-1 0-1.5.5-2 1-.5-.5-1-1-2-1H6C5 6 4 7 4 8z" />
+      </svg>
+    )
+  }
+  if (type === "bath") {
+    return (
+      <svg className="w-5 h-5 text-[#dfa742]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+      </svg>
+    )
+  }
+  if (type === "massage") {
+    return (
+      <svg className="w-5 h-5 text-[#dfa742]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="7" r="4" />
+        <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
+      </svg>
+    )
+  }
+  if (type === "facial") {
+    return (
+      <svg className="w-5 h-5 text-[#dfa742]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 3a9 9 0 0 0-9 9c0 4.97 4.03 9 9 9s9-4.03 9-9a9 9 0 0 0-9-9z" />
+        <path d="M9 10h.01M15 10h.01M8 15s1.5 2 4 2 4-2 4-2" />
+      </svg>
+    )
+  }
   return (
-    <div className="bg-white mt-1">
-      <PromoPopup pageKey="home" delayMs={3000} />
-      {/* Notification/Newsletter Popup */}
-      {showNotifPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full relative animate-fadeInUp">
-            {notifStep === "ask" && (
-              <>
-                <div className="flex items-center mb-4">
-                  <img src="/g.png" alt="Logo" className="w-16 h-18 rounded-full mr-4" />
-                  <div>
-                    <h2 className="text-lg font-bold text-black mb-1">
-                      This website would like to send you awesome updates and offers!
-                    </h2>
-                    <p className="text-gray-600 text-sm">
-                      Notifications can be turned off anytime from browser settings.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2 mt-4">
-                  <button className="px-4 py-2 rounded bg-gray-200 text-black font-semibold" onClick={handleNotifDeny}>
-                    Don't Allow
-                  </button>
-                  <button className="px-4 py-2 rounded bg-lime-500 text-white font-semibold" onClick={handleNotifAllow}>
-                    Allow
-                  </button>
-                </div>
-              </>
-            )}
-            {notifStep === "email" && !notifSuccess && (
-              <form onSubmit={handleNotifEmailSubmit}>
-                <div className="flex items-center  mb-4">
-                  <img src="/g.png" alt="Logo" className="w-14 h-14 rounded-full mr-4" />
-                  <div>
-                    <h2 className="text-lg font-bold text-black mb-1">Subscribe to our newsletter</h2>
-                    <p className="text-gray-600 text-sm">Enter your email to get the best offers and updates!</p>
-                  </div>
-                </div>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="email"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded"
-                    placeholder="Enter your email"
-                    value={notifEmail}
-                    onChange={handleNotifEmailChange}
-                    required
-                  />
-                  <button
-                    type="submit"
-                    className="px-4 py-2 rounded bg-lime-500 text-white font-semibold"
-                    disabled={notifLoading}
-                  >
-                    {notifLoading ? "Subscribing..." : "Subscribe"}
-                  </button>
-                </div>
-                {/* Preferences checkboxes */}
-                <div className="flex flex-col md:flex-row gap-6 mb-2">
-                  {NEWSLETTER_OPTIONS.map((opt) => (
-                    <label key={opt.value} className="flex items-center text-black font-normal cursor-pointer">
-                      <input
-                        type="checkbox"
-                        value={opt.value}
-                        checked={notifPrefs.includes(opt.value)}
-                        onChange={() => handleNotifPrefChange(opt.value)}
-                        className="mr-2"
-                      />
-                      {opt.icon}
-                      {opt.label}
-                    </label>
-                  ))}
-                </div>
-                {notifError && <div className="text-red-500 text-sm mb-2">{notifError}</div>}
-                <div className="flex justify-end">
-                  <button type="button" className="px-3 py-1 text-xs text-gray-500 underline" onClick={handleNotifDeny}>
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            )}
-            {notifSuccess && (
-              <div className="flex flex-col items-center justify-center py-6">
-                <img
-                  src="/logo.png"
-                  alt="Logo"
-                  width="56"
-                  height="56"
-                  className="w-14 h-14 rounded-full mb-3 border border-gray-200"
-                />
-                <h2 className="text-lg font-bold text-black mb-2">Thank you for subscribing!</h2>
-                <p className="text-gray-600 text-sm">A confirmation email has been sent to {notifEmail}.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-      {/* Real hero banners only. While they load the slider holds the height and shows nothing. */}
-      <BannerSlider banners={filteredHeroBanners} />
-      {/* Categories Section - Admin Controlled Slider */}
-      <CategorySliderUpdated onCategoryClick={handleCategoryClick} />
+    <svg className="w-5 h-5 text-[#dfa742]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0" />
+      <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2" />
+      <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8" />
+      <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+    </svg>
+  )
+}
 
-      {/* Dynamic Section Position 1 */}
-      {renderDynamicSection(1, {
-        reserveMobileLayout: true,
-        mobileReservedHeight: MOBILE_RESERVED_HEIGHTS.dynamicAboveFold,
-      })}
-
-      {/* Three Cards Section - Dynamic Banners */}
-      <div className="m-3">
-        {/* Desktop & Tablet - Grid Layout */}
-        {!isMobileViewport && <div className="hidden md:flex justify-between gap-4">
-          {(() => {
-            const banners = getBannersForSection("top-triple", "home-top-triple")
-            return [0, 1, 2].map((index) => {
-              const banner = banners[index]
-
-              return (
-                <div key={index} className="w-1/3 lg:w-1/3 h-[280px]">
-                  {banner ? (
-                    <Link to={getBannerLink(banner)} aria-label={banner.title || "View products"} className="block h-full">
-                      <img
-                        src={getFullImageUrl(banner.image)}
-                        alt={banner.title || "Banner"}
-                        fetchPriority={index === 0 ? "high" : "auto"}
-                        loading={index === 0 ? "eager" : "lazy"}
-                        decoding="async"
-                        width="1200"
-                        height="560"
-                        className="block w-full h-full rounded-lg bg-cover hover:opacity-90 transition-opacity cursor-pointer"
-                        onError={hideBrokenImage}
-                      />
-                    </Link>
-                  ) : null}
-                </div>
-              )
-            })
-          })()}
-        </div>}
-
-        {/* Mobile - Simple Grid */}
-        <div className="md:hidden grid grid-cols-2 gap-3">
-          {(() => {
-            const banners = getBannersForSection("top-mobile", "home-top-triple")
-            return [0, 1].map((index) => {
-              const banner = banners[index]
-              const imageProps = getMobileHeroCardImageProps(banner?.image)
-
-              return (
-                <div key={index} className="h-[105px]">
-                  {banner ? (
-                    <Link to={getBannerLink(banner)} aria-label={banner.title || "View products"} className="block h-full">
-                      <img
-                        src={imageProps.src}
-                        srcSet={imageProps.srcSet}
-                        sizes={imageProps.sizes}
-                        alt={banner.title || "Banner"}
-                        fetchPriority={index === 0 ? "high" : "auto"}
-                        loading={index === 0 ? "eager" : "lazy"}
-                        decoding="async"
-                        width="800"
-                        height="420"
-                        className="block w-full h-full rounded-lg object-cover hover:opacity-95 transition-opacity cursor-pointer"
-                        onError={hideBrokenImage}
-                      />
-                    </Link>
-                  ) : null}
-                </div>
-              )
-            })
-          })()}
-        </div>
-      </div>
-      {/* <div className=" flex items-center justify-center mt-2 mx-2">
-        <img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1757761484/tamara_tabby_kooxbn.webp" alt="" className="w-full  sm:mx-4 h-auto rounded-lg" />
-      </div> */}
-
-
-      {/* Big Sale Section - Handles both mobile and desktop views */}
-      {!isMobileViewport && <BigSaleSection products={featuredProducts} />}
-
-      {/* Featured Products Section - Mobile Grid */}
-      <section className="py-6 mx-3 md:hidden">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-900">Featured Products</h2>
-          <button className="text-green-600 hover:text-green-800 font-medium text-sm">View All</button>
-        </div>
-
-        {loading && featuredProducts.length === 0 ? (
-          <div
-            className="grid grid-cols-2 gap-3"
-            style={{ minHeight: `${MOBILE_RESERVED_HEIGHTS.featuredProducts}px` }}
-          >
-            {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="h-[206px] rounded-xl" aria-hidden="true" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {featuredProducts.slice(0, 4).map((product, index) => (
-              <MobileProductCard key={product._id} product={product} index={index} />
-            ))}
-          </div>
-        )}
-      </section>
-
-
-
-      {/* Dynamic Section Position 2 */}
-      {renderDynamicSection(2, {
-        reserveMobileLayout: true,
-        mobileReservedHeight: MOBILE_RESERVED_HEIGHTS.dynamicAboveFold,
-      })}
-
-
-
-      {/* Mobile Banner - HP Section (Dynamic) */}
-      <div className="md:hidden rounded-lg shadow-lg mx-3 h-[160px]">
-        {getBannersForSection("hp-mobile", "home-brand-single").length > 0 ? (
-          <Link to={getBannerLink(getBannersForSection("hp-mobile", "home-brand-single")[0], brandUrls.HP)} aria-label="Browse HP products">
-            <img
-              {...getMobileSingleBannerProps(
-                getBannersForSection("hp-mobile", "home-brand-single")[0].image,
-              )}
-              alt={getBannersForSection("hp-mobile", "home-brand-single")[0].title || "HP Products Banner Mobile"}
-              fetchPriority="high"
-              loading="eager"
-              decoding="async"
-              className="w-full h-full bg-cover rounded-lg hover:opacity-95 transition-opacity cursor-pointer"
-              onError={hideBrokenImage}
-            />
-          </Link>
-        ) : null}
+// Barber Pole Graphic Component
+function BarberPole() {
+  return (
+    <div className="relative flex flex-col items-center w-14 sm:w-16 h-48 sm:h-56 filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]">
+      {/* Top Chrome Cap with brass finial */}
+      <div className="w-12 sm:w-14 h-4 bg-gradient-to-r from-gray-400 via-gray-100 to-gray-400 rounded-t-full shadow-md" />
+      <div className="w-14 sm:w-16 h-3 bg-gradient-to-r from-gray-500 via-gray-200 to-gray-500 rounded-sm shadow-inner" />
+      
+      {/* Cylindrical Glass Pole with Rotating Barber Stripes */}
+      <div className="relative w-10 sm:w-12 flex-1 overflow-hidden rounded-md border-2 border-white/40 shadow-inner bg-white">
+        <div 
+          className="absolute inset-0 w-full h-[200%] animate-barber-spin"
+          style={{
+            background: "repeating-linear-gradient(45deg, #d32f2f, #d32f2f 12px, #ffffff 12px, #ffffff 24px, #1976d2 24px, #1976d2 36px, #ffffff 36px, #ffffff 48px)",
+          }}
+        />
+        {/* Glass Reflection Highlight */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white/40 via-transparent to-black/30 pointer-events-none" />
       </div>
 
+      {/* Bottom Chrome Cap */}
+      <div className="w-14 sm:w-16 h-3 bg-gradient-to-r from-gray-500 via-gray-200 to-gray-500 rounded-sm shadow-inner" />
+      <div className="w-12 sm:w-14 h-5 bg-gradient-to-r from-gray-400 via-gray-100 to-gray-400 rounded-b-full shadow-md" />
+      
+      {/* Small wall bracket */}
+      <div className="w-4 h-2 bg-gray-600 rounded-b-sm" />
+    </div>
+  )
+}
 
-      {shouldRenderDeferredMobileContent ? (
-        <>
-      {/* Desktop Banner - HP and Dell (Dynamic) */}
-      <div className="hidden md:flex gap-2 mx-3 h-[270px]">
-        {(() => {
-          const banners = getBannersForSection("hp-dell-desktop", "home-brand-dual")
-          const hpBanner = banners[0]
-          const dellBanner = banners[1]
+export default function Home() {
+  const navigate = useNavigate()
+  const { addToCart } = useCart()
+  const { getLocalizedPath } = useLanguage()
+  const { showToast } = useToast()
 
-          return (
-            <>
-              <div className="w-1/2">
-                {hpBanner ? (
-                  <Link to={getBannerLink(hpBanner, brandUrls.HP)}>
-                    <img
-                      src={getFullImageUrl(hpBanner.image)}
-                      alt={hpBanner.title || "HP Products Banner"}
-                      className="w-full h-full bg-cover rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
-                      onError={(e) => handleBannerImageError(e, hpBanner.image)}
-                    />
-                  </Link>
-                ) : null}
-              </div>
-              <div className="w-1/2">
-                {dellBanner ? (
-                  <Link to={getBannerLink(dellBanner, brandUrls.Dell)}>
-                    <img
-                      src={getFullImageUrl(dellBanner.image)}
-                      alt={dellBanner.title || "Dell Products Banner"}
-                      className="w-full h-full bg-cover rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
-                      onError={(e) => handleBannerImageError(e, dellBanner.image)}
-                    />
-                  </Link>
-                ) : null}
-              </div>
-            </>
-          )
-        })()}
-      </div>
+  const [services, setServices] = useState(DEFAULT_SERVICES)
+  const [products, setProducts] = useState(DEFAULT_PRODUCTS)
+  const [loading, setLoading] = useState(true)
+  const [addedItemIds, setAddedItemIds] = useState({})
+  const [offersModalOpen, setOffersModalOpen] = useState(false)
 
-      {/* HP and Dell Section - Mobile shows only HP */}
-      <section className="py-8 mx-3">
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* HP Products */}
-          <div className="w-full md:w-1/2">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-lg md:text-xl font-bold text-gray-900">HP Products</h2>
-              </div>
-              <button
-                onClick={() => handleBrandClick("HP")}
-                className="text-green-600 hover:text-green-800 font-medium flex items-center text-sm"
-              >
-                View All HP
-                <ChevronRight className="ml-1" size={14} />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 h-full">
-              {hpProducts.length > 0 ? (
-                <>
-                  {hpProducts.slice(0, 2).map((product) => (
-                    <DynamicBrandProductCard key={product._id} product={product} />
-                  ))}
-                  <div className="hidden md:block">
-                    {hpProducts[2] && <DynamicBrandProductCard product={hpProducts[2]} />}
-                  </div>
-                </>
-              ) : (
-                <div className="col-span-2 md:col-span-3 text-center py-8 text-gray-500">No HP products available</div>
-              )}
-            </div>
-          </div>
+  // Homepage displays top 6 items; 'See More' navigates to full services/products page
+  const visibleServices = services.slice(0, 6)
+  const visibleProducts = products.slice(0, 6)
+  const [heroBanner, setHeroBanner] = useState({
+    title: "Trend Salon",
+    tagline: "Look Good • Feel Great",
+    subtitle: "Premium Grooming & Wellness Services for the Modern Gentleman",
+    image: "/salon/hero-man-transparent.png",
+    buttonText: "Book Now",
+  })
 
-          {/* Dell Products - Hidden on Mobile */}
-          <div className="w-full md:w-1/2 hidden md:block">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold text-gray-900">Dell Products</h2>
-              </div>
-              <button
-                onClick={() => handleBrandClick("Dell")}
-                className="text-green-600 hover:text-green-800 font-medium flex items-center text-sm"
-              >
-                View All Dell
-                <ChevronRight className="ml-1" size={14} />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {dellProducts.length > 0 ? (
-                <>
-                  {dellProducts.slice(0, 2).map((product) => (
-                    <DynamicBrandProductCard key={product._id} product={product} />
-                  ))}
-                  <div className="hidden md:block">
-                    {dellProducts[2] && <DynamicBrandProductCard product={dellProducts[2]} />}
-                  </div>
-                </>
-              ) : (
-                <div className="col-span-2 md:col-span-3 text-center py-8 text-gray-500">No Dell products available</div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
+  // Fetch dynamic products and services from database/Admin
+  useEffect(() => {
+    let isMounted = true
+    async function loadData() {
+      setLoading(true)
+      const data = await fetchSalonCatalog()
+      if (isMounted) {
+        setServices(data.services)
+        setProducts(data.products)
+        setLoading(false)
+      }
+    }
+    loadData()
 
-      {/* Dynamic Section Position 3 */}
-      {renderDynamicSection(3)}
-
-      {/* Accessories Banner - Dynamic */}
-      <div className="mx-3 my-4 h-[160px] lg:h-[300px]">
-        {getBannersForSection("accessories", "home-category-banner").length > 0 ? (
-          <Link to={getLocalizedPath(getBannersForSection("accessories", "home-category-banner")[0].link || "/product-category/accessories")}>
-            <img
-              {...getCategoryBannerProps(
-                getBannersForSection("accessories", "home-category-banner")[0].image,
-              )}
-              alt={getBannersForSection("accessories", "home-category-banner")[0].title || "Accessories Promotion Banner"}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-full cover rounded-lg"
-              onError={hideBrokenImage}
-            />
-          </Link>
-        ) : null}
-      </div>
-
-      {/* Accessories Section - Mobile shows 2 products */}
-      <section className="py-8 mx-3">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900"><TranslatedText>Accessories</TranslatedText></h2>
-          <button
-            onClick={() => handleCategoryClick("Accessories")}
-            className="text-green-600 hover:text-green-800 font-medium flex items-center"
-          >
-            <TranslatedText>See All Products</TranslatedText>
-            <ChevronRight className="ml-1" size={16} />
-          </button>
-        </div>
-
-        {accessoriesProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
-            {accessoriesProducts.slice(0, 2).map((product) => (
-              <AccessoriesProductCard key={product._id} product={product} />
-            ))}
-            {accessoriesProducts.slice(2, 6).map((product) => (
-              <div key={product._id} className="hidden md:block">
-                <AccessoriesProductCard product={product} />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 text-gray-500">
-            <p><TranslatedText>No accessories products available</TranslatedText></p>
-          </div>
-        )}
-      </section>
-      {/* <CategoryBanners /> */}
-      {/* Dynamic Section Position 4 */}
-      {renderDynamicSection(4)}
-
-      {/* Mobile Banner Asus (Dynamic) */}
-      <div className="md:hidden rounded-lg shadow-lg mx-3 h-[160px]">
-        {getBannersForSection("asus-mobile", "home-brand-single").length > 0 ? (
-          <Link to={getBannerLink(getBannersForSection("asus-mobile", "home-brand-single")[0], brandUrls.ASUS)} aria-label="Browse ASUS products">
-            <img
-              {...getMobileSingleBannerProps(
-                getBannersForSection("asus-mobile", "home-brand-single")[0].image,
-              )}
-              alt={getBannersForSection("asus-mobile", "home-brand-single")[0].title || "ASUS Products Banner Mobile"}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-full cover rounded-lg hover:opacity-95 transition-opacity cursor-pointer"
-              onError={hideBrokenImage}
-            />
-          </Link>
-        ) : null}
-      </div>
-
-      {/* Desktop Banner - Acer and ASUS (Dynamic) */}
-      <div className="hidden md:flex gap-2 mx-3 h-[270px]">
-        {(() => {
-          const banners = getBannersForSection("acer-asus-desktop", "home-brand-dual")
-          const acerBanner = banners[0]
-          const asusBanner = banners[1]
-
-          return (
-            <>
-              <div className="w-1/2">
-                {acerBanner ? (
-                  <Link to={getBannerLink(acerBanner, brandUrls.Acer)}>
-                    <img
-                      src={getFullImageUrl(acerBanner.image)}
-                      alt={acerBanner.title || "Acer Products Banner"}
-                      className="w-full h-full cover rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
-                      onError={(e) => handleBannerImageError(e, acerBanner.image)}
-                    />
-                  </Link>
-                ) : null}
-              </div>
-              <div className="w-1/2">
-                {asusBanner ? (
-                  <Link to={getBannerLink(asusBanner, brandUrls.ASUS)}>
-                    <img
-                      src={getFullImageUrl(asusBanner.image)}
-                      alt={asusBanner.title || "ASUS Products Banner"}
-                      className="w-full h-full cover rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
-                      onError={(e) => handleBannerImageError(e, asusBanner.image)}
-                    />
-                  </Link>
-                ) : null}
-              </div>
-            </>
-          )
-        })()}
-      </div>
-
-      {/* Acer and ASUS Section - Mobile shows only ASUS */}
-      <section className="py-8 mx-3">
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Acer Products - Hidden on Mobile */}
-          <div className="w-full md:w-1/2 hidden md:block">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold text-gray-900"><TranslatedText>Shop Acer</TranslatedText></h2>
-              </div>
-              <button
-                onClick={() => handleBrandClick("Acer")}
-                className="text-green-600 hover:text-green-800 font-medium flex items-center text-sm"
-              >
-                <TranslatedText>See All</TranslatedText>
-                <ChevronRight className="ml-1" size={14} />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {acerProducts.length > 0 ? (
-                <>
-                  {acerProducts.slice(0, 2).map((product) => (
-                    <DynamicBrandProductCard key={product._id} product={product} />
-                  ))}
-                  <div className="hidden md:block">
-                    {acerProducts[2] && <DynamicBrandProductCard product={acerProducts[2]} />}
-                  </div>
-                </>
-              ) : (
-                <div className="col-span-2 md:col-span-3 text-center py-8 text-gray-500"><TranslatedText>No Acer products available</TranslatedText></div>
-              )}
-            </div>
-          </div>
-
-          {/* ASUS Products */}
-          <div className="w-full md:w-1/2">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-lg md:text-xl font-bold text-gray-900"><TranslatedText>Shop Asus</TranslatedText></h2>
-              </div>
-              <button
-                onClick={() => handleBrandClick("ASUS")}
-                className="text-green-600 hover:text-green-800 font-medium flex items-center text-sm"
-              >
-                <TranslatedText>See All</TranslatedText>
-                <ChevronRight className="ml-1" size={14} />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {asusProducts.length > 0 ? (
-                <>
-                  {asusProducts.slice(0, 2).map((product) => (
-                    <DynamicBrandProductCard key={product._id} product={product} />
-                  ))}
-                  <div className="hidden md:block">
-                    {asusProducts[2] && <DynamicBrandProductCard product={asusProducts[2]} />}
-                  </div>
-                </>
-              ) : (
-                <div className="col-span-2 md:col-span-3 text-center py-8 text-gray-500">
-                  <TranslatedText>No ASUS products available</TranslatedText>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Dynamic Section Position 5 */}
-      {renderDynamicSection(5)}
-
-      {/* Networking section hidden by request - keep commented, do not remove */}
-
-      {/*
-      <section className="py-8 mx-3">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900"><TranslatedText>Networking</TranslatedText></h2>
-          <button
-            onClick={() => handleCategoryClick("Networking")}
-            className="text-green-600 hover:text-green-800 font-medium flex items-center"
-          >
-            See All Products
-            <ChevronRight className="ml-1" size={16} />
-          </button>
-        </div>
-
-        {networkingProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
-            {networkingProducts.slice(0, 2).map((product) => (
-              <AccessoriesProductCard key={product._id} product={product} />
-            ))}
-            {networkingProducts.slice(2, 6).map((product) => (
-              <div key={product._id} className="hidden md:block">
-                <AccessoriesProductCard product={product} />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 text-gray-500">
-            <p><TranslatedText>No networking products available</TranslatedText></p>
-          </div>
-        )}
-      </section>
-      */}
-
-      {/* Dynamic Section Position 6 */}
-      {renderDynamicSection(6)}
-
-      {/* Mobile Banner MSI (Dynamic) */}
-      <div className="md:hidden rounded-lg shadow-lg mx-3 h-[160px]">
-        {getBannersForSection("msi-mobile", "home-brand-single").length > 0 ? (
-          <Link to={getBannerLink(getBannersForSection("msi-mobile", "home-brand-single")[0], brandUrls.MSI)} aria-label="Browse MSI products">
-            <img
-              {...getMobileSingleBannerProps(
-                getBannersForSection("msi-mobile", "home-brand-single")[0].image,
-              )}
-              alt={getBannersForSection("msi-mobile", "home-brand-single")[0].title || "MSI Products Banner Mobile"}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-full cover rounded-lg hover:opacity-95 transition-opacity cursor-pointer"
-              onError={hideBrokenImage}
-            />
-          </Link>
-        ) : null}
-      </div>
-
-      {/* Desktop Banner - MSI and Lenovo (Dynamic) */}
-      <div className="hidden md:flex gap-2 mx-3 h-[270px]">
-        {(() => {
-          const banners = getBannersForSection("msi-lenovo-desktop", "home-brand-dual")
-          const msiBanner = banners[0]
-          const lenovoBanner = banners[1]
-
-          return (
-            <>
-              <div className="w-1/2">
-                {msiBanner ? (
-                  <Link to={getBannerLink(msiBanner, brandUrls.MSI)}>
-                    <img
-                      src={getFullImageUrl(msiBanner.image)}
-                      alt={msiBanner.title || "MSI Products Banner"}
-                      className="w-full h-full cover rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
-                      onError={(e) => handleBannerImageError(e, msiBanner.image)}
-                    />
-                  </Link>
-                ) : null}
-              </div>
-              <div className="w-1/2">
-                {lenovoBanner ? (
-                  <Link to={getBannerLink(lenovoBanner, brandUrls.Lenovo)}>
-                    <img
-                      src={getFullImageUrl(lenovoBanner.image)}
-                      alt={lenovoBanner.title || "Lenovo Products Banner"}
-                      className="w-full h-full cover rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
-                      onError={(e) => handleBannerImageError(e, lenovoBanner.image)}
-                    />
-                  </Link>
-                ) : null}
-              </div>
-            </>
-          )
-        })()}
-      </div>
-
-      {/* MSI and Lenovo Products Section - Mobile shows only MSI */}
-      <section className="py-8 mx-3">
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* MSI Products */}
-          <div className="w-full md:w-1/2">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-lg md:text-xl font-bold text-gray-900"><TranslatedText>Shop MSI</TranslatedText></h2>
-              </div>
-              <button
-                onClick={() => handleBrandClick("MSI")}
-                className="text-green-600 hover:text-green-800 font-medium flex items-center text-sm"
-              >
-                <TranslatedText>See All</TranslatedText>
-                <ChevronRight className="ml-1" size={14} />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {msiProducts.length > 0 ? (
-                <>
-                  {msiProducts.slice(0, 2).map((product) => (
-                    <DynamicBrandProductCard key={product._id} product={product} />
-                  ))}
-                  <div className="hidden md:block">
-                    {msiProducts[2] && <DynamicBrandProductCard product={msiProducts[2]} />}
-                  </div>
-                </>
-              ) : (
-                <div className="col-span-2 md:col-span-3 text-center py-8 text-gray-500"><TranslatedText>No MSI products available</TranslatedText></div>
-              )}
-            </div>
-          </div>
-
-          {/* Lenovo Products - Hidden on Mobile */}
-          <div className="w-full md:w-1/2 hidden md:block">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold text-gray-900"><TranslatedText>Shop Lenovo</TranslatedText></h2>
-              </div>
-              <button
-                onClick={() => handleBrandClick("Lenovo")}
-                className="text-green-600 hover:text-green-800 font-medium flex items-center text-sm"
-              >
-                <TranslatedText>See All</TranslatedText>
-                <ChevronRight className="ml-1" size={14} />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {lenovoProducts.length > 0 ? (
-                <>
-                  {lenovoProducts.slice(0, 2).map((product) => (
-                    <DynamicBrandProductCard key={product._id} product={product} />
-                  ))}
-                  <div className="hidden md:block">
-                    {lenovoProducts[2] && <DynamicBrandProductCard product={lenovoProducts[2]} />}
-                  </div>
-                </>
-              ) : (
-                <div className="col-span-2 md:col-span-3 text-center py-8 text-gray-500"><TranslatedText>No Lenovo products available</TranslatedText></div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Dynamic Section Position 7 */}
-      {renderDynamicSection(7)}
-
-      {/* Mobile Banner Apple (Dynamic) */}
-      <div className="md:hidden rounded-lg shadow-lg mx-3 h-[160px]">
-        {getBannersForSection("apple-mobile", "home-brand-single").length > 0 ? (
-          <Link to={getBannerLink(getBannersForSection("apple-mobile", "home-brand-single")[0], brandUrls.Apple)} aria-label="Browse Apple products">
-            <img
-              {...getMobileSingleBannerProps(
-                getBannersForSection("apple-mobile", "home-brand-single")[0].image,
-              )}
-              alt={getBannersForSection("apple-mobile", "home-brand-single")[0].title || "Apple Products Banner Mobile"}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-full cover rounded-lg hover:opacity-95 transition-opacity cursor-pointer"
-              onError={hideBrokenImage}
-            />
-          </Link>
-        ) : null}
-      </div>
-
-      {/* Desktop Banner - Apple and Samsung (Dynamic) */}
-      <div className="hidden md:flex gap-2 mx-3 h-[270px]">
-        {(() => {
-          const banners = getBannersForSection("apple-samsung-desktop", "home-brand-dual")
-          const appleBanner = banners[0]
-          const samsungBanner = banners[1]
-
-          return (
-            <>
-              <div className="w-1/2">
-                {appleBanner ? (
-                  <Link to={getBannerLink(appleBanner, brandUrls.Apple)}>
-                    <img
-                      src={getFullImageUrl(appleBanner.image)}
-                      alt={appleBanner.title || "Apple Products Banner"}
-                      className="w-full h-full cover rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
-                      onError={(e) => handleBannerImageError(e, appleBanner.image)}
-                    />
-                  </Link>
-                ) : null}
-              </div>
-              <div className="w-1/2">
-                {samsungBanner ? (
-                  <Link to={getBannerLink(samsungBanner, brandUrls.Samsung)}>
-                    <img
-                      src={getFullImageUrl(samsungBanner.image)}
-                      alt={samsungBanner.title || "Samsung Products Banner"}
-                      className="w-full h-full cover rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
-                      onError={(e) => handleBannerImageError(e, samsungBanner.image)}
-                    />
-                  </Link>
-                ) : null}
-              </div>
-            </>
-          )
-        })()}
-      </div>
-
-
-
-      {/* Apple and Samsung Products Section - Mobile shows only Apple */}
-      <section className="py-8 mx-3">
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Apple Products */}
-          <div className="w-full md:w-1/2">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-lg md:text-xl font-bold text-gray-900"><TranslatedText>Shop Apple</TranslatedText></h2>
-              </div>
-              <button
-                onClick={() => handleBrandClick("Apple")}
-                className="text-green-600 hover:text-green-800 font-medium flex items-center text-sm"
-              >
-                See All
-                <ChevronRight className="ml-1" size={14} />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {appleProducts.length > 0 ? (
-                <>
-                  {appleProducts.slice(0, 2).map((product) => (
-                    <DynamicBrandProductCard key={product._id} product={product} />
-                  ))}
-                  <div className="hidden md:block">
-                    {appleProducts[2] && <DynamicBrandProductCard product={appleProducts[2]} />}
-                  </div>
-                </>
-              ) : (
-                <div className="col-span-2 md:col-span-3 text-center py-8 text-gray-500">
-                  <TranslatedText>No Apple products available</TranslatedText>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Samsung Products - Hidden on Mobile */}
-          <div className="w-full md:w-1/2 hidden md:block">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold text-gray-900"><TranslatedText>Shop Samsung</TranslatedText></h2>
-              </div>
-              <button
-                onClick={() => handleBrandClick("Samsung")}
-                className="text-green-600 hover:text-green-800 font-medium flex items-center text-sm"
-              >
-                See All
-                <ChevronRight className="ml-1" size={14} />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {samsungProducts.length > 0 ? (
-                <>
-                  {samsungProducts.slice(0, 2).map((product) => (
-                    <DynamicBrandProductCard key={product._id} product={product} />
-                  ))}
-                  <div className="hidden md:block">
-                    {samsungProducts[2] && <DynamicBrandProductCard product={samsungProducts[2]} />}
-                  </div>
-                </>
-              ) : (
-                <div className="col-span-2 md:col-span-3 text-center py-8 text-gray-500"><TranslatedText>No Samsung products available</TranslatedText></div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Dynamic Section Position 8 */}
-      {/* {renderDynamicSection(8)}
-  */}
-      {/* Upgrade Features Section - Responsive */}
-      {upgradeFeatures.length > 0 && (
-        <section className="py-8 md:py-12 bg-gradient-to-br from-blue-50 to-indigo-100 mx-3 rounded-lg my-8">
-          <div className="max-w-7xl mx-auto px-4 md:px-6">
-            <div className="text-center mb-8 md:mb-12">
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4"><TranslatedText>Upgrade Features</TranslatedText></h2>
-              <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
-                <TranslatedText>Discover the latest technology upgrades and premium features available for your devices</TranslatedText>
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {upgradeFeatures.map((feature) => (
-                <UpgradeFeatureCard key={feature._id} feature={feature} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Dynamic Section Position 9 */}
-      {/* {renderDynamicSection(9)} */}
-
-      {/* Featured Brands Section - Use BrandSlider component */}
-      {brands.length > 0 && <BrandSlider brands={brands} onBrandClick={handleBrandClick} />}
-
-      {/* Dynamic Section Position 10 */}
-      {/* {renderDynamicSection(10)} */}
-
-      {/* Core Service Section - Responsive: Desktop(4 in row), Mobile(2x2 grid) */}
-      <section className="py-8 md:py-10 bg-white mt-2">
-        <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
-          <h2 className="text-lg lg:text-xl xl:text-2xl font-bold text-center text-gray-900 mb-6 lg:mb-8 xl:mb-12">
-            <TranslatedText>Core Service Aspects</TranslatedText>
-          </h2>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-6 xl:gap-8 2xl:gap-10">
-            <div className="flex flex-col items-center text-center">
-              <div className="w-10 h-10 lg:w-14 lg:h-14 xl:w-16 xl:h-16 rounded-lg flex items-center justify-center mb-2 lg:mb-3 xl:mb-4">
-                <CreditCard className="w-6 h-6 lg:w-10 lg:h-10 xl:w-12 xl:h-12 text-lime-500" />
-              </div>
-              <h3 className="text-xs lg:text-sm xl:text-base 2xl:text-lg font-semibold text-gray-900 mb-1 lg:mb-2"><TranslatedText>Secure Payment Method</TranslatedText></h3>
-              <p className="text-[10px] lg:text-xs xl:text-sm text-gray-600 leading-relaxed">
-                <TranslatedText>Available Different secure Payment Methods</TranslatedText>
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center text-center">
-              <div className="w-10 h-10 lg:w-14 lg:h-14 xl:w-16 xl:h-16 rounded-lg flex items-center justify-center mb-2 lg:mb-3 xl:mb-4">
-                <Truck className="w-6 h-6 lg:w-10 lg:h-10 xl:w-12 xl:h-12 text-lime-500" />
-              </div>
-              <h3 className="text-xs lg:text-sm xl:text-base 2xl:text-lg font-semibold text-gray-900 mb-1 lg:mb-2"><TranslatedText>Extreme Fast Delivery</TranslatedText></h3>
-              <p className="text-[10px] lg:text-xs xl:text-sm text-gray-600 leading-relaxed">
-                <TranslatedText>Fast and convenient From door to door delivery</TranslatedText>
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center text-center">
-              <div className="w-10 h-10 lg:w-14 lg:h-14 xl:w-16 xl:h-16 rounded-lg flex items-center justify-center mb-2 lg:mb-3 xl:mb-4">
-                <Heart className="w-6 h-6 lg:w-10 lg:h-10 xl:w-12 xl:h-12 text-lime-500" />
-              </div>
-              <h3 className="text-xs lg:text-sm xl:text-base 2xl:text-lg font-semibold text-gray-900 mb-1 lg:mb-2"><TranslatedText>Quality & Savings</TranslatedText></h3>
-              <p className="text-[10px] lg:text-xs xl:text-sm text-gray-600 leading-relaxed">
-                <TranslatedText>Comprehensive quality control and affordable price</TranslatedText>
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center text-center">
-              <div className="w-10 h-10 lg:w-14 lg:h-14 xl:w-16 xl:h-16 rounded-lg flex items-center justify-center mb-2 lg:mb-3 xl:mb-4">
-                <Headphones className="w-6 h-6 lg:w-10 lg:h-10 xl:w-12 xl:h-12 text-lime-500" />
-              </div>
-              <h3 className="text-xs lg:text-sm xl:text-base 2xl:text-lg font-semibold text-gray-900 mb-1 lg:mb-2"><TranslatedText>Professional Support</TranslatedText></h3>
-              <p className="text-[10px] lg:text-xs xl:text-sm text-gray-600 leading-relaxed">
-                <TranslatedText>Efficient customer support from passionate team</TranslatedText>
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Home Page SEO Content Section - Above Footer */}
-      {homeSeoContent && (
-        <section className="py-8 md:py-12 bg-white border-t border-gray-100 mt-6">
-          <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8">
-            <TipTapRenderer content={homeSeoContent} />
-          </div>
-        </section>
-      )}
-        </>
-      ) : (
-        <MobileDeferredContentPlaceholder />
-      )}
-
-      <style>{`
-        @keyframes fadeInUp {
-          0% { opacity: 0; transform: translateY(32px); }
-          100% { opacity: 1; transform: translateY(0); }
+    // Fetch dynamic hero banner
+    async function loadBanner() {
+      try {
+        const res = await axios.get(`${config.API_URL}/api/banners/salon-banners?_t=${Date.now()}`)
+        if (isMounted && res.data?.home) {
+          setHeroBanner((prev) => ({ ...prev, ...res.data.home }))
         }
-        .animate-fadeInUp {
-          animation: fadeInUp 0.5s cubic-bezier(0.23, 1, 0.32, 1) both;
-        }
-      `}</style>
-    </div>
-  )
-}
+      } catch (err) {
+        // Fallback already in heroBanner state
+      }
+    }
+    loadBanner()
 
-const MobileProductCard = ({ product }) => {
-  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist()
-  const { addToCart } = useCart()
-  const { getLocalizedPath, isArabic } = useLanguage()
-  const { formatPrice: formatCurrencyPrice } = useCurrency()
-  // Use dynamic discount
-  const discount = product.discount && Number(product.discount) > 0 ? `${product.discount}% Off` : null
-  // Use dynamic stock status
-  const stockStatus = product.stockStatus || (product.countInStock > 0 ? "Available" : "Out of Stock")
-  // Use dynamic price
-  const basePrice = Number(product.price) || 0
-  const offerPrice = Number(product.offerPrice) || 0
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
-  // Show offer price if it exists and is less than base price
-  const hasValidOffer = offerPrice > 0 && basePrice > 0 && offerPrice < basePrice
-  const showOldPrice = hasValidOffer
-
-  // Determine which price to display
-  let priceToShow = 0
-  if (hasValidOffer) {
-    priceToShow = offerPrice
-  } else if (basePrice > 0) {
-    priceToShow = basePrice
-  } else if (offerPrice > 0) {
-    priceToShow = offerPrice
-  }
-
-  // Fix rating and reviews display
-  const rating = Number(product.rating) || 0
-  const numReviews = Number(product.numReviews) || 0
-
-  const { name: categoryName, sourceDoc: categorySourceDoc, fieldName: categoryFieldName } =
-    resolveProductCategoryInfo(product)
-
-  return (
-    <div className="border p-2 h-[410px] flex flex-col justify-between bg-white">
-      <div className="relative mb-2 flex h-[170px] justify-center items-center">
-        <Link to={getLocalizedPath(`/product/${encodeURIComponent(product.slug || product._id)}`)}>
-          <img
-            src={getFullImageUrl(product.image) || "/placeholder.svg?height=120&width=120"}
-            alt={product.name}
-            loading="lazy"
-            decoding="async"
-            width="165"
-            height="165"
-            className="w-full h-full object-contain rounded mx-auto"
-          />
-        </Link>
-        <button
-          className="absolute top-1 right-1 text-gray-400 hover:text-red-500"
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            isInWishlist(product._id) ? removeFromWishlist(product._id) : addToWishlist(product)
-          }}
-          aria-label={isInWishlist(product._id) ? "Remove from wishlist" : "Add to wishlist"}
-        >
-          <Heart size={12} className={isInWishlist(product._id) ? "text-red-500 fill-red-500" : "text-gray-400"} />
-        </button>
-      </div>
-
-      <div className="flex items-center gap-1.5 mt-auto">
-        <span className={`px-1.5 py-0.5 rounded text-[8px] xl:text-[10px] font-medium text-white ${getStatusColor(stockStatus)}`}>
-          <TranslatedText text={stockStatus} sourceDoc={product} fieldName="stockStatus" />
-        </span>
-        {discount && (
-          <span className="px-1.5 py-0.5 rounded text-[8px] xl:text-[10px] font-medium text-white bg-red-500">
-            <TranslatedText text={discount} />
-          </span>
-        )}
-      </div>
-
-      <Link to={getLocalizedPath(`/product/${encodeURIComponent(product.slug || product._id)}`)}>
-        <h3 className="text-xs font-sm text-gray-900 line-clamp-3 hover:text-blue-600 h-[50px] mb-1"><TranslatedText text={product.name} sourceDoc={product} fieldName="name" /></h3>
-      </Link>
-
-      {categoryName && (
-        <div className="text-xs text-yellow-600 mb-1">
-          <TranslatedText>Category</TranslatedText>:{" "}
-          {categorySourceDoc && categoryFieldName ? (
-            <TranslatedText text={categoryName} sourceDoc={categorySourceDoc} fieldName={categoryFieldName} />
-          ) : (
-            <TranslatedText text={categoryName}>{categoryName}</TranslatedText>
-          )}
-        </div>
-      )}
-      <div className="text-xs text-green-600 mb-1"><TranslatedText>Inclusive VAT</TranslatedText></div>
-
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-0 mb-1">
-        <div className="text-red-600 font-bold text-sm">
-          {formatCurrencyPrice(priceToShow, isArabic)}
-        </div>
-        {showOldPrice && (
-          <div className="text-gray-400 line-through text-xs font-medium">
-            {formatCurrencyPrice(basePrice, isArabic)}
-          </div>
-        )}
-      </div>
-
-      {/* Rating and Reviews Section - Fixed with 20px stars */}
-      <div className="flex items-center mb-2 min-h-[24px]">
-        <div className="flex items-center">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              size={17}
-              className={`${i < Math.round(Number(product.rating) || 0) ? "text-yellow-400 fill-current" : "text-gray-300"}`}
-            />
-          ))}
-        </div>
-        <span className="text-xs text-gray-500 ml-1">({Number(product.numReviews) || 0})</span>
-      </div>
-
-      <button
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          e.target.style.transform = "scale(0.95)"
-          setTimeout(() => {
-            if (e.target) e.target.style.transform = "scale(1)"
-          }, 100)
-          addToCart(product)
-        }}
-        className="mt-auto w-full bg-lime-500 hover:bg-lime-400 border border-lime-300 hover:border-transparent text-black text-xs font-medium py-2 px-1 rounded flex items-center justify-center gap-1 transition-all duration-100"
-        disabled={stockStatus === "Out of Stock"}
-      >
-        <ShoppingBag size={12} />
-        <TranslatedText>Add to Cart</TranslatedText>
-      </button>
-    </div>
-  )
-}
-
-const DynamicBrandProductCard = ({ product }) => {
-  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist()
-  const { addToCart } = useCart()
-  const { getLocalizedPath, isArabic } = useLanguage()
-  const { formatPrice: formatCurrencyPrice } = useCurrency()
-  // Use dynamic discount
-  const discount = product.discount && Number(product.discount) > 0 ? `${product.discount}% Off` : null
-  // Use dynamic stock status
-  const stockStatus = product.stockStatus || (product.countInStock > 0 ? "Available" : "Out of Stock")
-  // Use dynamic price
-  const basePrice = Number(product.price) || 0
-  const offerPrice = Number(product.offerPrice) || 0
-
-  // Show offer price if it exists and is less than base price
-  const hasValidOffer = offerPrice > 0 && basePrice > 0 && offerPrice < basePrice
-  const showOldPrice = hasValidOffer
-
-  // Determine which price to display
-  let priceToShow = 0
-  if (hasValidOffer) {
-    priceToShow = offerPrice
-  } else if (basePrice > 0) {
-    priceToShow = basePrice
-  } else if (offerPrice > 0) {
-    priceToShow = offerPrice
-  }
-
-  // Fallback: compute discount % if not provided from admin and we have a valid offer
-  let computedDiscount = null
-  if (!discount && hasValidOffer && basePrice > 0 && offerPrice > 0) {
-    const pct = Math.round(((basePrice - offerPrice) / basePrice) * 100)
-    if (pct > 0) computedDiscount = `${pct}% Off`
-  }
-  const finalDiscountLabel = discount || computedDiscount
-
-  // Fix rating and reviews display
-  const rating = Number(product.rating) || 0
-  const numReviews = Number(product.numReviews) || 0
-
-  const { name: categoryName, sourceDoc: categorySourceDoc, fieldName: categoryFieldName } =
-    resolveProductCategoryInfo(product)
-
-  return (
-    <div className="border p-2 h-[410px] flex flex-col justify-between bg-white">
-      <div className="relative mb-2 flex justify-center items-center" style={{ height: 190 }}>
-        <Link to={getLocalizedPath(`/product/${encodeURIComponent(product.slug || product._id)}`)} className="w-full h-full flex items-center justify-center">
-          <img
-            src={getFullImageUrl(product.image) || "/placeholder.svg?height=120&width=120"}
-            alt={product.name}
-            loading="lazy"
-            decoding="async"
-            width="165"
-            height="165"
-            className="w-full h-full object-contain bg-white rounded mx-auto mb-4"
-            style={{ maxHeight: 165 }}
-          />
-        </Link>
-        <button
-          className="absolute top-1 right-1 text-gray-400 hover:text-red-500"
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            isInWishlist(product._id) ? removeFromWishlist(product._id) : addToWishlist(product)
-          }}
-          aria-label={isInWishlist(product._id) ? "Remove from wishlist" : "Add to wishlist"}
-        >
-          <Heart size={12} className={isInWishlist(product._id) ? "text-red-500 fill-red-500" : "text-gray-400"} />
-        </button>
-        {/* Status & Discount badges overlayed at bottom of image, always inside image area */}
-        <div className="absolute inset-x-0 -bottom-2 px-2 flex flex-wrap items-center gap-2 z-10">
-          <div className={`${getStatusColor(stockStatus)} text-white px-1 py-0.5 rounded text-[10px] font-medium shadow-sm`}><TranslatedText text={stockStatus} sourceDoc={product} fieldName="stockStatus" /></div>
-          {finalDiscountLabel && (
-            <div className="bg-yellow-400 text-white px-1 py-0.5 rounded text-[10px] font-medium shadow-sm">
-              <TranslatedText text={finalDiscountLabel} />
-            </div>
-          )}
-        </div>
-      </div>
-
-      <Link to={getLocalizedPath(`/product/${encodeURIComponent(product.slug || product._id)}`)}>
-        <h3 className="text-xs font-sm text-gray-900 line-clamp-3 hover:text-blue-600 h-[50px]"><TranslatedText text={product.name} sourceDoc={product} fieldName="name" /></h3>
-      </Link>
-      {categoryName && (
-        <div className="text-xs text-yellow-600">
-          <TranslatedText>Category</TranslatedText>:{" "}
-          {categorySourceDoc && categoryFieldName ? (
-            <TranslatedText text={categoryName} sourceDoc={categorySourceDoc} fieldName={categoryFieldName} />
-          ) : (
-            <TranslatedText text={categoryName}>{categoryName}</TranslatedText>
-          )}
-        </div>
-      )}
-      <div className="text-xs text-green-600"><TranslatedText>Inclusive VAT</TranslatedText></div>
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-0">
-        <div className="text-red-600 font-bold text-sm">
-          {formatCurrencyPrice(priceToShow, isArabic)}
-        </div>
-        {showOldPrice && (
-          <div className="text-gray-400 line-through text-xs font-medium">
-            {formatCurrencyPrice(basePrice, isArabic)}
-          </div>
-        )}
-      </div>
-
-      {/* Rating and Reviews Section - Fixed with 20px stars */}
-      <div className="flex items-center min-h-[24px]">
-        <div className="flex items-center">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              size={16}
-              className={`${i < Math.round(Number(product.rating) || 0) ? "text-yellow-400 fill-current" : "text-gray-300"}`}
-            />
-          ))}
-        </div>
-        <span className="text-xs text-gray-500 ml-1">({Number(product.numReviews) || 0})</span>
-      </div>
-
-      <button
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          e.target.style.transform = "scale(0.95)"
-          setTimeout(() => {
-            if (e.target) e.target.style.transform = "scale(1)"
-          }, 100)
-          addToCart(product)
-        }}
-        className=" w-full bg-lime-500 hover:bg-lime-400 border border-lime-300 hover:border-transparent text-black text-xs font-medium py-2 px-1 rounded flex items-center justify-center gap-1 transition-all duration-100"
-        disabled={stockStatus === "Out of Stock"}
-      >
-        <ShoppingBag size={12} />
-        <TranslatedText>Add to Cart</TranslatedText>
-      </button>
-    </div>
-  )
-}
-
-const AccessoriesProductCard = ({ product }) => {
-  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist()
-  const { addToCart } = useCart()
-  const { getLocalizedPath, isArabic } = useLanguage()
-  const { formatPrice: formatCurrencyPrice } = useCurrency()
-  // Use dynamic discount
-  const discount = product.discount && Number(product.discount) > 0 ? `${product.discount}% Off` : null
-  // Use dynamic stock status
-  const stockStatus = product.stockStatus || (product.countInStock > 0 ? "Available" : "Out of Stock")
-  // Use dynamic price
-  const basePrice = Number(product.price) || 0
-  const offerPrice = Number(product.offerPrice) || 0
-
-  // Show offer price if it exists and is less than base price
-  const hasValidOffer = offerPrice > 0 && basePrice > 0 && offerPrice < basePrice
-  const showOldPrice = hasValidOffer
-
-  // Determine which price to display
-  let priceToShow = 0
-  if (hasValidOffer) {
-    priceToShow = offerPrice
-  } else if (basePrice > 0) {
-    priceToShow = basePrice
-  } else if (offerPrice > 0) {
-    priceToShow = offerPrice
-  }
-
-  // Fallback: compute discount % if not provided from admin
-  let computedDiscount = null
-  if (!discount && hasValidOffer && basePrice > 0 && offerPrice > 0) {
-    const pct = Math.round(((basePrice - offerPrice) / basePrice) * 100)
-    if (pct > 0) computedDiscount = `${pct}% Off`
-  }
-  const finalDiscountLabel = discount || computedDiscount
-
-  // Fix rating and reviews display
-  const rating = Number(product.rating) || 0
-  const numReviews = Number(product.numReviews) || 0
-
-  const { name: categoryName, sourceDoc: categorySourceDoc, fieldName: categoryFieldName } =
-    resolveProductCategoryInfo(product)
-
-  return (
-    <div className="border p-2 h-[410px] flex flex-col justify-between bg-white">
-      <div className="relative mb-2 flex justify-center items-center" style={{ height: 190 }}>
-        <Link to={getLocalizedPath(`/product/${encodeURIComponent(product.slug || product._id)}`)} className="w-full h-full flex items-center justify-center">
-          <img
-            src={getFullImageUrl(product.image) || "/placeholder.svg?height=120&width=120"}
-            alt={product.name}
-            loading="lazy"
-            decoding="async"
-            width="165"
-            height="165"
-            className="w-full h-full object-contain bg-white rounded mx-auto mb-4"
-            style={{ maxHeight: 165 }}
-          />
-        </Link>
-        <button
-          className="absolute top-1 right-1 text-gray-400 hover:text-red-500"
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            isInWishlist(product._id) ? removeFromWishlist(product._id) : addToWishlist(product)
-          }}
-          aria-label={isInWishlist(product._id) ? "Remove from wishlist" : "Add to wishlist"}
-        >
-          <Heart size={12} className={isInWishlist(product._id) ? "text-red-500 fill-red-500" : "text-gray-400"} />
-        </button>
-        {/* Status & Discount badges overlayed at bottom of image, always inside image area */}
-        <div className="absolute inset-x-0 -bottom-2 px-2 flex flex-wrap items-center gap-2 z-10">
-          <div className={`${getStatusColor(stockStatus)} text-white px-1 py-0.5 rounded text-[10px] font-medium shadow-sm`}><TranslatedText text={stockStatus} sourceDoc={product} fieldName="stockStatus" /></div>
-          {finalDiscountLabel && (
-            <div className="bg-yellow-400 text-white px-1 py-0.5 rounded text-[10px] font-medium shadow-sm">
-              <TranslatedText text={finalDiscountLabel} />
-            </div>
-          )}
-        </div>
-      </div>
-      <Link to={getLocalizedPath(`/product/${encodeURIComponent(product.slug || product._id)}`)}>
-        <h3 className="text-xs font-sm text-gray-900 line-clamp-3 hover:text-blue-600 h-[50px]"><TranslatedText text={product.name} sourceDoc={product} fieldName="name" /></h3>
-      </Link>
-      {categoryName && (
-        <div className="text-xs text-yellow-600">
-          <TranslatedText>Category</TranslatedText>:{" "}
-          {categorySourceDoc && categoryFieldName ? (
-            <TranslatedText text={categoryName} sourceDoc={categorySourceDoc} fieldName={categoryFieldName} />
-          ) : (
-            <TranslatedText text={categoryName}>{categoryName}</TranslatedText>
-          )}
-        </div>
-      )}
-      <div className="text-xs text-green-600"><TranslatedText>Inclusive VAT</TranslatedText></div>
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-0">
-        <div className="text-red-600 font-bold text-sm">
-          {formatCurrencyPrice(priceToShow, isArabic)}
-        </div>
-        {showOldPrice && (
-          <div className="text-gray-400 line-through text-xs font-medium">
-            {formatCurrencyPrice(basePrice, isArabic)}
-          </div>
-        )}
-      </div>
-
-      {/* Rating and Reviews Section - Fixed with 20px stars */}
-      <div className="flex items-center min-h-[24px]">
-        <div className="flex items-center">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              size={16}
-              className={`${i < Math.round(Number(product.rating) || 0) ? "text-yellow-400 fill-current" : "text-gray-300"}`}
-            />
-          ))}
-        </div>
-        <span className="text-xs text-gray-500 ml-1">({Number(product.numReviews) || 0})</span>
-      </div>
-
-      <button
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          e.target.style.transform = "scale(0.95)"
-          setTimeout(() => { if (e.target) e.target.style.transform = "scale(1)" }, 100)
-          addToCart(product)
-        }}
-        className=" w-full bg-lime-500 hover:bg-lime-400 border border-lime-300 hover:border-transparent text-black text-xs font-medium py-2 px-1 rounded flex items-center justify-center gap-1 transition-all duration-100"
-        disabled={stockStatus === "Out of Stock"}
-      >
-        <ShoppingBag size={12} />
-        <TranslatedText>Add to Cart</TranslatedText>
-      </button>
-    </div>
-  )
-}
-
-const UpgradeFeatureCard = ({ feature }) => {
-  const getIconComponent = (iconName) => {
-    const iconMap = {
-      zap: Zap,
-      shield: Shield,
-      award: Award,
-      "check-circle": CheckCircle,
-      star: Star,
-      heart: Heart,
-      truck: Truck,
-      "credit-card": CreditCard,
-      headphones: Headphones,
+  // Handle adding service or product to cart
+  const handleAddToCart = (item, e) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
     }
 
-    const IconComponent = iconMap[iconName?.toLowerCase()] || Zap
-    return <IconComponent className="w-6 h-6 md:w-8 md:h-8" />
+    const cartPayload = {
+      _id: item._id,
+      name: item.name,
+      price: item.price,
+      originalPrice: item.originalPrice || item.price,
+      image: item.image,
+      images: Array.isArray(item.images) ? item.images : [{ url: item.image }],
+      stockStatus: item.stockStatus || "In Stock",
+      category: item.category || "Services",
+    }
+
+    addToCart(cartPayload, 1)
+
+    // Flash added feedback on button
+    setAddedItemIds((prev) => ({ ...prev, [item._id]: true }))
+    setTimeout(() => {
+      setAddedItemIds((prev) => ({ ...prev, [item._id]: false }))
+    }, 1500)
+  }
+
+  // Smooth scroll handler
+  const scrollToSection = (id) => {
+    const element = document.getElementById(id)
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" })
+    }
   }
 
   return (
-    <div className="rounded-xl p-4 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 group">
-      <div className="flex items-start space-x-4">
-        <div
-          className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg flex items-center justify-center ${feature.iconColor || "bg-blue-100"
-            } group-hover:scale-110 transition-transform duration-300`}
-        >
-          <div className={`${feature.iconTextColor || "text-blue-600"}`}>{getIconComponent(feature.icon)}</div>
+    <div className="min-h-screen bg-[#ffffff] text-gray-900 font-sans selection:bg-[#dfa742] selection:text-black">
+      {/* -------------------------------------------------------------
+          1. HEADER / NAVIGATION BAR
+          ------------------------------------------------------------- */}
+      <TrendHeader active="home" />
+
+      {/* -------------------------------------------------------------
+          2. HERO SECTION (Full Luxury Banner matching Mockup)
+          ------------------------------------------------------------- */}
+      <section className="relative bg-[#0d0e11] text-white overflow-hidden pt-8 sm:pt-14 pb-24 sm:pb-32">
+        {/* Soft Ambient Radial Lights */}
+        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#dfa742]/10 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Right Hero Image: Gentleman shaving scene seamlessly blended into dark background */}
+        <div className="absolute top-0 right-0 bottom-0 w-full sm:w-3/5 lg:w-[54%] pointer-events-none overflow-hidden select-none">
+          <img
+            src={heroBanner.image || "/salon/hero-man-transparent.png"}
+            alt="Trend Salon Gentleman Grooming"
+            className="w-full h-full object-cover object-right sm:object-center filter brightness-95"
+          />
+          {/* Mobile Dark Gradient Overlay to ensure crisp readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e11] via-[#0d0e11]/85 to-transparent sm:hidden" />
+          {/* Subtle bottom fade to curve */}
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#0d0e11] to-transparent" />
         </div>
 
-        <div className="flex-1">
-          <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-            <TranslatedText text={feature.title} sourceDoc={feature} fieldName="title" />
-          </h3>
-          <p className="text-sm text-gray-600 leading-relaxed mb-3">
-            <TranslatedText text={feature.description} sourceDoc={feature} fieldName="description" />
-          </p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="max-w-xl lg:max-w-2xl text-left space-y-5 sm:space-y-6 py-4 sm:py-8">
+            {/* Tagline */}
+            <div className="inline-flex items-center gap-2.5 text-xs sm:text-sm font-medium tracking-[0.2em] uppercase text-gray-300">
+              <span>{heroBanner.tagline || "Look Good • Feel Great"}</span>
+            </div>
 
-          {feature.features && feature.features.length > 0 && (
-            <ul className="space-y-1 mb-4">
-              {feature.features.map((item, index) => (
-                <li key={index} className="flex items-center text-sm text-gray-600">
-                  <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-green-500 mr-2 flex-shrink-0" />
-                  {item}
-                </li>
-              ))}
-            </ul>
+            {/* Main Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold text-white tracking-tight leading-[1.1]">
+              {heroBanner.title?.includes(" ") ? (
+                <>
+                  {heroBanner.title.split(" ").slice(0, -1).join(" ")}{" "}
+                  <span className="italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-[#dfa742] via-[#f7e7a9] to-[#c59d5f]">
+                    {heroBanner.title.split(" ").slice(-1)[0]}
+                  </span>
+                </>
+              ) : (
+                <span className="text-[#dfa742]">{heroBanner.title || "Trend Salon"}</span>
+              )}
+            </h1>
+
+            {/* Subheadline */}
+            <p className="text-base sm:text-lg text-gray-300 max-w-lg font-light leading-relaxed">
+              {heroBanner.subtitle || "Premium Grooming & Wellness Services for the Modern Gentleman"}
+            </p>
+
+            {/* Two CTA Buttons matching Mockup */}
+            <div className="flex flex-wrap items-center gap-4 pt-3">
+              {/* Button 1: Book Now -> */}
+              <button
+                onClick={() => scrollToSection("services")}
+                className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-sm sm:text-base px-7 py-3 rounded-full flex items-center gap-2 shadow-lg shadow-[#dfa742]/25 transition-all duration-300 hover:scale-105 active:scale-95"
+              >
+                <span>{heroBanner.buttonText || "Book Now"}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              {/* Button 2: Shop Products */}
+              <button
+                onClick={() => scrollToSection("products")}
+                className="border border-white/30 hover:border-white/70 bg-black/40 hover:bg-black/60 text-white font-medium text-sm sm:text-base px-6 py-3 rounded-full flex items-center gap-2 backdrop-blur-sm transition-all duration-300 hover:scale-105 active:scale-95"
+              >
+                <ShoppingCart className="w-4 h-4 text-[#dfa742]" />
+                <span>Shop Products</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* -------------------------------------------------------------
+            Curved Transition Divider to White Section with Gold Ribbon
+            ------------------------------------------------------------- */}
+        <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-none pointer-events-none">
+          <svg
+            className="relative block w-full h-12 sm:h-16 lg:h-20"
+            viewBox="0 0 1200 120"
+            preserveAspectRatio="none"
+          >
+            {/* Golden Arc Ribbon */}
+            <path
+              d="M0,0 C300,90 900,90 1200,0 L1200,120 L0,120 Z"
+              fill="none"
+              stroke="url(#goldRibbonGradient)"
+              strokeWidth="4"
+            />
+            {/* White Wave Fill */}
+            <path
+              d="M0,15 C300,105 900,105 1200,15 L1200,120 L0,120 Z"
+              fill="#ffffff"
+            />
+            <defs>
+              <linearGradient id="goldRibbonGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#c59d5f" />
+                <stop offset="50%" stopColor="#f7e7a9" />
+                <stop offset="100%" stopColor="#dfa742" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </section>
+
+      {/* -------------------------------------------------------------
+          3. OUR SERVICES SECTION (Dynamic)
+          ------------------------------------------------------------- */}
+      <section id="services" className="py-12 sm:py-16 bg-[#ffffff]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Heading */}
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <span className="w-10 sm:w-14 h-[1.5px] bg-[#dfa742]" />
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+                Our Services
+              </h2>
+              <span className="w-10 sm:w-14 h-[1.5px] bg-[#dfa742]" />
+            </div>
+            <p className="text-gray-500 text-sm sm:text-base font-medium">
+              Premium Care for Your Style & Wellbeing
+            </p>
+          </div>
+
+          {/* Services Cards Grid (Dynamic from Database / Catalog) */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-5">
+            {visibleServices.map((service) => {
+              const isAdded = addedItemIds[service._id]
+
+              return (
+                <div
+                  key={service._id}
+                  className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col items-center text-center p-3 group"
+                >
+                  {/* Top Service Image with Rounded Corners */}
+                  <div
+                    onClick={() => service.slug && navigate(getLocalizedPath(`/product/${service.slug}`))}
+                    className="w-full aspect-[4/3] rounded-xl overflow-hidden mb-3 bg-gray-100 cursor-pointer"
+                  >
+                    <img
+                      src={service.image}
+                      alt={service.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                  </div>
+
+                  {/* Golden Icon */}
+                  <div className="mb-1 p-1 text-[#dfa742]">
+                    <ServiceIcon type={service.iconType || "scissors"} />
+                  </div>
+
+                  {/* Service Title */}
+                  <h3
+                    onClick={() => service.slug && navigate(getLocalizedPath(`/product/${service.slug}`))}
+                    className="text-xs sm:text-sm font-bold text-gray-900 leading-tight mb-1 min-h-[32px] flex items-center justify-center cursor-pointer hover:text-[#dfa742] transition-colors"
+                  >
+                    {service.name}
+                  </h3>
+
+                  {/* Price */}
+                  <div className="text-xs sm:text-sm font-bold text-gray-800 mb-2">
+                    AED {service.price}
+                  </div>
+
+                  {/* User Request: Replace 'Book Now' with 'Add to Cart' */}
+                  <button
+                    onClick={(e) => handleAddToCart(service, e)}
+                    className={`mt-auto text-xs font-semibold px-3 py-1.5 rounded-full flex items-center justify-center gap-1 transition-all duration-200 ${
+                      isAdded
+                        ? "bg-green-600 text-white"
+                        : "text-gray-900 hover:text-[#b38743] hover:bg-amber-50 group-hover:text-[#dfa742]"
+                    }`}
+                  >
+                    {isAdded ? (
+                      <>
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Added</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Add to Cart</span>
+                        <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* User Request: 6 services ke baad See More button -> navigates to next page */}
+          {services.length > 6 && (
+            <div className="text-center mt-8">
+              <button
+                type="button"
+                onClick={() => navigate(getLocalizedPath("/services"))}
+                className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-xs sm:text-sm font-semibold border-2 border-[#dfa742] text-gray-900 bg-white hover:bg-[#dfa742] hover:text-black transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
+              >
+                <span>See More</span>
+                <ArrowRight className="w-4 h-4 text-[#dfa742] group-hover:text-black group-hover:translate-x-1 transition-all" />
+              </button>
+            </div>
           )}
+        </div>
+      </section>
 
-          {feature.price && (
-            <div className="flex items-center justify-between">
-              <div className="text-base md:text-lg font-bold text-gray-900">
-                {feature.price}
-                {feature.originalPrice && (
-                  <span className="text-sm text-gray-500 line-through ml-2">{feature.originalPrice}</span>
-                )}
+      {/* -------------------------------------------------------------
+          4. SPECIAL OFFERS SECTION (Curved Black & Gold Banner)
+          ------------------------------------------------------------- */}
+      <section id="offers" className="relative bg-[#0c0d10] text-white py-14 sm:py-20 overflow-hidden my-6">
+        {/* Curved Top Golden Wave Ribbon */}
+        <div className="absolute top-0 left-0 right-0 w-full overflow-hidden leading-none pointer-events-none">
+          <svg className="w-full h-8 sm:h-12" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M0,0 C400,80 800,80 1200,0 L1200,0 L0,0 Z" fill="#ffffff" />
+            <path d="M0,0 C400,80 800,80 1200,0" fill="none" stroke="url(#goldOfferGradient)" strokeWidth="3" />
+            <defs>
+              <linearGradient id="goldOfferGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#c59d5f" />
+                <stop offset="50%" stopColor="#f7e7a9" />
+                <stop offset="100%" stopColor="#dfa742" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        {/* Faded Barber Watermark in background */}
+        <div className="absolute -left-10 top-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
+          <Scissors className="w-96 h-96 text-white" />
+        </div>
+
+        {/* Golden Swooshing Arc Ribbon Graphic across center */}
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none opacity-40"
+          viewBox="0 0 1440 320"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M-100,160 C320,60 800,300 1540,80"
+            fill="none"
+            stroke="url(#goldOfferGradient)"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M-50,220 C400,120 900,360 1500,140"
+            fill="none"
+            stroke="url(#goldOfferGradient)"
+            strokeWidth="1"
+          />
+        </svg>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+            {/* Left Content */}
+            <div className="text-center lg:text-left space-y-3">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
+                Special Offers
+              </h2>
+              <p className="text-white text-base sm:text-lg font-light tracking-wide">
+                Look Better. Pay Less.
+              </p>
+              <div className="pt-3">
+                <button
+                  onClick={() => setOffersModalOpen(true)}
+                  className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-xs sm:text-sm px-6 py-2.5 rounded-full inline-flex items-center gap-2 shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
+                >
+                  <span>View All Offers</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Right Side: Golden Brush Splash Badge + Classic Barber Pole */}
+            <div className="flex items-center gap-6 sm:gap-10">
+              {/* Golden Brush Splatter Offer Badge */}
+              <div
+                onClick={(e) => handleAddToCart(SPECIAL_OFFER_COMBO, e)}
+                className="relative cursor-pointer group transition-transform duration-300 hover:scale-105"
+                title="Click to Add Combo Deal to Cart"
+              >
+                {/* Stylized Golden Brush Splash Badge SVG */}
+                <div className="relative w-64 sm:w-72 h-32 sm:h-36 flex flex-col items-center justify-center p-4">
+                  {/* Gold organic brush splatter background */}
+                  <div className="absolute inset-0 bg-[#dfa742] rounded-3xl transform -rotate-1 group-hover:rotate-0 transition-transform duration-300 shadow-2xl filter drop-shadow-[0_8px_20px_rgba(223,167,66,0.35)]" />
+                  
+                  {/* Badge Text Content */}
+                  <div className="relative z-10 text-center text-black">
+                    <div className="text-3xl sm:text-4xl font-black tracking-tight leading-none">
+                      AED 50
+                    </div>
+                    <div className="text-xs sm:text-sm font-bold uppercase tracking-wider mt-1 px-2">
+                      Haircut + Beard Trim
+                      <br />
+                      + Manicure
+                    </div>
+                    {/* Add to Cart micro indicator */}
+                    <div className="mt-2 text-[10px] uppercase tracking-widest font-extrabold bg-black text-[#dfa742] py-0.5 px-2.5 rounded-full inline-flex items-center gap-1 group-hover:bg-neutral-900">
+                      {addedItemIds[SPECIAL_OFFER_COMBO._id] ? "✓ Added to Cart" : "+ Add to Cart"}
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {feature.ctaText && (
-                <button className="px-3 py-1 md:px-4 md:py-2 bg-blue-600 text-white text-xs md:text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                  {feature.ctaText}
-                </button>
-              )}
+              {/* Classic Animated Barber Pole */}
+              <div className="flex-shrink-0">
+                <BarberPole />
+              </div>
             </div>
-          )}
+          </div>
+        </div>
 
-          {feature.badge && (
-            <div className="mt-3">
-              <span
-                className={`inline-block px-2 py-1 md:px-3 md:py-1 text-xs font-medium rounded-full ${feature.badgeColor || "bg-green-100 text-green-800"
-                  }`}
+        {/* Curved Bottom Golden Wave Ribbon */}
+        <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-none pointer-events-none">
+          <svg className="w-full h-8 sm:h-12" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M0,120 C400,40 800,40 1200,120 L1200,120 L0,120 Z" fill="#ffffff" />
+            <path d="M0,120 C400,40 800,40 1200,120" fill="none" stroke="url(#goldOfferGradient)" strokeWidth="3" />
+          </svg>
+        </div>
+      </section>
+
+      {/* -------------------------------------------------------------
+          5. OUR PRODUCTS SECTION (Dynamic)
+          ------------------------------------------------------------- */}
+      <section id="products" className="py-12 sm:py-16 bg-[#ffffff]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Heading */}
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <span className="w-10 sm:w-14 h-[1.5px] bg-[#dfa742]" />
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+                Our Products
+              </h2>
+              <span className="w-10 sm:w-14 h-[1.5px] bg-[#dfa742]" />
+            </div>
+            <p className="text-gray-500 text-sm sm:text-base font-medium">
+              Premium Grooming Products
+            </p>
+          </div>
+
+          {/* Products Grid (Dynamic from Database / Catalog) */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-5">
+            {/* Products Cards */}
+            {visibleProducts.map((product) => {
+              const isAdded = addedItemIds[product._id]
+
+              return (
+                <div
+                  key={product._id}
+                  className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 p-3 flex flex-col items-center text-center group"
+                >
+                  {/* Product Image Frame */}
+                  <div
+                    onClick={() => product.slug && navigate(getLocalizedPath(`/product/${product.slug}`))}
+                    className="w-full aspect-[4/3] flex items-center justify-center mb-3 overflow-hidden rounded-xl bg-gray-50/50 p-2 cursor-pointer"
+                  >
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                  </div>
+
+                  {/* Product Title */}
+                  <h3
+                    onClick={() => product.slug && navigate(getLocalizedPath(`/product/${product.slug}`))}
+                    className="text-xs sm:text-sm font-bold text-gray-900 leading-tight mb-1 min-h-[32px] flex items-center justify-center line-clamp-2 cursor-pointer hover:text-[#dfa742] transition-colors"
+                  >
+                    {product.name}
+                  </h3>
+
+                  {/* Price */}
+                  <div className="text-xs sm:text-sm font-bold text-gray-800 mb-2">
+                    AED {product.price}
+                  </div>
+
+                  {/* Add to Cart Gold Pill Button */}
+                  <button
+                    onClick={(e) => handleAddToCart(product, e)}
+                    className={`mt-auto w-full max-w-[120px] py-1.5 px-3 rounded-full text-xs font-semibold shadow-sm transition-all duration-200 active:scale-95 ${
+                      isAdded
+                        ? "bg-green-600 text-white"
+                        : "bg-[#dfa742] hover:bg-[#caa638] text-black shadow-[#dfa742]/20"
+                    }`}
+                  >
+                    {isAdded ? "✓ Added" : "Add to Cart"}
+                  </button>
+                </div>
+              )
+            })}
+
+            {/* Featured CTA Dark Card (Shown when < 6 products) */}
+            {products.length < 6 && (
+              <div className="bg-[#111113] text-white rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1.5 border border-white/10 group min-h-[220px]">
+                {/* Golden Outline Shopping Bag Icon */}
+                <div className="w-12 h-12 rounded-2xl border-2 border-[#dfa742] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-[#dfa742]/10">
+                  <ShoppingBag className="w-6 h-6 text-[#dfa742]" />
+                </div>
+
+                {/* Headline */}
+                <h3 className="text-xs sm:text-sm font-bold text-white mb-3 leading-snug">
+                  Shop Premium
+                  <br />
+                  Salon Products
+                </h3>
+
+                {/* Shop Now Button */}
+                <button
+                  onClick={() => navigate(getLocalizedPath("/services"))}
+                  className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-xs px-4 py-2 rounded-full inline-flex items-center gap-1 shadow-md shadow-[#dfa742]/20 transition-all duration-200 hover:scale-105 active:scale-95"
+                >
+                  <span>Shop All</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* User Request: 6 products ke baad See More button -> navigates to next page */}
+          {products.length > 6 && (
+            <div className="text-center mt-8">
+              <button
+                type="button"
+                onClick={() => navigate(getLocalizedPath("/services"))}
+                className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-xs sm:text-sm font-semibold border-2 border-[#dfa742] text-gray-900 bg-white hover:bg-[#dfa742] hover:text-black transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
               >
-                <TranslatedText text={feature.badge} sourceDoc={feature} fieldName="badge" />
-              </span>
+                <span>See More</span>
+                <ArrowRight className="w-4 h-4 text-[#dfa742] group-hover:text-black group-hover:translate-x-1 transition-all" />
+              </button>
             </div>
           )}
         </div>
-      </div>
+      </section>
+
+      {/* -------------------------------------------------------------
+          6. FOOTER / CONTACT BAR (Bottom Dark Bar)
+          ------------------------------------------------------------- */}
+      <TrendFooter />
+
+      {/* -------------------------------------------------------------
+          SPECIAL OFFERS MODAL DIALOG
+          ------------------------------------------------------------- */}
+      {offersModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="relative bg-[#121216] border border-[#dfa742]/30 rounded-3xl max-w-lg w-full p-6 sm:p-8 text-white shadow-2xl space-y-6">
+            {/* Close Button */}
+            <button
+              onClick={() => setOffersModalOpen(false)}
+              className="absolute top-5 right-5 text-gray-400 hover:text-white p-1"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {/* Modal Title */}
+            <div className="text-center">
+              <span className="text-xs uppercase font-bold tracking-widest text-[#dfa742]">
+                Limited Time Deals
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-serif font-bold text-white mt-1">
+                Trend Salon Exclusive Offers
+              </h3>
+            </div>
+
+            {/* Offer Item 1: Combo Deal */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between gap-4">
+              <div>
+                <h4 className="font-bold text-base text-white">Full Royal Grooming Combo</h4>
+                <p className="text-xs text-gray-400">Haircut + Beard Trim + Manicure</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-lg font-black text-[#dfa742]">AED 50</span>
+                  <span className="text-xs text-gray-500 line-through">AED 169</span>
+                </div>
+              </div>
+              <button
+                onClick={(e) => {
+                  handleAddToCart(SPECIAL_OFFER_COMBO, e)
+                  setOffersModalOpen(false)
+                }}
+                className="bg-[#dfa742] hover:bg-[#caa638] text-black text-xs font-bold px-4 py-2 rounded-full flex-shrink-0"
+              >
+                Add to Cart
+              </button>
+            </div>
+
+            {/* Offer Item 2: Spa & Facial Combo */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between gap-4">
+              <div>
+                <h4 className="font-bold text-base text-white">Spa & Rejuvenation Combo</h4>
+                <p className="text-xs text-gray-400">Moroccan Bath + Hydra Facial</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-lg font-black text-[#dfa742]">AED 99</span>
+                  <span className="text-xs text-gray-500 line-through">AED 119</span>
+                </div>
+              </div>
+              <button
+                onClick={(e) => {
+                  handleAddToCart(
+                    {
+                      _id: "offer-spa-facial",
+                      name: "Moroccan Bath + Hydra Facial",
+                      price: 99,
+                      image: "/salon/moroccan-bath.jpg",
+                      category: "Special Offers",
+                    },
+                    e,
+                  )
+                  setOffersModalOpen(false)
+                }}
+                className="bg-[#dfa742] hover:bg-[#caa638] text-black text-xs font-bold px-4 py-2 rounded-full flex-shrink-0"
+              >
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
-
-const getStatusColor = (status) => {
-  if (status === "In Stock") return "bg-green-600"
-  if (status === "Out of Stock") return "bg-red-600"
-  if (status === "PreOrder") return "bg-yellow-500"
-  return "bg-gray-400"
-}
-
-export default Home

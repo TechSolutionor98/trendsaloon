@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import axios from "axios"
-import { Gift } from "lucide-react"
+import { Gift, Star, ShieldCheck, Sparkles } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
 import { useLanguage } from "../context/LanguageContext"
 import { useCurrency } from "../context/CurrencyContext"
 import TranslatedText from "../components/TranslatedText"
 import config from "../config/config"
 import { useReferral, getPendingReferralCode, setPendingReferralCode, clearPendingReferralCode } from "../context/ReferralContext"
+import { TrendLogo } from "../components/TrendHeader"
 
 const Register = () => {
   const { getLocalizedPath } = useLanguage()
@@ -210,25 +211,58 @@ const Register = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-1 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-4xl flex flex-col md:flex-row bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-        {/* Left: Image */}
-        <div className="hidden justify-center lg:flex items-center md:block md:w-1/2 ">
+    <div className="min-h-[85vh] flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-4xl flex flex-col md:flex-row bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+        {/* Left Side: Luxury Salon Visual */}
+        <div className="hidden md:block md:w-1/2 relative bg-[#0e0e10] overflow-hidden min-h-[550px]">
           <img
-            src="/signup.jpg"
-            alt="Register Visual"
-            className=" h-[450px]  cover object-center"
+            src="/salon/hero-barber.jpg"
+            alt="Trend Salon Grooming"
+            className="w-full h-full object-cover filter brightness-80"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+
+          <div className="absolute inset-0 p-8 sm:p-10 flex flex-col justify-between text-white z-10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 text-[#dfa742] fill-current" />
+                ))}
+              </div>
+              <div className="bg-black/60 backdrop-blur-md border border-[#dfa742]/40 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest text-[#dfa742]">
+                VIP Member
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-[#dfa742] font-semibold">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Look Good • Feel Great</span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-serif font-bold text-white leading-snug">
+                Join Trend Gents Saloon Exclusive Club
+              </h3>
+              <p className="text-xs text-gray-300 font-light flex items-center gap-1.5 pt-1">
+                <ShieldCheck className="w-4 h-4 text-green-400" />
+                <span>Al Yasmeen - Ajman • UAE</span>
+              </p>
+            </div>
+          </div>
         </div>
-        {/* Right: Register Form */}
-        <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-10">
-          <div className="max-w-md w-full min-h-[500px] space-y-8">
-            <div>
-              
-              <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900"><TranslatedText>Create your account</TranslatedText></h2>
-              <p className="mt-2 text-center text-sm text-gray-600">
+
+        {/* Right Side: Register Form */}
+        <div className="w-full md:w-1/2 flex items-center justify-center p-6 sm:p-10">
+          <div className="max-w-md w-full space-y-6">
+            <div className="text-center space-y-2">
+              <div className="flex justify-center mb-1">
+                <TrendLogo />
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 tracking-tight">
+                <TranslatedText>Create Account</TranslatedText>
+              </h2>
+              <p className="text-xs sm:text-sm text-gray-500">
                 <TranslatedText>Or</TranslatedText>{" "}
-                <Link to={getLocalizedPath("/login")} className="font-medium text-green-600 hover:text-green-500">
+                <Link to={getLocalizedPath("/login")} className="font-bold text-[#b38743] hover:text-[#dfa742]">
                   <TranslatedText>sign in to your existing account</TranslatedText>
                 </Link>
               </p>
@@ -237,16 +271,16 @@ const Register = () => {
             {/* An invited visitor is told what the link is worth before they fill anything
                 in -- it is the reason they clicked it. */}
             {referral?.valid && (
-              <div className="rounded-xl border border-lime-200 bg-lime-50 p-4">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
                 <div className="flex items-start gap-3">
-                  <Gift size={20} className="mt-0.5 shrink-0 text-lime-600" />
+                  <Gift size={20} className="mt-0.5 shrink-0 text-[#b38743]" />
                   <div className="min-w-0 text-sm">
                     <p className="font-bold text-gray-900">
                       {referral.referrerName} <TranslatedText>invited you</TranslatedText>
                     </p>
                     <p className="mt-0.5 text-gray-700">
                       <TranslatedText>Sign up to get</TranslatedText>{" "}
-                      <strong className="text-lime-800">
+                      <strong className="text-amber-900">
                         {referral.reward?.discountType === "fixed"
                           ? formatPrice(referral.reward?.discountValue)
                           : `${referral.reward?.discountValue}%`}{" "}
@@ -298,7 +332,7 @@ const Register = () => {
                       onChange={handleChange}
                       className={`appearance-none relative block w-full px-3 py-2 border ${
                         errors.name ? "border-red-300" : "border-gray-300"
-                      } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm`}
+                      } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-[#dfa742] focus:border-[#dfa742] focus:z-10 sm:text-sm`}
                       placeholder="Enter your full name"
                     />
                     {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
@@ -320,7 +354,7 @@ const Register = () => {
                       onChange={handleChange}
                       className={`appearance-none relative block w-full px-3 py-2 border ${
                         errors.email ? "border-red-300" : "border-gray-300"
-                      } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm`}
+                      } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-[#dfa742] focus:border-[#dfa742] focus:z-10 sm:text-sm`}
                       placeholder="Enter your email address"
                     />
                     {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
@@ -342,7 +376,7 @@ const Register = () => {
                       onChange={handleChange}
                       className={`appearance-none relative block w-full px-3 py-2 pr-10 border ${
                         errors.password ? "border-red-300" : "border-gray-300"
-                      } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm`}
+                      } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-[#dfa742] focus:border-[#dfa742] focus:z-10 sm:text-sm`}
                       placeholder="Enter your password"
                     />
                     <button
@@ -395,7 +429,7 @@ const Register = () => {
                       onChange={handleChange}
                       className={`appearance-none relative block w-full px-3 py-2 pr-10 border ${
                         errors.confirmPassword ? "border-red-300" : "border-gray-300"
-                      } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm`}
+                      } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-[#dfa742] focus:border-[#dfa742] focus:z-10 sm:text-sm`}
                       placeholder="Confirm your password"
                     />
                     <button
@@ -442,7 +476,7 @@ const Register = () => {
                       </span>
                     </label>
                     <div className="mt-1 relative">
-                      <Gift size={16} className="pointer-events-none absolute inset-y-0 left-3 my-auto text-lime-600" />
+                      <Gift size={16} className="pointer-events-none absolute inset-y-0 left-3 my-auto text-[#dfa742]" />
                       <input
                         id="referralCode"
                         name="referralCode"
@@ -462,7 +496,7 @@ const Register = () => {
                             : codeStatus === "valid"
                               ? "border-green-400"
                               : "border-gray-300"
-                        } ${linkCode ? "bg-gray-50 text-gray-700 cursor-not-allowed" : "text-gray-900"} placeholder-gray-500 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm`}
+                        } ${linkCode ? "bg-gray-50 text-gray-700 cursor-not-allowed" : "text-gray-900"} placeholder-gray-500 rounded-md focus:outline-none focus:ring-[#dfa742] focus:border-[#dfa742] focus:z-10 sm:text-sm`}
                         placeholder="Enter a friend's code"
                       />
                     </div>
@@ -495,11 +529,11 @@ const Register = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-lime-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-full text-black bg-gradient-to-r from-[#dfa742] via-[#e8be6d] to-[#dfa742] hover:brightness-105 shadow-md shadow-[#dfa742]/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#dfa742] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   {loading ? (
                     <div className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-black" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path
                           className="opacity-75"
@@ -519,20 +553,20 @@ const Register = () => {
               <div className="mt-4">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300"></div>
+                    <div className="w-full border-t border-gray-200"></div>
                   </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">
+                  <div className="relative flex justify-center text-xs">
+                    <span className="px-3 bg-white text-gray-400 uppercase tracking-wider font-semibold">
                       <TranslatedText>Or</TranslatedText>
                     </span>
                   </div>
                 </div>
                 <button
                   type="button"
-                  className="mt-4 w-full flex justify-center items-center gap-2 py-3 px-4 border-2 border-lime-500 rounded-lg shadow-sm text-sm font-semibold text-lime-600 bg-white hover:bg-lime-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lime-500 transition-all duration-200"
+                  className="mt-4 w-full flex justify-center items-center gap-2 py-3 px-4 border-2 border-[#dfa742] rounded-full text-xs sm:text-sm font-bold text-[#b38743] hover:bg-amber-50/50 hover:text-[#8f641e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#dfa742] transition-all"
                   onClick={() => navigate(getLocalizedPath("/guest"))}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   <TranslatedText>Continue as Guest</TranslatedText>
@@ -542,11 +576,11 @@ const Register = () => {
               <div className="text-center">
                 <p className="text-xs text-gray-500">
                   <TranslatedText>By creating an account, you agree to our</TranslatedText>{" "}
-                  <Link to={getLocalizedPath("/terms")} className="text-green-600 hover:text-green-500">
+                  <Link to={getLocalizedPath("/terms")} className="text-[#b38743] hover:text-[#dfa742]">
                     <TranslatedText>Terms of Service</TranslatedText>
                   </Link>{" "}
                   <TranslatedText>and</TranslatedText>{" "}
-                  <Link to={getLocalizedPath("/privacy")} className="text-green-600 hover:text-green-500">
+                  <Link to={getLocalizedPath("/privacy")} className="text-[#b38743] hover:text-[#dfa742]">
                     <TranslatedText>Privacy Policy</TranslatedText>
                   </Link>
                 </p>

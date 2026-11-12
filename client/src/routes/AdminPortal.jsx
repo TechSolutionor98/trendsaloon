@@ -133,6 +133,7 @@ const AdminPortal = () => {
             <Route path="inventory/create-labels" element={<CreateLabels />} />
             <Route path="inventory" element={<Navigate to="/admin/inventory/store-stats" replace />} />
             <Route path="products/add" element={<AddProduct />} />
+            <Route path="add-product" element={<AddProduct />} />
             <Route path="products/bulk-add" element={<AddBulkProducts />} />
             <Route path="product-pm" element={<ProductPaymentMethods />} />
             <Route path="country-pm" element={<CountryPaymentMethods />} />

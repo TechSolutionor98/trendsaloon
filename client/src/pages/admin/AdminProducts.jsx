@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo, useRef } from "react"
+import { useLocation, useNavigate } from "react-router-dom"
 import axios from "axios"
 import AdminSidebar from "../../components/admin/AdminSidebar"
 import ProductForm from "../../components/admin/ProductForm"
@@ -16,14 +17,15 @@ import { exportProductsToExcel } from "../../utils/exportToExcel"
 // Define all available columns
 const ALL_COLUMNS = [
   { id: 'select', label: 'Select', default: true, alwaysVisible: true },
-  { id: 'product', label: 'Product', default: true },
+  { id: 'product', label: 'Item (Product / Service)', default: true },
   { id: 'brand', label: 'Brand', default: true },
-  { id: 'parentCategory', label: 'Parent Category', default: true },
-  { id: 'level1', label: 'Level 1', default: true },
-  { id: 'level2', label: 'Level 2', default: true },
-  { id: 'level3', label: 'Level 3', default: true },
-  { id: 'level4', label: 'Level 4', default: true },
+  { id: 'parentCategory', label: 'Parent Category', default: false },
+  { id: 'level1', label: 'Level 1', default: false },
+  { id: 'level2', label: 'Level 2', default: false },
+  { id: 'level3', label: 'Level 3', default: false },
+  { id: 'level4', label: 'Level 4', default: false },
   { id: 'price', label: 'Price', default: true },
+  { id: 'stock', label: 'Stock / Qty', default: true },
   { id: 'sku', label: 'SKU', default: true },
   { id: 'action', label: 'Action', default: true, alwaysVisible: true },
 ]
@@ -52,6 +54,13 @@ const normalizeStockStatusFilterValue = (status) => {
 }
 
 const AdminProducts = () => {
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  // Detect whether we are in Services or Products section from URL query (?type=services | ?type=products)
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search])
+  const isServicesSection = searchParams.get("type") === "services"
+
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
@@ -71,6 +80,17 @@ const AdminProducts = () => {
   const [totalPages, setTotalPages] = useState(1)
   const PRODUCTS_PER_PAGE = 20
   const { showToast } = useToast()
+
+  // Helper to resolve parentCategory ID matching the active section
+  const resolveSectionCategoryId = (cats = categories) => {
+    if (!Array.isArray(cats) || cats.length === 0) return null
+    const matched = cats.find((c) =>
+      isServicesSection
+        ? (c.name?.toLowerCase().includes("service") || c.slug?.toLowerCase().includes("service"))
+        : (c.name?.toLowerCase().includes("product") || c.slug?.toLowerCase().includes("product"))
+    )
+    return matched?._id || null
+  }
   const [justEditedId, setJustEditedId] = useState(null)
   const [copiedSkuId, setCopiedSkuId] = useState(null)
   const [highlightTimer, setHighlightTimer] = useState(null)
@@ -122,7 +142,11 @@ const AdminProducts = () => {
     const saved = localStorage.getItem('adminProductsColumns')
     if (saved) {
       try {
-        return JSON.parse(saved)
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && !parsed.includes('stock')) {
+          parsed.push('stock')
+        }
+        return parsed
       } catch {
         return ALL_COLUMNS.filter(c => c.default).map(c => c.id)
       }
@@ -171,17 +195,15 @@ const AdminProducts = () => {
 
   const buildAdminQueryParams = (statusValue = filterStatus) => {
     const params = {}
-    if (linkSearch.trim() !== "") {
-      params.search = extractSlugFromUrl(linkSearch)
-    } else if (searchTerm.trim() !== "") {
+    if (searchTerm.trim() !== "") {
       params.search = searchTerm.trim()
     }
-    if (filterCategory && filterCategory !== "all") params.parentCategory = filterCategory
-    if (filterSubcategory && filterSubcategory !== "all") params.category = filterSubcategory
-    if (filterSubcategory2 && filterSubcategory2 !== "all") params.subCategory2 = filterSubcategory2
-    if (filterSubcategory3 && filterSubcategory3 !== "all") params.subCategory3 = filterSubcategory3
-    if (filterSubcategory4 && filterSubcategory4 !== "all") params.subCategory4 = filterSubcategory4
-    if (filterBrand && filterBrand !== "all") params.brand = filterBrand
+
+    // Strictly isolate by the selected section (Services or Products)
+    const targetCatId = resolveSectionCategoryId()
+    if (targetCatId) {
+      params.parentCategory = targetCatId
+    }
 
     Object.assign(params, buildAdminStatusQueryParams(statusValue))
 
@@ -253,12 +275,8 @@ const AdminProducts = () => {
     return [
       normalizedStatus,
       searchTerm.trim(),
-      filterCategory || "all",
-      filterSubcategory || "all",
-      filterSubcategory2 || "all",
-      filterSubcategory3 || "all",
-      filterSubcategory4 || "all",
-      filterBrand || "all",
+      isServicesSection ? "services" : "products",
+      resolveSectionCategoryId() || "all",
     ].join("|")
   }
 
@@ -343,8 +361,16 @@ const AdminProducts = () => {
     })
   }
 
-  // Check if column is visible
-  const isColumnVisible = (columnId) => visibleColumns.includes(columnId)
+  // Check if column is visible (hide multi-level ecommerce category columns that don't apply to salon)
+  const isColumnVisible = (columnId) => {
+    if (['parentCategory', 'level1', 'level2', 'level3', 'level4'].includes(columnId)) {
+      return false
+    }
+    if (isServicesSection && columnId === 'brand') {
+      return false
+    }
+    return visibleColumns.includes(columnId)
+  }
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -400,18 +426,27 @@ const AdminProducts = () => {
     return null
   }
 
+  // When switching between Services and Products (?type=services / ?type=products)
   useEffect(() => {
-    fetchProducts()
-  }, [page, searchTerm, linkSearch, filterCategory, filterSubcategory, filterSubcategory2, filterSubcategory3, filterSubcategory4, filterBrand, filterStatus])
+    setPage(1)
+    setSearchTerm("")
+    setFilterStatus("all")
+    setSelectedIds(new Set())
+    setSelectAllMode(false)
+    invalidateStatusPaginationCache()
+  }, [location.search])
 
   useEffect(() => {
     setPage(1)
-  }, [searchTerm, linkSearch, filterCategory, filterSubcategory, filterSubcategory2, filterSubcategory3, filterSubcategory4, filterBrand, filterStatus])
+  }, [searchTerm, filterStatus])
+
+  useEffect(() => {
+    fetchProducts()
+  }, [page, searchTerm, filterStatus, location.search])
 
   useEffect(() => {
     fetchCategories()
     fetchBrands()
-    fetchSubcategories()
   }, [])
 
   // On mount, check if a product was edited on previous navigation
@@ -586,9 +621,8 @@ const AdminProducts = () => {
     if (exporting) return
 
     const filenameBase = [
-      "products",
+      isServicesSection ? "services" : "products",
       scope,
-      filterCategory && filterCategory !== 'all' ? `cat-${filterCategory}` : null,
       searchTerm ? `q-${searchTerm.replace(/\s+/g, '-')}` : null,
       `p${page}`
     ].filter(Boolean).join('_')
@@ -643,34 +677,24 @@ const AdminProducts = () => {
 
   const handleExportByCurrentFilters = async () => {
     const overrides = {}
-    if (filterCategory && filterCategory !== 'all') overrides.parentCategory = filterCategory
-    if (filterSubcategory && filterSubcategory !== 'all') overrides.category = filterSubcategory
-    if (filterSubcategory2 && filterSubcategory2 !== 'all') overrides.subCategory2 = filterSubcategory2
-    if (filterSubcategory3 && filterSubcategory3 !== 'all') overrides.subCategory3 = filterSubcategory3
-    if (filterSubcategory4 && filterSubcategory4 !== 'all') overrides.subCategory4 = filterSubcategory4
-    if (filterBrand && filterBrand !== 'all') overrides.brand = filterBrand
+    const sectionCatId = resolveSectionCategoryId()
+    if (sectionCatId) overrides.parentCategory = sectionCatId
     Object.assign(overrides, buildAdminStatusQueryParams(filterStatus))
     if (searchTerm.trim()) overrides.search = searchTerm.trim()
     
     showToast('Preparing export for current filters...', 'info')
     const all = await fetchAllForExport(overrides)
     if (!all.length) {
-      showToast('No products found for current filters', 'warning')
+      showToast('No items found for current filters', 'warning')
       return
     }
     const fname = [
-      'products_filtered',
-      filterCategory && filterCategory !== 'all' ? `cat-${filterCategory}` : null,
-      filterSubcategory && filterSubcategory !== 'all' ? `sub1-${filterSubcategory}` : null,
-      filterSubcategory2 && filterSubcategory2 !== 'all' ? `sub2-${filterSubcategory2}` : null,
-      filterSubcategory3 && filterSubcategory3 !== 'all' ? `sub3-${filterSubcategory3}` : null,
-      filterSubcategory4 && filterSubcategory4 !== 'all' ? `sub4-${filterSubcategory4}` : null,
-      filterBrand && filterBrand !== 'all' ? `brand-${filterBrand}` : null,
+      isServicesSection ? 'services_export' : 'products_export',
       filterStatus && filterStatus !== 'all' ? `status-${String(filterStatus).replace(/\s+/g, "-")}` : null,
       searchTerm ? `search-${searchTerm.replace(/\s+/g, '-')}` : null,
-    ].filter(Boolean).join('_') || 'products_current_filters'
+    ].filter(Boolean).join('_') || (isServicesSection ? 'services_export' : 'products_export')
     exportProductsToExcel(all, `${fname}.xlsx`)
-    showToast(`Exported ${all.length} products successfully`, 'success')
+    showToast(`Exported ${all.length} ${isServicesSection ? 'services' : 'products'} successfully`, 'success')
   }
 
   const getProductCount = async (options = {}) => {
@@ -748,7 +772,7 @@ const AdminProducts = () => {
     }
   }
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (catListOverride = null) => {
     const requestId = ++latestFetchRequestRef.current
     try {
       setLoading(true)
@@ -759,7 +783,16 @@ const AdminProducts = () => {
         return
       }
 
-      const queryParams = buildAdminQueryParams(filterStatus)
+      let activeCats = catListOverride || categories
+      if (!activeCats || activeCats.length === 0) {
+        activeCats = await fetchCategories()
+      }
+
+      const targetCatId = resolveSectionCategoryId(activeCats)
+      const queryParams = {
+        ...buildAdminQueryParams(filterStatus),
+        ...(targetCatId ? { parentCategory: targetCatId } : {}),
+      }
       const normalizedStatus = resolveStockStatusFilter(filterStatus)
 
       if (normalizedStatus) {
@@ -828,7 +861,7 @@ const AdminProducts = () => {
 
       if (!token) {
         console.log("No token for categories fetch")
-        return
+        return []
       }
 
       const { data } = await axios.get(`${config.API_URL}/api/categories`, {
@@ -836,9 +869,12 @@ const AdminProducts = () => {
           Authorization: `Bearer ${token}`,
         },
       })
-      setCategories(data)
+      const catList = Array.isArray(data) ? data : []
+      setCategories(catList)
+      return catList
     } catch (error) {
       console.error("Failed to load categories:", error)
+      return []
     }
   }
 
@@ -1550,16 +1586,48 @@ const AdminProducts = () => {
 
       <div className="flex-1 ml-64 overflow-hidden">
         <div className="p-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-            <div className="flex gap-3">
-             
+          {/* Header matching selected section (Services or Products) */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-sm ${
+                isServicesSection
+                  ? "bg-gradient-to-br from-[#dfa742]/20 to-[#dfa742]/10 text-[#dfa742] border border-[#dfa742]/30"
+                  : "bg-blue-50 text-blue-600 border border-blue-200"
+              }`}>
+                {isServicesSection ? <Scissors className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
+              </div>
+              <div>
+                <div className="flex items-center gap-2.5">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+                    {isServicesSection ? "Services" : "Products"}
+                  </h1>
+                  <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+                    isServicesSection
+                      ? "bg-[#dfa742]/15 text-[#b38743] border border-[#dfa742]/30"
+                      : "bg-blue-50 text-blue-700 border border-blue-200"
+                  }`}>
+                    {categoryProductCount} {isServicesSection ? (categoryProductCount === 1 ? "Service" : "Services") : (categoryProductCount === 1 ? "Product" : "Products")}
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                  {isServicesSection
+                    ? "Manage salon grooming & wellness services catalog"
+                    : "Manage salon retail products, pricing & stock inventory"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
               <button
-                onClick={handleAddNew}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                onClick={() => navigate(isServicesSection ? "/admin/products/add?type=service" : "/admin/products/add?type=product")}
+                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all duration-200 hover:scale-105 active:scale-95 ${
+                  isServicesSection
+                    ? "bg-[#dfa742] hover:bg-[#caa638] text-black shadow-[#dfa742]/20"
+                    : "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20"
+                }`}
               >
-                <Plus size={16} />
-                Add Product
+                <Plus className="w-4 h-4" />
+                <span>{isServicesSection ? "Add Service" : "Add Product"}</span>
               </button>
             </div>
           </div>
@@ -1582,130 +1650,38 @@ const AdminProducts = () => {
             <ProductForm product={editingProduct} onSubmit={handleFormSubmit} onCancel={handleFormCancel} />
           ) : (
             <>
-              {/* Search and Filters Section */}
-              <div className="mb-6 bg-white rounded-lg border border-gray-200 p-6 max-w-full overflow-visible">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Filter & Search Products</h3>
-                
-                {/* First Row: Parent Category, Level 1, Level 2, Level 3, Level 4 */}
-                <div className="grid grid-cols-5 gap-3 mb-4">
-                  {/* Parent Category Filter */}
-                  <div className="min-w-0">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Parent Category</label>
-                    <select
-                      value={filterCategory}
-                      onChange={(e) => setFilterCategory(e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    >
-                      <option value="all">All Categories</option>
-                      {categories.map((category) => (
-                        <option key={category._id} value={category._id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
+              {/* Clean, Streamlined Search & Filter Bar (Replaced complex multi-tier ecommerce filtration) */}
+              <div className="mb-6 bg-white rounded-2xl border border-gray-200 p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex flex-1 items-center gap-3 w-full">
+                  {/* Search Box */}
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder={isServicesSection ? "Search services by name, SKU..." : "Search products by name, SKU..."}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-9 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#dfa742] focus:bg-white transition-all"
+                    />
+                    {searchTerm && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchTerm("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
 
-                  {/* Level 1 Subcategory Filter */}
-                  <div className="min-w-0">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Level 1</label>
-                    <select
-                      value={filterSubcategory}
-                      onChange={(e) => setFilterSubcategory(e.target.value)}
-                      disabled={filterCategory === "all"}
-                      className="w-full border border-gray-300 rounded-md px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
-                    >
-                      <option value="all">{filterCategory === "all" ? "Select Parent First" : "All Level 1"}</option>
-                      {filteredSubcategories.map((subcategory) => (
-                        <option key={subcategory._id} value={subcategory._id}>
-                          {subcategory.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Level 2 Subcategory Filter */}
-                  <div className="min-w-0">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Level 2</label>
-                    <select
-                      value={filterSubcategory2}
-                      onChange={(e) => setFilterSubcategory2(e.target.value)}
-                      disabled={filterSubcategory === "all" || filteredSubcategories2.length === 0}
-                      className="w-full border border-gray-300 rounded-md px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
-                    >
-                      <option value="all">{filterSubcategory === "all" ? "Select Level 1 First" : filteredSubcategories2.length === 0 ? "No Level 2" : "All Level 2"}</option>
-                      {filteredSubcategories2.map((subcategory) => (
-                        <option key={subcategory._id} value={subcategory._id}>
-                          {subcategory.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Level 3 Subcategory Filter */}
-                  <div className="min-w-0">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Level 3</label>
-                    <select
-                      value={filterSubcategory3}
-                      onChange={(e) => setFilterSubcategory3(e.target.value)}
-                      disabled={filterSubcategory === "all" || filteredSubcategories3.length === 0}
-                      className="w-full border border-gray-300 rounded-md px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
-                    >
-                      <option value="all">{filterSubcategory === "all" ? "Select Level 1 First" : filteredSubcategories3.length === 0 ? "No Level 3" : "All Level 3"}</option>
-                      {filteredSubcategories3.map((subcategory) => (
-                        <option key={subcategory._id} value={subcategory._id}>
-                          {subcategory.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Level 4 Subcategory Filter */}
-                  <div className="min-w-0">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Level 4</label>
-                    <select
-                      value={filterSubcategory4}
-                      onChange={(e) => setFilterSubcategory4(e.target.value)}
-                      disabled={filterSubcategory === "all" || filteredSubcategories4.length === 0}
-                      className="w-full border border-gray-300 rounded-md px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
-                    >
-                      <option value="all">{filterSubcategory === "all" ? "Select Level 1 First" : filteredSubcategories4.length === 0 ? "No Level 4" : "All Level 4"}</option>
-                      {filteredSubcategories4.map((subcategory) => (
-                        <option key={subcategory._id} value={subcategory._id}>
-                          {subcategory.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Second Row: Brand, Status, Search */}
-                <div className="grid grid-cols-4 gap-3 mb-4">
-                  {/* Brand Filter */}
-                  <div className="min-w-0">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Brand</label>
-                    <select
-                      value={filterBrand}
-                      onChange={(e) => setFilterBrand(e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    >
-                      <option value="all">All Brands</option>
-                      {brands.map((brand) => (
-                        <option key={brand._id} value={brand._id}>
-                          {brand.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Status Filter */}
-                  <div className="min-w-0">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                  {/* Stock Status Filter */}
+                  <div className="min-w-[150px]">
                     <select
                       value={filterStatus}
                       onChange={(e) => setFilterStatus(e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#dfa742] focus:bg-white cursor-pointer"
                     >
-                      <option value="all">All Products</option>
+                      <option value="all">All Status</option>
                       {STOCK_STATUS_OPTIONS.map((statusOption) => (
                         <option key={`stock-${statusOption.value}`} value={statusOption.value}>
                           {statusOption.label}
@@ -1714,125 +1690,57 @@ const AdminProducts = () => {
                     </select>
                   </div>
 
-                  {/* Search Filter */}
-                  <div className="min-w-0">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                      <input
-                        type="text"
-                        placeholder="Name, SKU, Brand..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-9 pr-2 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Search by Link Filter */}
-                  <div className="min-w-0">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Search by Link</label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                      <input
-                        type="text"
-                        placeholder="Paste product link..."
-                        value={linkSearch}
-                        onChange={(e) => setLinkSearch(e.target.value)}
-                        className="pl-9 pr-2 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Clear Filters Button */}
-                {(searchTerm || linkSearch || filterCategory !== "all" || filterSubcategory !== "all" || filterSubcategory2 !== "all" || filterSubcategory3 !== "all" || filterSubcategory4 !== "all" || filterBrand !== "all" || filterStatus !== "all") && (
-                  <div className="flex justify-start mt-4">
+                  {/* Clear / Reset Filters */}
+                  {(searchTerm || filterStatus !== "all") && (
                     <button
+                      type="button"
                       onClick={() => {
                         setSearchTerm("")
-                        setLinkSearch("")
-                        setFilterCategory("all")
-                        setFilterSubcategory("all")
-                        setFilterSubcategory2("all")
-                        setFilterSubcategory3("all")
-                        setFilterSubcategory4("all")
-                        setFilterBrand("all")
                         setFilterStatus("all")
                       }}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     >
-                      <X size={16} />
-                      Clear Filters
+                      <X className="w-3.5 h-3.5" />
+                      <span>Reset</span>
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
 
-                {/* Action Buttons */}
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-4">
-                    {(searchTerm || linkSearch || filterCategory !== "all" || filterSubcategory !== "all" || filterSubcategory2 !== "all" || filterSubcategory3 !== "all" || filterSubcategory4 !== "all" || filterBrand !== "all" || filterStatus !== "all") && (
-                      <button
-                        onClick={() => {
-                          setSearchTerm("")
-                          setLinkSearch("")
-                          setFilterCategory("all")
-                          setFilterSubcategory("all")
-                          setFilterSubcategory2("all")
-                          setFilterSubcategory3("all")
-                          setFilterSubcategory4("all")
-                          setFilterBrand("all")
-                          setFilterStatus("all")
-                        }}
-                        className="text-sm text-gray-600 hover:text-gray-800 underline"
-                      >
-                        
-                      </button>
-                    )}
-                  </div>
+                {/* Right Tools: Select All Pages / Clear */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={toggleSelectAll}
+                    disabled={loadingSelectAll}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                      selectAllMode 
+                        ? 'bg-blue-50 border-blue-300 text-blue-700' 
+                        : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                    } ${loadingSelectAll ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {loadingSelectAll ? 'Loading...' : 'Select All Pages'}
+                  </button>
                   
-                  <div className="flex items-center justify-between">
+                  {totalSelected > 0 && (
+                    <button
+                      onClick={clearSelection}
+                      className="px-3 py-1.5 text-xs font-semibold border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
+                    >
+                      Clear Selection
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Bulk Actions Bar and Table Container */}
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center justify-between w-full">
+                  <div></div>
+                  {/* Bulk Action Options - Only show when there are products selected */}
+                  {totalSelected > 0 && (
                     <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={toggleSelectAll}
-                          disabled={loadingSelectAll}
-                          className={`px-3 py-1 text-sm rounded border ${
-                            selectAllMode 
-                              ? 'bg-blue-50 border-blue-300 text-blue-700' 
-                              : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                          } ${loadingSelectAll ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                          {loadingSelectAll ? 'Loading...' : 'Select All Pages'}
-                        </button>
-                        
-                        {totalSelected > 0 && (
-                          <button
-                            onClick={clearSelection}
-                            className="px-3 py-1 text-sm border border-gray-300 text-gray-700 rounded hover:bg-gray-50"
-                          >
-                            Clear Selection
-                          </button>
-                        )}
+                      <div className="text-sm text-blue-700">
+                        {selectAllMode ? `${totalSelected} ${isServicesSection ? "services" : "products"} selected` : `${totalSelected} ${isServicesSection ? (totalSelected > 1 ? "services" : "service") : (totalSelected > 1 ? "products" : "product")} selected`}
                       </div>
-
-                      {/* Show category/subcategory product count */}
-                      {(filterCategory !== "all" || filterSubcategory !== "all") && (
-                        <div className="text-sm text-gray-600">
-                          {categoryProductCount} product{categoryProductCount !== 1 ? 's' : ''} in{' '}
-                          {filterSubcategory !== "all" 
-                            ? subcategories.find(s => s._id === filterSubcategory)?.name
-                            : categories.find(c => c._id === filterCategory)?.name}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Bulk Action Options - Only show when there are products selected */}
-                    {totalSelected > 0 && (
-                      <div className="flex items-center gap-4">
-                        <div className="text-sm text-blue-700">
-                          {selectAllMode ? `${totalSelected} products selected` : `${totalSelected} product${totalSelected > 1 ? 's' : ''} selected`}
-                        </div>
                         
                         {/* Change Status Dropdown */}
                         <div className="relative" ref={bulkStatusDropdownRef}>
@@ -1901,7 +1809,6 @@ const AdminProducts = () => {
                     )}
                   </div>
                 </div>
-              </div>
 
               {/* Move Products Modal */}
               <MoveProductsModal
@@ -1933,7 +1840,7 @@ const AdminProducts = () => {
                         {showColumnDropdown && (
                           <div className="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50 max-h-96 overflow-y-auto">
                             <div className="py-1">
-                              {ALL_COLUMNS.map((column) => (
+                              {ALL_COLUMNS.filter(c => !['parentCategory', 'level1', 'level2', 'level3', 'level4'].includes(c.id)).map((column) => (
                                 <button
                                   key={column.id}
                                   onClick={() => toggleColumn(column.id)}
@@ -2029,7 +1936,7 @@ const AdminProducts = () => {
                             scope="col"
                             className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
-                            Product
+                            {isServicesSection ? "Service" : "Product"}
                           </th>
                           )}
                           {isColumnVisible('brand') && (
@@ -2086,6 +1993,14 @@ const AdminProducts = () => {
                             className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
                            Base Price
+                          </th>
+                          )}
+                          {isColumnVisible('stock') && (
+                          <th
+                            scope="col"
+                            className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Stock / Qty
                           </th>
                           )}
                           {isColumnVisible('sku') && (
@@ -2196,6 +2111,27 @@ const AdminProducts = () => {
                                   )}
                                 </td>
                                 )}
+                                {isColumnVisible('stock') && (
+                                <td className="px-3 py-4 whitespace-nowrap text-center">
+                                  {product.parentCategory?.name?.toLowerCase().includes("service") || product.category?.name?.toLowerCase().includes("service") ? (
+                                    <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-blue-50 text-blue-700">
+                                      Service
+                                    </span>
+                                  ) : (
+                                    <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${
+                                      (Number(product.countInStock) || 0) > 10
+                                        ? 'bg-green-100 text-green-800'
+                                        : (Number(product.countInStock) || 0) > 0
+                                        ? 'bg-amber-100 text-amber-800'
+                                        : 'bg-red-100 text-red-800'
+                                    }`}>
+                                      {product.countInStock !== undefined && product.countInStock !== null
+                                        ? `${product.countInStock} Left`
+                                        : (product.stockStatus || 'In Stock')}
+                                    </span>
+                                  )}
+                                </td>
+                                )}
                                 {isColumnVisible('sku') && (
                                 <td className="px-1 py-4 whitespace-nowrap">
                                   <div className="flex flex-col items-start gap-1">
@@ -2299,7 +2235,7 @@ const AdminProducts = () => {
                         ) : (
                           <tr>
                             <td colSpan={visibleColumns.length} className="px-6 py-4 text-center text-gray-500">
-                              No products found
+                              {isServicesSection ? "No services found" : "No products found"}
                             </td>
                           </tr>
                         )}

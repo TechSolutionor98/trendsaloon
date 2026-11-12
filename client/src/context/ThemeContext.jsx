@@ -32,10 +32,10 @@ import {
  *    defaults in place rather than an unstyled page.
  */
 
-const CACHE_KEY = "grabatoz-theme-v1"
+const CACHE_KEY = "trend-theme-v2"
 // The same palette as ready-made CSS text, read by the pre-paint script in
 // index.html so the first frame is already themed.
-const CSS_CACHE_KEY = "grabatoz-theme-css-v1"
+const CSS_CACHE_KEY = "trend-theme-css-v2"
 // Long enough that the theme is not re-fetched on every route change, short
 // enough that an admin's change shows up for existing visitors the same day.
 const CACHE_TTL_MS = 30 * 60 * 1000
@@ -96,6 +96,11 @@ export const ThemeProvider = ({ children }) => {
       if (!response.ok) throw new Error(`Theme request failed (${response.status})`)
 
       const data = await response.json()
+      // If the theme from DB still has the old default lime green, upgrade to luxury gold
+      if (data?.brandScale?.[500] === "#84cc16") {
+        data.brandScale = { ...DEFAULT_THEME.brandScale }
+        data.brandPrimary = "#dfa742"
+      }
       fetchedAt.current = Date.now()
       setTheme(data)
       writeCache(data)

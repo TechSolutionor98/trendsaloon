@@ -28,17 +28,17 @@ const hex = (fallback) => ({
 // exact values as defaults means an untouched install renders pixel-identical
 // to before this feature existed.
 const DEFAULT_BRAND_SCALE = {
-  50: "#f7fee7",
-  100: "#ecfccb",
-  200: "#d9f99d",
-  300: "#bef264",
-  400: "#a3e635",
-  500: "#84cc16",
-  600: "#65a30d",
-  700: "#4d7c0f",
-  800: "#3f6212",
-  900: "#365314",
-  950: "#1a2e05",
+  50: "#fcf8ee",
+  100: "#f8eed5",
+  200: "#f1dcab",
+  300: "#e9c67b",
+  400: "#e2b354",
+  500: "#dfa742",
+  600: "#c78e32",
+  700: "#a67129",
+  800: "#855827",
+  900: "#6f4923",
+  950: "#3d2510",
 }
 
 const brandScaleSchema = new mongoose.Schema(

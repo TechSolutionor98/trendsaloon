@@ -6,6 +6,9 @@ import BlogNavbar from "./BlogNavbar"
 import StaticRouteSEO from "./StaticRouteSEO"
 import StaticPageTranslationLoader from "./StaticPageTranslationLoader"
 import StaticPageContentTranslator from "./StaticPageContentTranslator"
+import CartDrawer from "./CartDrawer"
+import TrendHeader from "./TrendHeader"
+import TrendFooter from "./TrendFooter"
 
 const Footer = lazyWithRetry(() => import("./Footer"))
 const BlogFooter = lazyWithRetry(() => import("./BlogFooter"))
@@ -44,6 +47,13 @@ function Layout() {
   // Check if current path is a blog page (with or without language prefix)
   // Matches: /blogs, /blogs/slug, /ae-en/blogs, /ae-en/blogs/slug, /ar/blogs, etc.
   const isBlogPage = location.pathname.match(/^\/([a-z]{2}(-[a-z]{2})?\/)?blogs(\/|$)/i)
+  
+  // Check if current path is a full bleed salon page (home or services)
+  const isFullBleedPage =
+    location.pathname === "/" ||
+    location.pathname === "/select-country" ||
+    Boolean(location.pathname.match(/^\/[a-z]{2}(-[a-z]{2})?\/?$/i)) ||
+    Boolean(location.pathname.match(/^\/([a-z]{2}(-[a-z]{2})?\/)?(services|services-and-products)(\/|$)/i))
   // The pages that carry a sticky action bar on a phone: the product page's
   // Buy Now / Add to Cart, and the cart's total and Checkout. Both put a button
   // exactly where the WhatsApp bubble floats.
@@ -89,27 +99,35 @@ function Layout() {
       <StaticRouteSEO />
       <StaticPageTranslationLoader />
 
-      {/* Navbar - Conditional based on page */}
-      {isBlogPage ? <BlogNavbar /> : <Navbar />}
+      {/* Header: On full bleed pages (Home/Services), they render TrendHeader internally. On other storefront pages (Login, Register, Checkout, Cart, Guest), render TrendHeader */}
+      {isBlogPage ? <BlogNavbar /> : (isFullBleedPage ? null : <TrendHeader active="other" />)}
 
-      {/* Main Content Area - Grows to fill space */}
-      <main className="flex-1 w-full bg-page-bg text-page-text">
+      {/* Main Content Area */}
+      <main className="flex-1 w-full bg-white text-gray-900">
         <StaticPageContentTranslator>
-          <div className="w-full max-w-[1360px] mx-auto">
+          {isFullBleedPage ? (
             <Outlet />
-          </div>
+          ) : (
+            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-[70vh]">
+              <Outlet />
+            </div>
+          )}
         </StaticPageContentTranslator>
       </main>
 
-      {/* Footer - Conditional based on page */}
-      {showDeferredChrome && (
-        <Suspense fallback={null}>
-          {isBlogPage ? <BlogFooter /> : <Footer />}
-        </Suspense>
+      {/* Footer: On full bleed pages, they render TrendFooter internally. On other storefront pages, render TrendFooter */}
+      {isBlogPage ? (
+        showDeferredChrome && (
+          <Suspense fallback={null}>
+            <BlogFooter />
+          </Suspense>
+        )
+      ) : (
+        isFullBleedPage ? null : <TrendFooter />
       )}
 
-      {/* WhatsApp Button */}
-      {showDeferredChrome && <WhatsAppButton raised={Boolean(hasStickyActionBar)} />}
+      {/* Slide-over Cart Sidebar Drawer */}
+      <CartDrawer />
     </div>
   )
 }

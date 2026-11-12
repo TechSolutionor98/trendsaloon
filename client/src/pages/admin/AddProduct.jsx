@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import { useToast } from "../../context/ToastContext"
 import AdminSidebar from "../../components/admin/AdminSidebar"
 import ImageUpload from "../../components/ImageUpload"
@@ -59,6 +59,9 @@ const limitWords = (text = "", maxWords = SEO_TITLE_MAX_WORDS) => {
 
 const AddProduct = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const queryParams = new URLSearchParams(location.search)
+  const itemType = queryParams.get("type") // "service" | "product"
   const { showToast } = useToast()
   const [categories, setCategories] = useState([])
   const [subCategories, setSubCategories] = useState([])
@@ -334,8 +337,11 @@ const AddProduct = () => {
         sizes: sizesRes.data,
       })
 
-      setCategories(Array.isArray(categoriesRes.data) ? categoriesRes.data.filter((cat) => cat.isActive !== false) : [])
-      setBrands(Array.isArray(brandsRes.data) ? brandsRes.data.filter((brand) => brand.isActive !== false) : [])
+      const loadedCategories = Array.isArray(categoriesRes.data) ? categoriesRes.data.filter((cat) => cat.isActive !== false) : []
+      const loadedBrands = Array.isArray(brandsRes.data) ? brandsRes.data.filter((brand) => brand.isActive !== false) : []
+
+      setCategories(loadedCategories)
+      setBrands(loadedBrands)
       setTaxes(Array.isArray(taxesRes.data) ? taxesRes.data.filter((tax) => tax.isActive !== false) : [])
       setUnits(Array.isArray(unitsRes.data) ? unitsRes.data.filter((unit) => unit.isActive !== false) : [])
       setWarranties(
@@ -351,6 +357,30 @@ const AddProduct = () => {
         manufacturer: Array.isArray(manufacturerRes.data) ? manufacturerRes.data.filter((item) => item.isActive !== false) : [],
         soldBy: Array.isArray(soldByRes.data) ? soldByRes.data.filter((item) => item.isActive !== false) : [],
       })
+
+      // Auto-preselect category and brand for Salon
+      const trendBrand = loadedBrands.find((b) => b.name?.toLowerCase().includes("trend"))?._id || ""
+      if (itemType === "service") {
+        const sCat = loadedCategories.find((c) => c.name?.toLowerCase().includes("service"))
+        if (sCat) {
+          setFormData((prev) => ({
+            ...prev,
+            category: sCat._id,
+            brand: trendBrand || prev.brand,
+          }))
+          fetchSubCategories(sCat._id)
+        }
+      } else if (itemType === "product") {
+        const pCat = loadedCategories.find((c) => c.name?.toLowerCase().includes("product"))
+        if (pCat) {
+          setFormData((prev) => ({
+            ...prev,
+            category: pCat._id,
+            brand: trendBrand || prev.brand,
+          }))
+          fetchSubCategories(pCat._id)
+        }
+      }
     } catch (error) {
       console.error("Error fetching data:", error)
       showToast("Failed to load some form data. Please check if all services are running.", "error")
@@ -710,11 +740,11 @@ const AddProduct = () => {
         },
       })
 
-      showToast("Product added successfully!", "success")
-      navigate("/admin/products")
+      showToast(itemType === "service" ? "Service added successfully!" : "Product added successfully!", "success")
+      navigate(itemType === "service" ? "/admin/products?type=services" : "/admin/products?type=products")
     } catch (error) {
       console.error("Error adding product:", error)
-      showToast(error.response?.data?.message || "Failed to add product", "error")
+      showToast(error.response?.data?.message || "Failed to add item", "error")
     } finally {
       setLoading(false)
     }
@@ -730,16 +760,20 @@ const AddProduct = () => {
           <div className="mb-8">
             <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
               <button
-                onClick={() => navigate("/admin/products")}
+                onClick={() => navigate(itemType === "service" ? "/admin/products?type=services" : "/admin/products?type=products")}
                 className="hover:text-blue-600 flex items-center gap-1"
               >
                 <ArrowLeft size={16} />
-                Products
+                {itemType === "service" ? "Services" : "Products"}
               </button>
               <span>/</span>
-              <span className="text-gray-900">Add Product</span>
+              <span className="text-gray-900 font-semibold">
+                {itemType === "service" ? "Add Service" : "Add Product"}
+              </span>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Add New Product</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {itemType === "service" ? "Add New Salon Service" : "Add New Retail Product"}
+            </h1>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -1839,9 +1873,9 @@ const AddProduct = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                className="px-6 py-2 bg-[#dfa742] text-black font-semibold rounded-md hover:bg-[#c99537] disabled:opacity-50 transition-colors"
               >
-                {loading ? "Adding..." : "Add Product"}
+                {loading ? "Adding..." : itemType === "service" ? "Add Service" : "Add Product"}
               </button>
             </div>
           </form>

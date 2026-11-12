@@ -527,6 +527,9 @@ export const CartProvider = ({ children }) => {
   // than on a page so the choice made in the cart carries through to checkout.
   const [loyaltyPointsToRedeem, setLoyaltyPointsToRedeem] = useState(0)
   const [loyaltyDiscount, setLoyaltyDiscount] = useState(0)
+  const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false)
+  const openCart = useCallback(() => setIsCartDrawerOpen(true), [])
+  const closeCart = useCallback(() => setIsCartDrawerOpen(false), [])
   const { showToast } = useToast()
 
   useEffect(() => {
@@ -688,6 +691,9 @@ export const CartProvider = ({ children }) => {
       } catch (error) {
         console.error("❌ GTM tracking error:", error)
       }
+
+      // Open the slide-over cart sidebar
+      setIsCartDrawerOpen(true)
 
       // Show success toast
       if (!silent) {
@@ -878,6 +884,10 @@ export const CartProvider = ({ children }) => {
         applyLoyaltyRedemption,
         clearLoyaltyRedemption,
         calculateFinalTotal,
+        isCartDrawerOpen,
+        setIsCartDrawerOpen,
+        openCart,
+        closeCart,
       }}
     >
       {children}

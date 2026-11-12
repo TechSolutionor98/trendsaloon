@@ -5,6 +5,8 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { useLanguage } from "../context/LanguageContext"
 import { resolvePostAuthPath, clearReturnPath } from "../utils/authRedirect"
+import { TrendLogo } from "../components/TrendHeader"
+import { Mail, CheckCircle2, AlertCircle } from "lucide-react"
 
 const EmailVerification = () => {
   const [code, setCode] = useState(["", "", "", "", "", ""])
@@ -164,14 +166,17 @@ const EmailVerification = () => {
 
   if (!email) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div className="text-center">
-            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Email Not Found</h2>
-            <p className="mt-2 text-sm text-gray-600">Please register first to verify your email.</p>
+      <div className="min-h-[75vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-gray-100 p-8 sm:p-10 space-y-6">
+          <div className="text-center space-y-3">
+            <div className="flex justify-center mb-1">
+              <TrendLogo />
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 tracking-tight">Email Not Found</h2>
+            <p className="text-sm text-gray-500">Please register first to verify your email.</p>
             <button
               onClick={() => navigate(getLocalizedPath("/register"))}
-              className="mt-4 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              className="mt-4 w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-md shadow-[#dfa742]/20 text-sm font-bold text-black bg-gradient-to-r from-[#dfa742] via-[#e8be6d] to-[#dfa742] hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#dfa742] transition-all"
             >
               Go to Register
             </button>
@@ -182,69 +187,49 @@ const EmailVerification = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-green-100">
-            <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
+    <div className="min-h-[75vh] flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl border border-gray-100 p-6 sm:p-10 space-y-6">
+        <div className="text-center space-y-3">
+          <div className="flex justify-center mb-1">
+            <TrendLogo />
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Verify Your Email</h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+
+          <div className="mx-auto h-14 w-14 flex items-center justify-center rounded-2xl bg-amber-50 border border-[#dfa742]/40 text-[#dfa742] shadow-sm">
+            <Mail className="h-7 w-7 text-[#dfa742]" />
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 tracking-tight">
+            Verify Your Email
+          </h2>
+          <p className="text-xs sm:text-sm text-gray-500">
             We've sent a 6-digit verification code to
             <br />
-            <span className="font-medium text-green-600">{email}</span>
+            <span className="font-semibold text-[#b38743]">{email}</span>
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-red-800">{error}</p>
-                </div>
+            <div className="rounded-xl bg-red-50 border border-red-200 p-4">
+              <div className="flex items-center gap-2 text-red-800">
+                <AlertCircle className="h-5 w-5 text-red-500 shrink-0" />
+                <p className="text-xs sm:text-sm font-medium">{error}</p>
               </div>
             </div>
           )}
 
           {success && (
-            <div className="rounded-md bg-green-50 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-green-800">{success}</p>
-                </div>
+            <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
+              <div className="flex items-center gap-2 text-amber-900">
+                <CheckCircle2 className="h-5 w-5 text-[#dfa742] shrink-0" />
+                <p className="text-xs sm:text-sm font-medium">{success}</p>
               </div>
             </div>
           )}
 
           <div>
             <label className="sr-only">Verification Code</label>
-            <div className="flex justify-center space-x-2">
+            <div className="flex justify-center gap-2 sm:gap-2.5">
               {code.map((digit, index) => (
                 <input
                   key={index}
@@ -256,7 +241,11 @@ const EmailVerification = () => {
                   onChange={(e) => handleInputChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
                   onPaste={handlePaste}
-                  className="w-12 h-12 text-center text-2xl font-bold border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-colors"
+                  className={`w-11 sm:w-12 h-13 sm:h-14 text-center text-2xl font-bold border-2 rounded-xl transition-all duration-150 outline-none ${
+                    digit
+                      ? "border-[#dfa742] ring-2 ring-[#dfa742]/30 bg-amber-50/20 text-gray-900"
+                      : "border-gray-200 text-gray-900 focus:border-[#dfa742] focus:ring-2 focus:ring-[#dfa742]/30"
+                  }`}
                   disabled={loading}
                 />
               ))}
@@ -267,11 +256,11 @@ const EmailVerification = () => {
             <button
               type="submit"
               disabled={loading || !Array.isArray(code) || code.some((digit) => digit === "")}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-full text-black bg-gradient-to-r from-[#dfa742] via-[#e8be6d] to-[#dfa742] hover:brightness-105 shadow-md shadow-[#dfa742]/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#dfa742] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {loading ? (
                 <div className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-black" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path
                       className="opacity-75"
@@ -287,14 +276,14 @@ const EmailVerification = () => {
             </button>
           </div>
 
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
+          <div className="text-center pt-2">
+            <p className="text-xs sm:text-sm text-gray-600">
               Didn't receive the code?{" "}
               <button
                 type="button"
                 onClick={handleResendCode}
                 disabled={resendLoading || resendCooldown > 0}
-                className="font-medium text-green-600 hover:text-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="font-bold text-[#b38743] hover:text-[#dfa742] hover:underline disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {resendLoading ? "Sending..." : resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Code"}
               </button>

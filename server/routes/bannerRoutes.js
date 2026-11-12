@@ -59,6 +59,113 @@ const sanitizeTargetCountries = (targetCountries) => {
   return cleaned
 }
 
+// @desc    Get salon main page banners (Home Hero & Services Hero)
+// @route   GET /api/banners/salon-banners
+// @access  Public
+router.get(
+  "/salon-banners",
+  asyncHandler(async (req, res) => {
+    try {
+      const homeBanner = await Banner.findOne({ position: "home-hero", isActive: true })
+      const servicesBanner = await Banner.findOne({ position: "services-hero", isActive: true })
+
+      res.json({
+        home: homeBanner
+          ? {
+              _id: homeBanner._id,
+              title: homeBanner.title,
+              tagline: homeBanner.description || "Look Good • Feel Great",
+              subtitle: homeBanner.subtitle || "Premium Grooming & Wellness Services for the Modern Gentleman",
+              image: homeBanner.image,
+              buttonText: homeBanner.buttonText || "Book Now",
+            }
+          : {
+              title: "Trend Salon",
+              tagline: "Look Good • Feel Great",
+              subtitle: "Premium Grooming & Wellness Services for the Modern Gentleman",
+              image: "/salon/hero-man-transparent.png",
+              buttonText: "Book Now",
+            },
+        services: servicesBanner
+          ? {
+              _id: servicesBanner._id,
+              title: servicesBanner.title,
+              subtitle: servicesBanner.subtitle || "Professional Care. Premium Quality.",
+              image: servicesBanner.image || "/salon/services-man.png",
+            }
+          : {
+              title: "Our Services & Products",
+              subtitle: "Professional Care. Premium Quality.",
+              image: "/salon/services-man.png",
+            },
+      })
+    } catch (err) {
+      console.error("Error fetching salon banners:", err)
+      res.json({
+        home: {
+          title: "Trend Salon",
+          tagline: "Look Good • Feel Great",
+          subtitle: "Premium Grooming & Wellness Services for the Modern Gentleman",
+          image: "/salon/hero-man-transparent.png",
+          buttonText: "Book Now",
+        },
+        services: {
+          title: "Our Services & Products",
+          subtitle: "Professional Care. Premium Quality.",
+          image: "/salon/services-man.png",
+        },
+      })
+    }
+  }),
+)
+
+// @desc    Update salon main page banners
+// @route   PUT /api/banners/salon-banners
+// @access  Private/Admin
+router.put(
+  "/salon-banners",
+  protect,
+  admin,
+  asyncHandler(async (req, res) => {
+    const { home, services } = req.body
+
+    if (home) {
+      await Banner.findOneAndUpdate(
+        { position: "home-hero" },
+        {
+          title: home.title || "Trend Salon",
+          description: home.tagline || "Look Good • Feel Great",
+          subtitle: home.subtitle || "Premium Grooming & Wellness Services for the Modern Gentleman",
+          image: home.image || "/salon/hero-man-transparent.png",
+          buttonText: home.buttonText || "Book Now",
+          position: "home-hero",
+          isActive: true,
+          createdBy: req.user._id,
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      )
+    }
+
+    if (services) {
+      await Banner.findOneAndUpdate(
+        { position: "services-hero" },
+        {
+          title: services.title || "Our Services & Products",
+          subtitle: services.subtitle || "Professional Care. Premium Quality.",
+          image: services.image || "/salon/services-hero.jpg",
+          position: "services-hero",
+          isActive: true,
+          createdBy: req.user._id,
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      )
+    }
+
+    await invalidateCache("banners")
+    res.json({ success: true, message: "Salon banners updated successfully" })
+  }),
+)
+
 // @desc    Get all banners (public)
 // @route   GET /api/banners
 // @access  Public

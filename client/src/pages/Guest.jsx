@@ -7,6 +7,7 @@ import '../styles/phoneInput.css'
 import config from "../config/config"
 import { useCurrency } from "../context/CurrencyContext"
 import { getProvincesForCountry } from "../utils/countryStates"
+import { TrendLogo } from "../components/TrendHeader"
 
 const Guest = () => {
   const navigate = useNavigate()
@@ -187,8 +188,12 @@ const Guest = () => {
         {/* Left: Guest Form */}
         <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-10">
           <div className="max-w-md w-full space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Continue as Guest</h2>
+            <div className="text-center space-y-2">
+              <div className="flex justify-center mb-1">
+                <TrendLogo />
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 tracking-tight">Continue as Guest</h2>
+              <p className="text-xs text-gray-500">Fast checkout without creating a password</p>
             </div>
             {error && (
               <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm border border-red-100 animate-fade-in">
@@ -206,7 +211,7 @@ const Guest = () => {
                     required
                     value={guestInfo.name}
                     onChange={handleChange}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#dfa742]"
                     placeholder="Enter your name"
                   />
                 </div>
@@ -223,7 +228,7 @@ const Guest = () => {
                       value={guestInfo.email}
                       onChange={handleChange}
                       disabled={verificationVerified}
-                      className={`block flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500 ${verificationVerified ? 'bg-green-50 border-green-300' : ''}`}
+                      className={`block flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#dfa742] ${verificationVerified ? 'bg-green-50 border-green-300' : ''}`}
                       placeholder="Enter your email"
                     />
                     {!verificationVerified && (
@@ -231,7 +236,7 @@ const Guest = () => {
                         type="button"
                         onClick={handleSendVerificationCode}
                         disabled={verificationLoading || !guestInfo.email}
-                        className="px-3 py-2 bg-lime-500 text-white text-sm font-medium rounded-lg hover:bg-lime-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                        className="px-3 py-2 bg-[#dfa742] text-black text-sm font-bold rounded-lg hover:bg-[#caa638] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                       >
                         {verificationLoading ? "Sending..." : verificationSent ? "Resend" : "Verify"}
                       </button>
@@ -296,7 +301,7 @@ const Guest = () => {
                     required
                     value={guestInfo.address}
                     onChange={handleChange}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#dfa742]"
                     placeholder="Enter your address"
                   />
                 </div>
@@ -309,7 +314,7 @@ const Guest = () => {
                     required
                     value={guestInfo.country}
                     onChange={handleChange}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#dfa742]"
                   >
                     {(countries || []).map((c) => (
                       <option key={c.code} value={c.name}>{c.name}</option>
@@ -329,7 +334,7 @@ const Guest = () => {
                             required
                             value={guestInfo.state}
                             onChange={handleChange}
-                            className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500"
+                            className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#dfa742]"
                           >
                             <option value="">Select State</option>
                             {provinces.map((state) => (
@@ -346,7 +351,7 @@ const Guest = () => {
                           required
                           value={guestInfo.state}
                           onChange={handleChange}
-                          className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500"
+                          className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#dfa742]"
                           placeholder="State / Region"
                         />
                       )
@@ -361,7 +366,7 @@ const Guest = () => {
                       required
                       value={guestInfo.city}
                       onChange={handleChange}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500"
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#dfa742]"
                       placeholder="City"
                     />
                   </div>
@@ -376,14 +381,14 @@ const Guest = () => {
                     type="text"
                     value={guestInfo.zipCode}
                     onChange={handleChange}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#dfa742]"
                     placeholder="Zip Code"
                   />
                 </div>
               </div>
               <button
                 type="submit"
-                className="w-full py-3 px-4 mt-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-lime-500 hover:bg-lime-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lime-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 px-4 mt-3 border border-transparent rounded-full shadow-lg shadow-[#dfa742]/20 text-sm font-bold text-black bg-[#dfa742] hover:bg-[#caa638] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#dfa742] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={loading || !verificationVerified}
               >
                 {loading ? "Continuing..." : "Continue to Payment"}
@@ -397,11 +402,11 @@ const Guest = () => {
           </div>
         </div>
         {/* Right: Image */}
-        <div className="hidden md:flex md:w-1/2 items-center justify-center bg-white relative">
+        <div className="hidden md:flex md:w-1/2 items-center justify-center bg-[#0e0e10] relative">
           <img
-            src="/guest.jpg"
-            alt="Guest Visual"
-            className="w-full h-full max-h-[520px] object-cover object-center"
+            src="/salon/hero-barber.jpg"
+            alt="Trend Salon Grooming"
+            className="w-full h-full max-h-[520px] object-cover object-center filter brightness-90"
           />
         </div>
       </div>

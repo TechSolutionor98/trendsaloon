@@ -29,6 +29,7 @@ import { useLocation } from "react-router-dom"
 
 // Import pages
 import Home from "./pages/Home"
+import ServicesProducts from "./pages/ServicesProducts"
 import NotFound from "./pages/NotFound"
 
 const Shop = lazyWithRetry(() => import("./pages/Shop"))
@@ -185,9 +186,9 @@ function App() {
                 <div className="App">
                   <Suspense fallback={lazyFallback}>
                   <Routes>
-                    {/* Country Selector Landing Page (Directly on root / with no slug) */}
-                    <Route index element={<CountrySelector />} />
-                    <Route path="/" element={<CountrySelector />} />
+                    {/* Home Route - Redirect directly to /ae-en for Trend Salon storefront */}
+                    <Route index element={<Navigate to="/ae-en" replace />} />
+                    <Route path="/" element={<Navigate to="/ae-en" replace />} />
                     <Route path="/select-country" element={<CountrySelector />} />
                   
 
@@ -234,6 +235,10 @@ function App() {
                     element={<CountryLangLayout lazyFallback={lazyFallback} />}
                   >
                     <Route index element={<Home />} />
+                    <Route path="services" element={<ServicesProducts />} />
+                    <Route path="services-and-products" element={<ServicesProducts />} />
+                    <Route path="services" element={<ServicesProducts />} />
+                    <Route path="services-and-products" element={<ServicesProducts />} />
                     <Route path="shop" element={<Shop />} />
                     <Route path="shop/:parentCategory" element={<Shop />} />
                     <Route path="shop/:parentCategory/:subcategory" element={<Shop />} />
@@ -343,6 +348,10 @@ function App() {
                     }
                   >
                     <Route index element={<Home />} />
+                    <Route path="services" element={<ServicesProducts />} />
+                    <Route path="services-and-products" element={<ServicesProducts />} />
+                    <Route path="services" element={<ServicesProducts />} />
+                    <Route path="services-and-products" element={<ServicesProducts />} />
                     <Route path="shop" element={<Shop />} />
                     <Route path="shop/:parentCategory" element={<Shop />} />
                     <Route path="shop/:parentCategory/:subcategory" element={<Shop />} />
@@ -451,6 +460,8 @@ function App() {
                       </>
                     }
                   >
+                    <Route path="services" element={<ServicesProducts />} />
+                    <Route path="services-and-products" element={<ServicesProducts />} />
                     <Route path="shop" element={<Shop />} />
                     <Route path="shop/:parentCategory" element={<Shop />} />
                     <Route path="shop/:parentCategory/:subcategory" element={<Shop />} />
