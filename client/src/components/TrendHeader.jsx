@@ -15,6 +15,7 @@ import {
   Truck,
   LogOut,
   Settings,
+  ShieldCheck,
 } from "lucide-react"
 
 export function TrendLogo() {
@@ -61,7 +62,7 @@ export function TrendLogo() {
 
 export default function TrendHeader({ active = "home" }) {
   const navigate = useNavigate()
-  const { user, isAuthenticated, logout, isAdminAuthenticated } = useAuth()
+  const { user, isAuthenticated, logout, isAdminAuthenticated, isSuperAdmin } = useAuth()
   const { cartCount, openCart } = useCart()
   const { getLocalizedPath } = useLanguage()
 
@@ -233,7 +234,7 @@ export default function TrendHeader({ active = "home" }) {
                         <span>Track Order</span>
                       </Link>
 
-                      {(isAdminAuthenticated || user?.role === "admin" || user?.role === "superadmin") && (
+                      {isAdminAuthenticated && (
                         <Link
                           to="/admin"
                           onClick={() => setIsProfileOpen(false)}
@@ -241,6 +242,17 @@ export default function TrendHeader({ active = "home" }) {
                         >
                           <Settings className="w-3.5 h-3.5 text-[#dfa742]" />
                           <span>Admin Dashboard</span>
+                        </Link>
+                      )}
+
+                      {(isSuperAdmin || localStorage.getItem("isSuperAdmin") === "true") && (
+                        <Link
+                          to="/superadmin/dashboard"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-xs text-emerald-400 font-semibold hover:bg-white/5 transition-colors border-t border-white/10"
+                        >
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>Super Admin Portal</span>
                         </Link>
                       )}
                     </div>

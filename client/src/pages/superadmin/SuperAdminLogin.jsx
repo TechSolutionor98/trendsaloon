@@ -14,14 +14,14 @@ const SuperAdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const { adminLogin } = useAuth()
+  const { adminLogin, adminLogout } = useAuth()
   const navigate = useNavigate()
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: name === "email" ? value.trim().toLowerCase() : value,
     })
   }
 
@@ -40,8 +40,8 @@ const SuperAdminLogin = () => {
         if (result.isSuperAdmin) {
           navigate("/superadmin/dashboard")
         } else {
+          adminLogout()
           setError("Access denied. Super Admin privileges required.")
-          // Optionally logout if not super admin
         }
       } else {
         setError(result.message || "Invalid credentials. Please try again.")
@@ -150,7 +150,7 @@ const SuperAdminLogin = () => {
           {/* Footer */}
           <div className="mt-8 text-center">
             <p className="text-slate-500 text-sm">
-              <a href="grabatoz.ae">Grab A2Z</a> &copy; All Copyrights Reserved
+              <span className="font-semibold text-slate-700">Trend Gents Saloon</span> &copy; Super Admin Portal
             </p>
           </div>
         </div>

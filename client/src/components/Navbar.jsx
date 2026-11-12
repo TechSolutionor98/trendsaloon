@@ -784,7 +784,7 @@ const Navbar = () => {
   }, [])
 
   // Check if current path is an admin route
-  const isAdminRoute = location.pathname.startsWith("/admin")
+  const isAdminRoute = location.pathname.startsWith("/admin") || location.pathname.startsWith("/superadmin")
 
   // Don't render navbar for admin routes
   if (isAdminRoute) {

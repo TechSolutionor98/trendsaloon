@@ -139,7 +139,7 @@ const AdminLogin = () => {
           {/* Footer */}
           <div className="mt-8 text-center">
             <p className="text-slate-500 text-sm">
-              <a href="grabatoz.ae">Grab A2Z </a> &copy; All Copyrights Reserved
+              <span className="font-semibold text-slate-700">Trend Gents Saloon</span> &copy; Admin Portal
             </p>
           </div>
         </div>

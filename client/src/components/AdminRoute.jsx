@@ -153,24 +153,30 @@ const getFirstPermittedRoute = (hasPermission) => {
     }
   }
   
-  // Fallback (shouldn't happen if user has at least one permission)
-  return "/admin/dashboard"
+  // Return null if user has no permissions at all
+  return null
 }
 
 const AdminRoute = ({ children, requiredPermission }) => {
-  const adminToken =
-    localStorage.getItem("adminToken") || localStorage.getItem("token") || localStorage.getItem("authToken")
+  // Strictly require adminToken (never regular customer token)
+  const adminToken = localStorage.getItem("adminToken")
   const location = useLocation()
-  const { hasPermission, isSuperAdmin } = useAuth()
+  const { hasPermission, isSuperAdmin, isAdminAuthenticated } = useAuth()
   const isSuper = isSuperAdmin || localStorage.getItem("isSuperAdmin") === "true"
   
   if (!adminToken) {
-    return <Navigate to="/grabiansadmin/login" />
+    return <Navigate to="/admin/login" state={{ from: location }} replace />
   }
   
   // Super admin has access to everything
   if (isSuper) {
     return children
+  }
+
+  // Check if admin has ANY permissions at all
+  const firstPermittedRoute = getFirstPermittedRoute(hasPermission)
+  if (!firstPermittedRoute) {
+    return <Navigate to="/admin/login" state={{ accessDenied: true }} replace />
   }
   
   // Check permission based on route or explicit requirement
@@ -178,10 +184,10 @@ const AdminRoute = ({ children, requiredPermission }) => {
   
   if (permission && !hasPermission(permission)) {
     // Redirect to first permitted page instead of dashboard
-    const firstPermittedRoute = getFirstPermittedRoute(hasPermission)
-    if (firstPermittedRoute && firstPermittedRoute !== location.pathname) {
+    if (firstPermittedRoute !== location.pathname) {
       return <Navigate to={firstPermittedRoute} state={{ accessDenied: true, requiredPermission: permission }} replace />
     }
+    return <Navigate to="/admin/login" state={{ accessDenied: true }} replace />
   }
   
   return children

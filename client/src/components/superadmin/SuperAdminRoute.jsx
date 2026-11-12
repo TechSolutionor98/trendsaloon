@@ -19,13 +19,16 @@ const SuperAdminRoute = ({ children }) => {
     )
   }
 
+  const adminToken = localStorage.getItem("adminToken")
+  const isSuper = isSuperAdmin || localStorage.getItem("isSuperAdmin") === "true"
+
   // Redirect to super admin login if not authenticated
-  if (!isAdminAuthenticated) {
-    return <Navigate to="/grabiansuperadmin/login" state={{ from: location }} replace />
+  if (!adminToken || !isAdminAuthenticated) {
+    return <Navigate to="/superadmin/login" state={{ from: location }} replace />
   }
 
   // Redirect to regular admin if not super admin
-  if (!isSuperAdmin) {
+  if (!isSuper) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl border border-red-100 p-8 max-w-md text-center">

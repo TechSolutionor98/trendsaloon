@@ -118,26 +118,11 @@ function CountryLangLayout({ lazyFallback }) {
     countryLang === "grabiansadmin" ||
     countryLang === "grabiansuperadmin"
   ) {
-    if (countryLang === "superadmin") {
-      return (
-        <Suspense fallback={lazyFallback}>
-          <SuperAdminPortal />
-        </Suspense>
-      )
+    if (countryLang === "grabiansadmin" || countryLang === "admin") {
+      return <Navigate to="/admin/login" replace />
     }
-    if (countryLang === "grabiansadmin") {
-      return (
-        <Suspense fallback={lazyFallback}>
-          <AdminLogin />
-        </Suspense>
-      )
-    }
-    if (countryLang === "grabiansuperadmin") {
-      return (
-        <Suspense fallback={lazyFallback}>
-          <SuperAdminLogin />
-        </Suspense>
-      )
+    if (countryLang === "grabiansuperadmin" || countryLang === "superadmin") {
+      return <Navigate to="/superadmin/login" replace />
     }
     return (
       <Suspense fallback={lazyFallback}>
@@ -190,14 +175,22 @@ function App() {
                   
 
                   
-                  {/* Super Admin Portal Routes (separate green-themed portal) */}
+                  {/* Super Admin Portal Routes */}
                   <Route
-                    path="/grabiansuperadmin/login"
+                    path="/superadmin/login"
                     element={
                       <Suspense fallback={lazyFallback}>
                         <SuperAdminLogin />
                       </Suspense>
                     }
+                  />
+                  <Route
+                    path="/grabiansuperadmin/login"
+                    element={<Navigate to="/superadmin/login" replace />}
+                  />
+                  <Route
+                    path="/superadmin"
+                    element={<Navigate to="/superadmin/dashboard" replace />}
                   />
                   <Route
                     path="/superadmin/*"
@@ -210,12 +203,20 @@ function App() {
 
                   {/* Admin Routes */}
                   <Route
-                    path="/grabiansadmin/login"
+                    path="/admin/login"
                     element={
                       <Suspense fallback={lazyFallback}>
                         <AdminLogin />
                       </Suspense>
                     }
+                  />
+                  <Route
+                    path="/grabiansadmin/login"
+                    element={<Navigate to="/admin/login" replace />}
+                  />
+                  <Route
+                    path="/admin"
+                    element={<Navigate to="/admin/dashboard" replace />}
                   />
                   <Route
                     path="/admin/*"
