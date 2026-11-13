@@ -190,7 +190,7 @@ const SuperAdminDashboard = () => {
             <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white mb-1">
               Welcome back, <span className="text-[#dfa742]">{admin?.name || "Super Admin"}</span>!
             </h1>
-            <p className="text-gray-400 text-sm">Real-time overview of Trend Gents Saloon administrative operations.</p>
+            <p className="text-gray-400 text-sm">Real-time overview of Trend Saloon administrative operations.</p>
           </div>
           <div className="hidden md:flex items-center gap-4">
             <div className="w-16 h-16 bg-[#dfa742]/10 border border-[#dfa742]/30 rounded-2xl flex items-center justify-center shadow-lg shadow-[#dfa742]/10">

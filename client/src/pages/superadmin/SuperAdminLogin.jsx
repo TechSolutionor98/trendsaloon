@@ -173,7 +173,7 @@ const SuperAdminLogin = () => {
           {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-gray-500 text-xs">
-              <span className="font-semibold text-gray-400">Trend Gents Saloon</span> &copy; Super Admin Portal
+              <span className="font-semibold text-gray-400">Trend Saloon</span> &copy; Super Admin Portal
             </p>
           </div>
         </div>

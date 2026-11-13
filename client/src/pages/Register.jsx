@@ -240,7 +240,7 @@ const Register = () => {
                 <span>Look Good • Feel Great</span>
               </div>
               <h3 className="text-xl sm:text-2xl font-serif font-bold text-white leading-snug">
-                Join Trend Gents Saloon Exclusive Club
+                Join Trend Saloon Exclusive Club
               </h3>
               <p className="text-xs text-gray-300 font-light flex items-center gap-1.5 pt-1">
                 <ShieldCheck className="w-4 h-4 text-green-400" />

@@ -161,7 +161,7 @@ const AddProduct = () => {
         brand: brandId,
         slug: uniqueSlug,
         sku: uniqueSku,
-        description: `${trimmedName} - Trend Gents Saloon`,
+        description: `${trimmedName} - Trend Saloon`,
         countInStock: 999,
         stockStatus: "In Stock",
         isActive: true,

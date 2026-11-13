@@ -208,7 +208,7 @@ export default function Home() {
         <div className="relative w-full overflow-hidden select-none">
           <img
             src={getFullImageUrl(heroBanner.image)}
-            alt={heroBanner.title || "Trend Gents Saloon"}
+            alt={heroBanner.title || "Trend Saloon"}
             className="w-full h-auto min-h-[260px] sm:min-h-[380px] md:min-h-[480px] max-h-[650px] object-cover object-center"
           />
 

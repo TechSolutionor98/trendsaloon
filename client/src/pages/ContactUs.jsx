@@ -289,7 +289,7 @@ export default function ContactUs() {
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">Request Sent Successfully!</h3>
                   <p className="text-xs sm:text-sm text-gray-600 mt-1 max-w-md mx-auto">
-                    Thank you for reaching out to Trend Gents Saloon. Our team will contact you shortly on WhatsApp or phone call.
+                    Thank you for reaching out to Trend Saloon. Our team will contact you shortly on WhatsApp or phone call.
                   </p>
                 </div>
                 <button
@@ -464,7 +464,7 @@ export default function ContactUs() {
               {/* Responsive Embedded Map */}
               <div className="w-full h-64 sm:h-72 rounded-2xl overflow-hidden border border-gray-200 shadow-inner">
                 <iframe
-                  title="Trend Gents Saloon Location"
+                  title="Trend Saloon Location"
                   src="https://maps.google.com/maps?q=Al%20Yasmeen,%20Ajman,%20United%20Arab%20Emirates&t=&z=14&ie=UTF8&iwloc=&output=embed"
                   width="100%"
                   height="100%"

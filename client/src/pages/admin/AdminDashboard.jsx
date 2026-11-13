@@ -153,7 +153,7 @@ const AdminDashboard = () => {
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#dfa742]/15 border border-[#dfa742]/30 rounded-full text-[#dfa742] text-[11px] font-semibold tracking-wider uppercase">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#dfa742] animate-pulse" />
-                Trend Gents Saloon · Admin Console
+                Trend Saloon · Admin Console
               </div>
               <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-wide">
                 Welcome back, <span className="text-[#dfa742]">{admin?.name || "Admin"}</span>
