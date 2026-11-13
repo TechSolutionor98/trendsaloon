@@ -424,3 +424,84 @@ main a:not([class*="text-"]):not([class*="bg-"]):hover {
   background: #dfa742;
 }
 
+/* ---------------------------------------------------------------------------
+   Unified Luxury Dark Theme for Salon Admin Portal
+   --------------------------------------------------------------------------- */
+.admin-portal-wrapper {
+  background-color: #0d0e11;
+  color: #f3f4f6;
+}
+
+.admin-portal-wrapper .bg-gray-100,
+.admin-portal-wrapper .bg-gray-50,
+.admin-portal-wrapper .bg-slate-50 {
+  background-color: #0d0e11;
+}
+
+.admin-portal-wrapper .bg-white {
+  background-color: #14161d;
+  color: #f3f4f6;
+  border-color: #262933;
+}
+
+.admin-portal-wrapper thead.bg-gray-50,
+.admin-portal-wrapper thead.bg-white,
+.admin-portal-wrapper thead.bg-gray-100 {
+  background-color: #181a22 !important;
+  color: #9ca3af !important;
+}
+
+.admin-portal-wrapper tbody.bg-white,
+.admin-portal-wrapper tbody.bg-gray-50 {
+  background-color: #14161d !important;
+}
+
+.admin-portal-wrapper .hover\:bg-gray-50:hover {
+  background-color: #1a1d26 !important;
+}
+
+.admin-portal-wrapper .text-gray-900 {
+  color: #ffffff;
+}
+
+.admin-portal-wrapper .text-gray-800 {
+  color: #f3f4f6;
+}
+
+.admin-portal-wrapper .text-gray-700 {
+  color: #d1d5db;
+}
+
+.admin-portal-wrapper .border-gray-200,
+.admin-portal-wrapper .border-gray-300 {
+  border-color: #262933;
+}
+
+.admin-portal-wrapper .divide-gray-200 > :not([hidden]) ~ :not([hidden]),
+.admin-portal-wrapper .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #22252d;
+}
+
+.admin-portal-wrapper input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.admin-portal-wrapper select,
+.admin-portal-wrapper textarea {
+  background-color: #1a1d24;
+  border-color: #2b2f3a;
+  color: #ffffff;
+}
+
+.admin-portal-wrapper input:focus,
+.admin-portal-wrapper select:focus,
+.admin-portal-wrapper textarea:focus {
+  border-color: #dfa742 !important;
+  outline: none;
+}
+
+@media print {
+  .admin-portal-wrapper * {
+    background: transparent !important;
+    color: #000000 !important;
+  }
+}
+
+

@@ -205,7 +205,7 @@ const AdminCategories = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-[#0d0e11] text-gray-100">
       <AdminSidebar />
       
       {/* Safe Delete Modal */}
@@ -236,56 +236,50 @@ const AdminCategories = () => {
         <div className="p-8">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Parent Categories</h1>
-              <p className="text-gray-600 mt-2">Manage your product categories • <span className="font-semibold">{categories.length} Total Categories</span></p>
+              <h1 className="text-2xl sm:text-3xl font-bold font-serif text-white tracking-wide">Parent Categories</h1>
+              <p className="text-gray-400 text-sm mt-1">Manage salon product categories • <span className="font-semibold text-[#dfa742]">{categories.length} Total Categories</span></p>
             </div>
-            {/* <Link
-              to="/admin/add-category"
-              className="bg-lime-500 hover:bg-lime-600 text-white px-6 py-3 rounded-lg flex items-center space-x-2 transition-colors duration-200"
-            >
-              <Plus size={20} />
-              <span>Add New Category</span>
-            </Link> */}
           </div>
 
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="bg-[#14161d] rounded-2xl border border-[#262933] shadow-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[#181a22]">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Parent Category
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      Parent Category
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                       Description
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                       Sort Order
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[#14161d] divide-y divide-[#22252d]">
                   {loading ? (
                     <tr>
-                      <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
-                        Loading categories...
+                      <td colSpan="5" className="px-6 py-12 text-center text-gray-400">
+                        <div className="inline-block w-8 h-8 border-2 border-[#dfa742] border-t-transparent rounded-full animate-spin mb-2" />
+                        <p className="text-xs tracking-wider uppercase">Loading categories...</p>
                       </td>
                     </tr>
                   ) : categories.length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan="5" className="px-6 py-12 text-center text-gray-400">
                         No categories found
                       </td>
                     </tr>
                   ) : (
                     categories.map((category) => (
-                      <tr key={category._id} className="hover:bg-gray-50">
+                      <tr key={category._id} className="hover:bg-[#1a1d26] transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="mr-4 flex-shrink-0">
@@ -294,7 +288,7 @@ const AdminCategories = () => {
                                   <img
                                     src={getFullImageUrl(category.image)}
                                     alt={category.name}
-                                    className="h-10 w-10 rounded-lg object-cover"
+                                    className="h-10 w-10 rounded-lg object-cover border border-white/10"
                                     loading="lazy"
                                     onError={(e) => {
                                       e.currentTarget.classList.add("hidden")
@@ -306,51 +300,51 @@ const AdminCategories = () => {
                                   />
                                   <div
                                     data-image-error
-                                    className="hidden h-10 w-10 rounded-lg border border-orange-400 bg-orange-50 flex items-center justify-center px-1"
+                                    className="hidden h-10 w-10 rounded-lg border border-[#dfa742]/40 bg-[#dfa742]/10 flex items-center justify-center px-1"
                                     title="Image exists but failed to load"
                                   >
-                                    <span className="text-[9px] leading-tight font-semibold text-orange-700 text-center line-clamp-2">
+                                    <span className="text-[9px] leading-tight font-semibold text-[#dfa742] text-center line-clamp-2">
                                       {category.name}
                                     </span>
                                   </div>
                                 </div>
                               ) : (
                                 <div
-                                  className="h-10 w-10 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center"
+                                  className="h-10 w-10 rounded-lg border border-[#262933] bg-[#1a1d24] flex items-center justify-center"
                                   title="No image added"
                                 >
-                                  <span className="text-[10px] font-semibold text-gray-400">N/A</span>
+                                  <span className="text-[10px] font-semibold text-gray-500">N/A</span>
                                 </div>
                               )}
                             </div>
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{category.name}</div>
+                              <div className="text-sm font-medium text-white">{category.name}</div>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900 max-w-xs truncate">
+                          <div className="text-sm text-gray-300 max-w-xs truncate">
                             {category.description || "No description"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              category.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                            className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
+                              category.isActive ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-red-500/20 text-red-400 border border-red-500/30"
                             }`}
                           >
                             {category.isActive ? "Active" : "Inactive"}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{category.sortOrder || 0}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex space-x-2">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#dfa742] font-semibold">{category.sortOrder || 0}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex items-center justify-end space-x-2">
                             <button
                               onClick={() => handleToggleStatus(category._id)}
-                              className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                              className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
                                 category.isActive 
-                                  ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                                  : 'bg-red-100 text-red-800 hover:bg-red-200'
+                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20' 
+                                  : 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20'
                               }`}
                               title={category.isActive ? 'Click to deactivate' : 'Click to activate'}
                             >
@@ -358,13 +352,13 @@ const AdminCategories = () => {
                             </button>
                             <Link
                               to={`/admin/categories/edit/${category._id}`}
-                              className="text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50"
+                              className="text-gray-400 hover:text-white p-2 rounded-xl hover:bg-[#1a1d24] transition-colors"
                             >
                               <Edit size={16} />
                             </Link>
                             <button
                               onClick={() => handleDelete(category._id)}
-                              className="text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50"
+                              className="text-red-400 hover:text-red-300 p-2 rounded-xl hover:bg-red-500/10 transition-colors"
                             >
                               <Trash2 size={16} />
                             </button>

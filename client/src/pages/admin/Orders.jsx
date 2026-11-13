@@ -301,18 +301,18 @@ export default function Orders({ wholesale = false }) {
   const activeLabel = (TABS.find((t) => t.id === activeTab) || TABS[0]).label
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-[#0d0e11] text-gray-100">
       <AdminSidebar />
 
       <div className="p-8 ml-64">
         <div className="flex flex-wrap justify-between items-center gap-3 mb-5">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{wholesale ? "Wholesale Orders" : "Orders"}</h1>
-            <p className="text-gray-600 mt-1">Every order in one place. Switch status with the tabs below.</p>
+            <h1 className="text-2xl font-bold text-white font-serif tracking-wide">{wholesale ? "Wholesale Orders" : "Orders & Appointments"}</h1>
+            <p className="text-gray-400 text-sm mt-1">Every salon booking and product order in one place. Switch status with the tabs below.</p>
           </div>
           <button
             onClick={fetchOrders}
-            className="flex items-center gap-2 bg-lime-500 hover:bg-lime-600 text-white px-4 py-2 rounded-md transition-colors disabled:opacity-60"
+            className="flex items-center gap-2 bg-[#dfa742] hover:bg-[#caa638] text-black font-bold px-4 py-2 rounded-xl transition-all shadow-lg shadow-[#dfa742]/20 disabled:opacity-60 text-xs uppercase tracking-wider"
             disabled={loading}
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
@@ -320,12 +320,9 @@ export default function Orders({ wholesale = false }) {
           </button>
         </div>
 
-        {/* Status tabs -- these replaced the ten separate sidebar pages. A
-            segmented control rather than an underline: the counts carry real
-            weight here, and a filled pill keeps the selected one obvious even
-            when the bar has to scroll sideways. */}
+        {/* Status tabs */}
         <div className="mb-6 -mx-1 overflow-x-auto px-1 pb-1">
-          <div className="inline-flex min-w-max items-center gap-1 rounded-xl bg-white p-1.5 shadow-sm ring-1 ring-gray-200">
+          <div className="inline-flex min-w-max items-center gap-1 rounded-2xl bg-[#14161d] p-1.5 shadow-xl border border-[#262933]">
             {TABS.map((tab) => {
               const isActive = tab.id === activeTab
               const count = counts[tab.id] ?? 0
@@ -335,10 +332,10 @@ export default function Orders({ wholesale = false }) {
                   key={tab.id}
                   type="button"
                   onClick={() => selectTab(tab.id)}
-                  className={`group flex items-center gap-2 whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-1 ${
+                  className={`group flex items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-xs font-semibold transition-all duration-150 focus:outline-none ${
                     isActive
-                      ? "bg-lime-500 text-white shadow-sm"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      ? "bg-[#dfa742] text-black shadow-md shadow-[#dfa742]/20"
+                      : "text-gray-400 hover:bg-[#1a1d24] hover:text-white"
                   }`}
                   aria-current={isActive ? "page" : undefined}
                 >
@@ -346,12 +343,10 @@ export default function Orders({ wholesale = false }) {
                   <span
                     className={`rounded-md px-1.5 py-0.5 text-xs font-semibold tabular-nums transition-colors ${
                       isActive
-                        ? "bg-white/25 text-white"
+                        ? "bg-black/20 text-black font-bold"
                         : isEmpty
-                          // An empty queue should recede, so the eye lands on
-                          // the tabs that actually have work waiting.
-                          ? "bg-transparent text-gray-400"
-                          : "bg-gray-100 text-gray-700 group-hover:bg-white"
+                          ? "bg-transparent text-gray-500"
+                          : "bg-[#1a1d24] text-gray-300 group-hover:bg-[#222530]"
                     }`}
                   >
                     {count}
@@ -363,27 +358,27 @@ export default function Orders({ wholesale = false }) {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-md flex items-center justify-between">
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl flex items-center justify-between">
             <span>{error}</span>
-            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">
+            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300">
               <X size={18} />
             </button>
           </div>
         )}
 
         {selectedOrders.length > 0 && (
-          <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border-l-4 border-lime-500">
+          <div className="mb-6 bg-[#14161d] p-4 rounded-2xl shadow-xl border border-[#262933] border-l-4 border-l-[#dfa742]">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-4">
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium text-gray-200">
                   {selectedOrders.length} order{selectedOrders.length !== 1 ? "s" : ""} selected
                 </span>
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray-700">Change status to:</label>
+                  <label className="text-sm font-medium text-gray-400">Change status to:</label>
                   <select
                     value={bulkStatus}
                     onChange={(e) => setBulkStatus(e.target.value)}
-                    className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500"
+                    className="bg-[#1a1d24] border border-[#2b2f3a] text-white rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:border-[#dfa742]"
                   >
                     <option value="">Select Status</option>
                     {ORDER_STATUS_OPTIONS.map((status) => (
@@ -395,7 +390,7 @@ export default function Orders({ wholesale = false }) {
                   <button
                     onClick={handleBulkStatusUpdate}
                     disabled={!bulkStatus || processingAction}
-                    className="bg-lime-500 hover:bg-lime-600 disabled:bg-gray-400 text-white px-4 py-1 rounded-md text-sm font-medium transition-colors"
+                    className="bg-[#dfa742] hover:bg-[#caa638] disabled:bg-gray-700 text-black px-4 py-1.5 rounded-xl text-xs font-bold transition-colors uppercase tracking-wider"
                   >
                     {processingAction ? "Updating..." : "Update"}
                   </button>
@@ -406,7 +401,7 @@ export default function Orders({ wholesale = false }) {
                   setSelectedOrders([])
                   setBulkStatus("")
                 }}
-                className="text-gray-500 hover:text-gray-700 text-sm"
+                className="text-gray-400 hover:text-white text-xs font-semibold uppercase tracking-wider"
               >
                 Clear Selection
               </button>
@@ -416,93 +411,89 @@ export default function Orders({ wholesale = false }) {
 
         <div className="mb-6 flex flex-wrap justify-between items-center gap-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder="Search by order ID, tracking, customer, email or phone..."
+              placeholder="Search by order ID, customer, email or phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full md:w-96 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent"
+              className="pl-10 pr-4 py-2.5 w-full md:w-96 bg-[#14161d] border border-[#262933] rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:border-[#dfa742] transition-colors"
             />
           </div>
-          <div className="text-sm text-gray-600">
-            {activeLabel}: <span className="font-semibold text-lime-600">{filteredOrders.length}</span>
-            {searchTerm.trim() && <span className="text-gray-400"> of {tabOrders.length}</span>}
+          <div className="text-xs font-medium text-gray-400">
+            {activeLabel}: <span className="font-bold text-[#dfa742]">{filteredOrders.length}</span>
+            {searchTerm.trim() && <span className="text-gray-500"> of {tabOrders.length}</span>}
           </div>
         </div>
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-lime-500" />
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#dfa742]" />
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-sm" style={{ overflow: "visible" }}>
+          <div className="bg-[#14161d] rounded-2xl border border-[#262933] shadow-xl overflow-hidden" style={{ overflow: "visible" }}>
             <div className="overflow-x-auto" style={{ overflow: "visible" }}>
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-[#22252d]">
+                <thead className="bg-[#181a22]">
                   <tr>
-                    <th className="px-6 py-3 text-left">
+                    <th className="px-6 py-3.5 text-left">
                       <input
                         type="checkbox"
                         checked={allVisibleSelected}
                         onChange={toggleSelectAll}
-                        className="h-4 w-4 text-lime-500 focus:ring-lime-500 border-gray-300 rounded"
+                        className="h-4 w-4 accent-[#dfa742] rounded cursor-pointer"
                         aria-label="Select all orders in this tab"
                       />
                     </th>
                     {["Order ID", "Customer", "Date", "Status", "Payment", "Total"].map((heading) => (
                       <th
                         key={heading}
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
                       >
                         {heading}
                       </th>
                     ))}
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3.5 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[#14161d] divide-y divide-[#22252d]">
                   {filteredOrders.map((order) => (
                     <tr
                       key={order._id}
-                      className={`hover:bg-gray-50 ${selectedOrders.includes(order._id) ? "bg-lime-50" : ""}`}
+                      className={`hover:bg-[#1a1d26] transition-colors ${selectedOrders.includes(order._id) ? "bg-[#dfa742]/10" : ""}`}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <input
                           type="checkbox"
                           checked={selectedOrders.includes(order._id)}
                           onChange={() => toggleSelectOrder(order._id)}
-                          className="h-4 w-4 text-lime-500 focus:ring-lime-500 border-gray-300 rounded"
+                          className="h-4 w-4 accent-[#dfa742] rounded cursor-pointer"
                           aria-label={`Select order ${order._id.slice(-6)}`}
                         />
                       </td>
                       <td className="px-6 py-4 align-top">
-                        <div className="text-sm font-medium text-lime-600">#{order._id.slice(-6)}</div>
+                        <div className="text-sm font-bold text-[#dfa742]">#{order._id.slice(-6)}</div>
                         {order.trackingId && (
                           <div className="text-xs text-gray-500">{order.trackingId}</div>
                         )}
-                        {/* What was ordered, capped at two lines so a long
-                            laptop title cannot push every other row down the
-                            page. The SKU sits under it because that is what
-                            gets typed into the warehouse system. */}
                         {(() => {
                           const summary = orderSummaryItem(order)
                           if (!summary) return null
 
                           return (
                             <div className="mt-1.5 max-w-[220px]">
-                              <p className="line-clamp-2 text-xs leading-snug text-gray-700" title={summary.name}>
+                              <p className="line-clamp-2 text-xs leading-snug text-gray-300" title={summary.name}>
                                 {summary.name}
                               </p>
                               {summary.sku && (
-                                <p className="mt-0.5 font-mono text-[11px] leading-tight text-gray-400">
+                                <p className="mt-0.5 font-mono text-[11px] leading-tight text-gray-500">
                                   {summary.sku}
                                 </p>
                               )}
                               {summary.extra > 0 && (
-                                <p className="mt-0.5 text-[11px] leading-tight text-gray-400">
+                                <p className="mt-0.5 text-[11px] leading-tight text-[#dfa742]/80">
                                   +{summary.extra} more item{summary.extra > 1 ? "s" : ""}
                                 </p>
                               )}
@@ -511,23 +502,20 @@ export default function Orders({ wholesale = false }) {
                         })()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {/* The customer first, whichever half of the order carries
-                            them. The branch is extra detail, not a replacement for
-                            knowing whose order it is. */}
-                        <div className="text-sm text-gray-900">{orderCustomerName(order) || "N/A"}</div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm font-medium text-white">{orderCustomerName(order) || "N/A"}</div>
+                        <div className="text-xs text-gray-400 mt-0.5">
                           {orderCustomerEmail(order) || orderCustomerPhone(order) || "N/A"}
                         </div>
                         {orderPickupBranch(order) && (
-                          <div className="text-xs text-gray-500">🏬 {orderPickupBranch(order)}</div>
+                          <div className="text-xs text-gray-400 mt-1">🏬 {orderPickupBranch(order)}</div>
                         )}
-                        <span className="mt-1 inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-800 uppercase">
+                        <span className="mt-1.5 inline-block px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#dfa742]/15 text-[#dfa742] border border-[#dfa742]/30 uppercase">
                           📍 {getOrderCountryName(order)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{new Date(order.createdAt).toLocaleDateString()}</div>
-                        <div className="text-sm text-gray-500">{new Date(order.createdAt).toLocaleTimeString()}</div>
+                        <div className="text-sm text-gray-200">{new Date(order.createdAt).toLocaleDateString()}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">{new Date(order.createdAt).toLocaleTimeString()}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="relative inline-block text-left">
@@ -562,7 +550,7 @@ export default function Orders({ wholesale = false }) {
                               setShowPaymentDropdown((prev) => ({ [order._id]: !prev[order._id] }))
                             }}
                             className={`px-3 py-1 inline-flex items-center text-xs leading-5 font-semibold rounded-full cursor-pointer hover:opacity-80 transition-colors ${
-                              order.isPaid ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                              order.isPaid ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-red-500/20 text-red-400 border border-red-500/30"
                             }`}
                           >
                             {order.isPaid ? "Paid" : "Unpaid"}
@@ -577,10 +565,10 @@ export default function Orders({ wholesale = false }) {
                                 left: 0,
                                 marginTop: "4px",
                                 width: "128px",
-                                backgroundColor: "white",
-                                border: "1px solid #e5e7eb",
-                                borderRadius: "6px",
-                                boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                                backgroundColor: "#181a22",
+                                border: "1px solid #2b2f3a",
+                                borderRadius: "8px",
+                                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5)",
                                 zIndex: 9999,
                               }}
                             >
@@ -591,7 +579,7 @@ export default function Orders({ wholesale = false }) {
                                     e.stopPropagation()
                                     handleUpdatePaymentStatus(order._id, status === "Paid")
                                   }}
-                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                                  className="block w-full text-left px-4 py-2 text-xs font-semibold text-gray-200 hover:bg-[#222530] hover:text-[#dfa742] transition-colors first:rounded-t-lg last:rounded-b-lg"
                                   disabled={processingAction}
                                 >
                                   {status}
@@ -601,30 +589,27 @@ export default function Orders({ wholesale = false }) {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[#dfa742] font-bold">
                         {formatOrderPrice(order.totalPrice, order)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           onClick={() => setSelectedOrder(order)}
-                          className="text-lime-600 hover:text-lime-900 mr-4"
+                          className="text-[#dfa742] hover:text-[#caa638] mr-3 transition-colors"
                           title="View order details"
                         >
                           <Eye size={18} />
                         </button>
-                        {/* Opens the order on the Create Order/Quotation screen,
-                            where every part of it -- customer, items, prices,
-                            delivery -- can be changed. */}
                         <button
                           onClick={() => navigate(`/admin/orders/create?id=${order._id}`)}
-                          className="text-blue-600 hover:text-blue-900 mr-4"
+                          className="text-gray-400 hover:text-white mr-3 transition-colors"
                           title="Edit this order"
                         >
                           <PencilLine size={18} />
                         </button>
                         <button
                           onClick={() => setSelectedOrder(order)}
-                          className="text-green-600 hover:text-green-900"
+                          className="text-gray-400 hover:text-white transition-colors"
                           disabled={processingAction}
                           title="Message the customer"
                         >
@@ -638,11 +623,11 @@ export default function Orders({ wholesale = false }) {
             </div>
 
             {filteredOrders.length === 0 && (
-              <div className="text-center py-12">
-                <div className="text-gray-500 text-lg">
+              <div className="text-center py-16">
+                <div className="text-gray-300 text-base font-medium">
                   {searchTerm.trim() ? "No orders match that search" : `Nothing in ${activeLabel}`}
                 </div>
-                <p className="text-gray-400 mt-2">
+                <p className="text-gray-500 text-xs mt-1">
                   {searchTerm.trim()
                     ? "Try a different order ID, name, email or phone number."
                     : "Orders will appear here as they reach this status."}

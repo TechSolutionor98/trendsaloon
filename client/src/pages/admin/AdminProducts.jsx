@@ -1592,24 +1592,24 @@ const AdminProducts = () => {
               <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-sm ${
                 isServicesSection
                   ? "bg-gradient-to-br from-[#dfa742]/20 to-[#dfa742]/10 text-[#dfa742] border border-[#dfa742]/30"
-                  : "bg-blue-50 text-blue-600 border border-blue-200"
+                  : "bg-[#dfa742]/20 text-[#dfa742] border border-[#dfa742]/30"
               }`}>
                 {isServicesSection ? <Scissors className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
               </div>
               <div>
                 <div className="flex items-center gap-2.5">
-                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
                     {isServicesSection ? "Services" : "Products"}
                   </h1>
                   <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
                     isServicesSection
-                      ? "bg-[#dfa742]/15 text-[#b38743] border border-[#dfa742]/30"
-                      : "bg-blue-50 text-blue-700 border border-blue-200"
+                      ? "bg-[#dfa742]/15 text-[#dfa742] border border-[#dfa742]/30"
+                      : "bg-[#dfa742]/15 text-[#dfa742] border border-[#dfa742]/30"
                   }`}>
                     {categoryProductCount} {isServicesSection ? (categoryProductCount === 1 ? "Service" : "Services") : (categoryProductCount === 1 ? "Product" : "Products")}
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                <p className="text-xs sm:text-sm text-gray-400 mt-0.5">
                   {isServicesSection
                     ? "Manage salon grooming & wellness services catalog"
                     : "Manage salon retail products, pricing & stock inventory"}
@@ -1620,11 +1620,7 @@ const AdminProducts = () => {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate(isServicesSection ? "/admin/products/add?type=service" : "/admin/products/add?type=product")}
-                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all duration-200 hover:scale-105 active:scale-95 ${
-                  isServicesSection
-                    ? "bg-[#dfa742] hover:bg-[#caa638] text-black shadow-[#dfa742]/20"
-                    : "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20"
-                }`}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-[#dfa742]/20 transition-all duration-200 hover:scale-105 active:scale-95 bg-[#dfa742] hover:bg-[#caa638] text-black"
               >
                 <Plus className="w-4 h-4" />
                 <span>{isServicesSection ? "Add Service" : "Add Product"}</span>
@@ -1633,7 +1629,7 @@ const AdminProducts = () => {
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-md">
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl">
               {error}
               {error.includes("Authentication") && (
                 <button
@@ -1650,8 +1646,8 @@ const AdminProducts = () => {
             <ProductForm product={editingProduct} onSubmit={handleFormSubmit} onCancel={handleFormCancel} />
           ) : (
             <>
-              {/* Clean, Streamlined Search & Filter Bar (Replaced complex multi-tier ecommerce filtration) */}
-              <div className="mb-6 bg-white rounded-2xl border border-gray-200 p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+              {/* Clean, Streamlined Search & Filter Bar */}
+              <div className="mb-6 bg-[#14161d] rounded-2xl border border-[#262933] p-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex flex-1 items-center gap-3 w-full">
                   {/* Search Box */}
                   <div className="relative flex-1 max-w-md">
@@ -1661,13 +1657,13 @@ const AdminProducts = () => {
                       placeholder={isServicesSection ? "Search services by name, SKU..." : "Search products by name, SKU..."}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-9 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#dfa742] focus:bg-white transition-all"
+                      className="w-full pl-10 pr-9 py-2.5 bg-[#1a1d24] border border-[#2b2f3a] rounded-xl text-sm focus:outline-none focus:border-[#dfa742] focus:ring-1 focus:ring-[#dfa742] text-white placeholder-gray-500 transition-all"
                     />
                     {searchTerm && (
                       <button
                         type="button"
                         onClick={() => setSearchTerm("")}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 p-1"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -1679,7 +1675,7 @@ const AdminProducts = () => {
                     <select
                       value={filterStatus}
                       onChange={(e) => setFilterStatus(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#dfa742] focus:bg-white cursor-pointer"
+                      className="w-full bg-[#1a1d24] border border-[#2b2f3a] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-gray-200 focus:outline-none focus:border-[#dfa742] cursor-pointer"
                     >
                       <option value="all">All Status</option>
                       {STOCK_STATUS_OPTIONS.map((statusOption) => (
@@ -1698,7 +1694,7 @@ const AdminProducts = () => {
                         setSearchTerm("")
                         setFilterStatus("all")
                       }}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                     >
                       <X className="w-3.5 h-3.5" />
                       <span>Reset</span>
@@ -1713,8 +1709,8 @@ const AdminProducts = () => {
                     disabled={loadingSelectAll}
                     className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
                       selectAllMode 
-                        ? 'bg-blue-50 border-blue-300 text-blue-700' 
-                        : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                        ? 'bg-[#dfa742]/20 border-[#dfa742]/40 text-[#dfa742]' 
+                        : 'border-[#2b2f3a] text-gray-300 hover:bg-[#1a1d24]'
                     } ${loadingSelectAll ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     {loadingSelectAll ? 'Loading...' : 'Select All Pages'}
@@ -1723,7 +1719,7 @@ const AdminProducts = () => {
                   {totalSelected > 0 && (
                     <button
                       onClick={clearSelection}
-                      className="px-3 py-1.5 text-xs font-semibold border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
+                      className="px-3 py-1.5 text-xs font-semibold border border-[#2b2f3a] text-gray-300 rounded-lg hover:bg-[#1a1d24]"
                     >
                       Clear Selection
                     </button>
@@ -1820,25 +1816,25 @@ const AdminProducts = () => {
 
               {loading ? (
                 <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#dfa742]"></div>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div className="bg-[#14161d] rounded-2xl border border-[#262933] shadow-xl overflow-hidden">
                   {/* Column Visibility and Export Buttons */}
-                  <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+                  <div className="px-4 py-3 border-b border-[#262933] flex items-center justify-between bg-[#181a22]">
                     <div className="flex items-center gap-3">
                       {/* Column Visibility Dropdown */}
                       <div className="relative" ref={columnDropdownRef}>
                         <button
                           onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500 text-white rounded-md hover:bg-cyan-600 transition-colors text-sm font-medium"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a1d24] border border-[#2b2f3a] text-gray-200 rounded-xl hover:bg-[#222530] transition-colors text-sm font-medium"
                         >
                           <Columns size={16} />
                           Column visibility
                         </button>
                         
                         {showColumnDropdown && (
-                          <div className="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50 max-h-96 overflow-y-auto">
+                          <div className="absolute left-0 mt-2 w-56 bg-[#1a1d24] rounded-xl shadow-2xl border border-[#2b2f3a] z-50 max-h-96 overflow-y-auto">
                             <div className="py-1">
                               {ALL_COLUMNS.filter(c => !['parentCategory', 'level1', 'level2', 'level3', 'level4'].includes(c.id)).map((column) => (
                                 <button
@@ -1847,15 +1843,15 @@ const AdminProducts = () => {
                                   disabled={column.alwaysVisible}
                                   className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between ${
                                     column.alwaysVisible 
-                                      ? 'text-gray-400 cursor-not-allowed bg-gray-50' 
+                                      ? 'text-gray-500 cursor-not-allowed bg-[#14161d]' 
                                       : isColumnVisible(column.id)
-                                        ? 'text-white bg-cyan-500 hover:bg-cyan-600'
-                                        : 'text-gray-700 hover:bg-gray-100'
+                                        ? 'text-black bg-[#dfa742] hover:bg-[#caa638] font-semibold'
+                                        : 'text-gray-300 hover:bg-[#222530]'
                                   }`}
                                 >
                                   <span>{column.label}</span>
                                   {isColumnVisible(column.id) && (
-                                    <Check size={16} className={column.alwaysVisible ? 'text-gray-400' : 'text-white'} />
+                                    <Check size={16} className={column.alwaysVisible ? 'text-gray-500' : 'text-black'} />
                                   )}
                                 </button>
                               ))}
@@ -1863,19 +1859,10 @@ const AdminProducts = () => {
                           </div>
                         )}
                       </div>
-                      
-                      {/* Export Button */}
-                      {/* <button
-                        onClick={() => handleExport('page')}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
-                      >
-                        <Download size={16} />
-                        Export
-                      </button> */}
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-gray-400">
                         Showing {products.length} of {categoryProductCount || products.length} products
                       </div>
                       
@@ -1884,10 +1871,10 @@ const AdminProducts = () => {
                         <button
                           onClick={() => scrollTable('left')}
                           disabled={!canScrollLeft}
-                          className={`p-2 rounded-md transition-colors ${
+                          className={`p-2 rounded-xl transition-colors ${
                             canScrollLeft 
-                              ? 'bg-blue-500 text-white hover:bg-blue-600' 
-                              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                              ? 'bg-[#1a1d24] border border-[#2b2f3a] text-white hover:border-[#dfa742]' 
+                              : 'bg-[#14161d] text-gray-600 border border-[#22252d] cursor-not-allowed'
                           }`}
                           title="Scroll left"
                         >
@@ -1896,10 +1883,10 @@ const AdminProducts = () => {
                         <button
                           onClick={() => scrollTable('right')}
                           disabled={!canScrollRight}
-                          className={`p-2 rounded-md transition-colors ${
+                          className={`p-2 rounded-xl transition-colors ${
                             canScrollRight 
-                              ? 'bg-blue-500 text-white hover:bg-blue-600' 
-                              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                              ? 'bg-[#1a1d24] border border-[#2b2f3a] text-white hover:border-[#dfa742]' 
+                              : 'bg-[#14161d] text-gray-600 border border-[#22252d] cursor-not-allowed'
                           }`}
                           title="Scroll right"
                         >
@@ -1910,8 +1897,8 @@ const AdminProducts = () => {
                   </div>
                   
                   <div ref={tableContainerRef} className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
+                    <table className="min-w-full divide-y divide-[#262933]">
+                      <thead className="bg-[#181a22]">
                         <tr>
                           {isColumnVisible('select') && (
                           <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -2021,7 +2008,7 @@ const AdminProducts = () => {
                           )}
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-[#14161d] divide-y divide-[#22252d]">
                         {products.length > 0 ? (
                           products.map((product) => {
                             const currentStockStatus = normalizeStockStatus(product.stockStatus)
@@ -2036,7 +2023,7 @@ const AdminProducts = () => {
                                 <td className="px-2 py-4 whitespace-nowrap">
                                   <button
                                     onClick={() => toggleSelectOne(product._id)}
-                                    className={`${(selectAllMode || selectedIds.has(product._id)) ? 'text-lime-500 hover:text-lime-600' : 'text-gray-600 hover:text-gray-800'} rounded focus:outline-none`}
+                                    className={`${(selectAllMode || selectedIds.has(product._id)) ? 'text-lime-500 hover:text-lime-600' : 'text-gray-400 hover:text-gray-200'} rounded focus:outline-none`}
                                   >
                                     {(selectAllMode || selectedIds.has(product._id)) ? <CheckSquare size={16} /> : <Square size={16} />}
                                   </button>
@@ -2049,12 +2036,12 @@ const AdminProducts = () => {
                                       <img
                                         src={getFullImageUrl(product.image) || "/placeholder.svg"}
                                         alt={product.name}
-                                        className="h-10 w-10 rounded-md object-cover"
+                                        className="h-10 w-10 rounded-md object-cover border border-white/10"
                                       />
                                     </div>
                                    <div className="ml-4 max-w-[110px] overflow-hidden">
-                                      <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                                      {product.slug && <div className="text-sm text-gray-500">/{product.slug}</div>}
+                                      <div className="text-sm font-medium text-white">{product.name}</div>
+                                      {product.slug && <div className="text-xs text-gray-400">/{product.slug}</div>}
                                     </div>
 
 
@@ -2063,7 +2050,7 @@ const AdminProducts = () => {
                                 )}
                                 {isColumnVisible('brand') && (
                                 <td className="px-4 py-4 whitespace-nowrap">
-                                  <div className="text-sm text-gray-900">{product.brand?.name || 'N/A'}</div>
+                                  <div className="text-sm text-gray-300">{product.brand?.name || 'N/A'}</div>
                                 </td>
                                 )}
                                 {isColumnVisible('parentCategory') && (
@@ -2103,7 +2090,7 @@ const AdminProducts = () => {
                                 )}
                                 {isColumnVisible('price') && (
                                 <td className="px-1 py-4 whitespace-nowrap">
-                                  <div className="text-sm text-gray-900">{formatPrice(product.price)}</div>
+                                  <div className="text-sm font-bold text-[#dfa742]">{formatPrice(product.price)}</div>
                                   {product.oldPrice && (
                                     <div className="text-xs text-gray-500 line-through">
                                       {formatPrice(product.oldPrice)}
@@ -2244,16 +2231,16 @@ const AdminProducts = () => {
                   </div>
                   
                   {/* Bottom Horizontal Scroll Navigation Arrows */}
-                  <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-end bg-gray-50">
+                  <div className="px-4 py-3 border-t border-[#262933] flex items-center justify-end bg-[#181a22]">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600 mr-2">Scroll table:</span>
+                      <span className="text-sm text-gray-400 mr-2">Scroll table:</span>
                       <button
                         onClick={() => scrollTable('left')}
                         disabled={!canScrollLeft}
-                        className={`p-2 rounded-md transition-colors ${
+                        className={`p-2 rounded-xl transition-colors ${
                           canScrollLeft 
-                            ? 'bg-blue-500 text-white hover:bg-blue-600' 
-                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            ? 'bg-[#1a1d24] border border-[#2b2f3a] text-white hover:border-[#dfa742]' 
+                            : 'bg-[#14161d] text-gray-600 border border-[#22252d] cursor-not-allowed'
                         }`}
                         title="Scroll left"
                       >
@@ -2262,10 +2249,10 @@ const AdminProducts = () => {
                       <button
                         onClick={() => scrollTable('right')}
                         disabled={!canScrollRight}
-                        className={`p-2 rounded-md transition-colors ${
+                        className={`p-2 rounded-xl transition-colors ${
                           canScrollRight 
-                            ? 'bg-blue-500 text-white hover:bg-blue-600' 
-                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            ? 'bg-[#1a1d24] border border-[#2b2f3a] text-white hover:border-[#dfa742]' 
+                            : 'bg-[#14161d] text-gray-600 border border-[#22252d] cursor-not-allowed'
                         }`}
                         title="Scroll right"
                       >

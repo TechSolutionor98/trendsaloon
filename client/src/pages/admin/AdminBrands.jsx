@@ -205,28 +205,28 @@ const AdminBrands = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-lg">Loading brands...</div>
+      <div className="flex justify-center items-center h-64 bg-[#0d0e11] text-gray-100">
+        <div className="inline-block w-8 h-8 border-2 border-[#dfa742] border-t-transparent rounded-full animate-spin mb-2" />
       </div>
     )
   }
 
   return (
-    <div className="flex">
+    <div className="flex min-h-screen bg-[#0d0e11] text-gray-100">
       <AdminSidebar />
       <div className="flex-1 ml-64 p-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Manage Brands</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold font-serif text-white tracking-wide">Manage Brands</h1>
           <Link
             to="/admin/add-brand"
-            className="bg-lime-500 hover:bg-lime-600 text-white px-4 py-2 rounded-lg transition-colors"
+            className="bg-[#dfa742] hover:bg-[#caa638] text-black font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shadow-lg shadow-[#dfa742]/20"
           >
             Add New Brand
           </Link>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 text-red-600 border border-red-200 rounded-lg">
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl">
             {error}
           </div>
         )}
@@ -238,47 +238,47 @@ const AdminBrands = () => {
             placeholder="Search brands..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500"
+            className="w-full max-w-md px-4 py-2.5 bg-[#14161d] border border-[#262933] text-white rounded-xl focus:outline-none focus:border-[#dfa742] text-sm"
           />
         </div>
 
         {/* Data Issues Warning */}
         {problematicBrands.length > 0 && (
-          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
             <div className="flex items-center mb-2">
-              <span className="text-yellow-600 mr-2">⚠️</span>
-              <h3 className="font-semibold text-yellow-800">Data Issues Detected ({problematicBrands.length} brands)</h3>
+              <span className="text-[#dfa742] mr-2">⚠️</span>
+              <h3 className="font-semibold text-[#dfa742]">Data Issues Detected ({problematicBrands.length} brands)</h3>
             </div>
-            <p className="text-yellow-700 text-sm">
+            <p className="text-gray-300 text-xs">
               Some brands are showing IDs instead of proper names. Use the "Fix" button to correct them.
             </p>
           </div>
         )}
 
         {/* Brands Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-[#14161d] rounded-2xl border border-[#262933] shadow-xl overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-[#22252d]">
+              <thead className="bg-[#181a22]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                     Brand
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                     Description
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                     Website
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-[#14161d] divide-y divide-[#22252d]">
                 {currentBrands.map((brand) => {
                   const hasIssues = hasBrandDataIssues(brand)
                   const displayName = getDisplayName(brand)
@@ -286,42 +286,42 @@ const AdminBrands = () => {
                   return (
                     <tr
                       key={brand._id}
-                      className={hasIssues ? "bg-yellow-50 border-l-4 border-yellow-400" : "hover:bg-gray-50"}
+                      className={hasIssues ? "bg-yellow-500/5 border-l-4 border-l-[#dfa742]" : "hover:bg-[#1a1d26] transition-colors"}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
                             {brand.logo ? (
                               <img
-                                className="h-10 w-10 rounded-full object-cover"
+                                className="h-10 w-10 rounded-full object-cover border border-white/10"
                                 src={getFullImageUrl(brand.logo) || "/placeholder.svg"}
                                 alt={displayName}
                               />
                             ) : (
-                              <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                                <span className="text-gray-600 text-xs">No Logo</span>
+                              <div className="h-10 w-10 rounded-full bg-[#1a1d24] border border-[#262933] flex items-center justify-center">
+                                <span className="text-gray-500 text-xs">No Logo</span>
                               </div>
                             )}
                           </div>
                           <div className="ml-4">
-                            <div className={`text-sm font-medium ${hasIssues ? "text-yellow-800" : "text-gray-900"}`}>
+                            <div className={`text-sm font-medium ${hasIssues ? "text-[#dfa742]" : "text-white"}`}>
                               {displayName}
-                              {hasIssues && <span className="ml-2 text-yellow-600">⚠️</span>}
+                              {hasIssues && <span className="ml-2 text-[#dfa742]">⚠️</span>}
                             </div>
-                            <div className="text-sm text-gray-500">/{brand.slug || generateSlug(displayName)}</div>
+                            <div className="text-xs text-gray-400">/{brand.slug || generateSlug(displayName)}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                         {brand.description || "No description"}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                         {brand.website ? (
                           <a
                             href={brand.website}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-lime-600 hover:text-lime-900"
+                            className="text-[#dfa742] hover:underline"
                           >
                             {brand.website}
                           </a>
@@ -331,21 +331,21 @@ const AdminBrands = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            brand.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                          className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
+                            brand.isActive ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-red-500/20 text-red-400 border border-red-500/30"
                           }`}
                         >
                           {brand.isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end space-x-2">
                           <button
                             onClick={() => handleToggleStatus(brand._id)}
-                            className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                            className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
                               brand.isActive 
-                                ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                                : 'bg-red-100 text-red-800 hover:bg-red-200'
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20' 
+                                : 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20'
                             }`}
                             title={brand.isActive ? 'Click to deactivate' : 'Click to activate'}
                           >
@@ -353,13 +353,13 @@ const AdminBrands = () => {
                           </button>
                           <Link
                             to={`/admin/edit-brand/${brand._id}`}
-                            className="text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50"
+                            className="text-gray-400 hover:text-white p-2 rounded-xl hover:bg-[#1a1d24] transition-colors"
                           >
                             <FaEdit size={16} />
                           </Link>
                           <button
                             onClick={() => deleteBrand(brand._id)}
-                            className="text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50"
+                            className="text-red-400 hover:text-red-300 p-2 rounded-xl hover:bg-red-500/10 transition-colors"
                           >
                             <FaTrash size={16} />
                           </button>
@@ -374,48 +374,30 @@ const AdminBrands = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-              <div className="flex-1 flex justify-between sm:hidden">
-                <button
-                  onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                >
-                  Next
-                </button>
+            <div className="bg-[#181a22] px-6 py-4 flex items-center justify-between border-t border-[#262933]">
+              <div>
+                <p className="text-xs text-gray-400">
+                  Showing <span className="font-semibold text-white">{indexOfFirstBrand + 1}</span> to{" "}
+                  <span className="font-semibold text-white">{Math.min(indexOfLastBrand, sortedBrands.length)}</span> of{" "}
+                  <span className="font-semibold text-[#dfa742]">{sortedBrands.length}</span> results
+                </p>
               </div>
-              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-gray-700">
-                    Showing <span className="font-medium">{indexOfFirstBrand + 1}</span> to{" "}
-                    <span className="font-medium">{Math.min(indexOfLastBrand, sortedBrands.length)}</span> of{" "}
-                    <span className="font-medium">{sortedBrands.length}</span> results
-                  </p>
-                </div>
-                <div>
-                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                          currentPage === page
-                            ? "z-10 bg-lime-50 border-lime-500 text-lime-600"
-                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                  </nav>
-                </div>
+              <div>
+                <nav className="inline-flex rounded-xl shadow-sm gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
+                        currentPage === page
+                          ? "bg-[#dfa742] text-black font-bold"
+                          : "bg-[#14161d] border border-[#262933] text-gray-400 hover:text-white hover:bg-[#1a1d24]"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </nav>
               </div>
             </div>
           )}

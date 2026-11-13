@@ -120,7 +120,7 @@ import CountryPaymentMethods from "../pages/admin/CountryPaymentMethods"
 const AdminPortal = () => {
   return (
     <AdminRoute>
-      <div className="min-h-screen bg-[#0d0e11] text-gray-100">
+      <div className="min-h-screen bg-[#0d0e11] text-gray-100 admin-portal-wrapper">
         <AdminHeader />
         <div className="min-h-[calc(100vh-4rem)]">
           <Routes>
