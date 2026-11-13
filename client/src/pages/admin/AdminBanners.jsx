@@ -625,63 +625,63 @@ export default function AdminBanners() {
         {activeTab === "services" && (
           <div className="space-y-8 animate-fadeIn">
             {/* Live Visual Preview */}
-            <div className="bg-[#0d0e11] text-white rounded-3xl overflow-hidden p-8 sm:p-12 border border-[#dfa742]/30 shadow-2xl relative min-h-[220px]">
+            <div className="bg-[#0d0e11] text-white rounded-3xl overflow-hidden border border-[#dfa742]/30 shadow-2xl relative min-h-[220px]">
               <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-[#dfa742] flex items-center gap-1.5 border border-[#dfa742]/30 z-20">
                 <Eye className="w-3.5 h-3.5" />
                 <span>Live Preview (Services Page)</span>
               </div>
 
-              {/* Right Hero Image Preview */}
-              <div className="absolute top-0 right-0 bottom-0 w-3/5 pointer-events-none overflow-hidden select-none">
-                <img
-                  src={getFullImageUrl(servicesBanner.image) || "/salon/services-man.png"}
-                  alt="Services Banner Preview"
-                  className="w-full h-full object-cover object-right filter brightness-100"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e11] via-[#0d0e11]/60 to-transparent sm:via-[#0d0e11]/20" />
-              </div>
-
-              {/* Foreground Typography */}
-              <div className="relative z-10 max-w-lg space-y-2 py-4">
-                {/* Salon Emblem/Logo above title matching exact mockup */}
-                <div className="flex items-center gap-2 pb-0.5">
-                  <div className="w-8 h-8 rounded-full bg-[#dfa742]/15 border border-[#dfa742]/40 flex items-center justify-center shadow-sm">
-                    <svg
-                      className="w-4 h-4 text-[#dfa742]"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="6" cy="6" r="3" />
-                      <circle cx="6" cy="18" r="3" />
-                      <line x1="20" y1="4" x2="8.12" y2="15.88" />
-                      <line x1="14.47" y1="14.48" x2="20" y2="20" />
-                      <line x1="8.12" y1="8.12" x2="12" y2="12" />
-                    </svg>
+              {Boolean(servicesBanner.image && servicesBanner.image !== "/salon/services-man.png") ? (
+                /* Full-Width Custom Designed Banner Preview */
+                <div className="relative w-full">
+                  <img
+                    src={getFullImageUrl(servicesBanner.image)}
+                    alt="Services Banner Preview"
+                    className="w-full h-auto max-h-[340px] object-cover object-center"
+                  />
+                  {Boolean(servicesBanner.title?.trim() || servicesBanner.subtitle?.trim()) && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex items-center p-6 sm:p-10">
+                      <div className="max-w-lg space-y-2">
+                        {servicesBanner.title && (
+                          <h2 className="text-2xl sm:text-4xl font-serif font-bold text-[#dfa742] tracking-tight">
+                            {servicesBanner.title}
+                          </h2>
+                        )}
+                        {servicesBanner.subtitle && (
+                          <p className="text-xs sm:text-sm text-gray-200 font-light tracking-wide">
+                            {servicesBanner.subtitle}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Default Split Preview */
+                <div className="p-8 sm:p-12 relative">
+                  <div className="absolute top-0 right-0 bottom-0 w-3/5 pointer-events-none overflow-hidden select-none">
+                    <img
+                      src={getFullImageUrl(servicesBanner.image) || "/salon/services-man.png"}
+                      alt="Services Banner Preview"
+                      className="w-full h-full object-cover object-right filter brightness-100"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e11] via-[#0d0e11]/60 to-transparent sm:via-[#0d0e11]/20" />
                   </div>
-                  <div className="flex flex-col">
-                    <span className="font-serif font-black text-xs tracking-widest text-[#dfa742] uppercase leading-none drop-shadow-sm">
-                      TREND
-                    </span>
-                    <span className="text-[7px] tracking-[0.25em] text-[#e0cfab] uppercase font-medium">
-                      GENTS SALOON
-                    </span>
+
+                  <div className="relative z-10 max-w-lg space-y-2 py-4">
+                    {servicesBanner.title && (
+                      <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#dfa742] tracking-tight">
+                        {servicesBanner.title}
+                      </h2>
+                    )}
+                    {servicesBanner.subtitle && (
+                      <p className="text-sm sm:text-base text-gray-200 font-light tracking-wide">
+                        {servicesBanner.subtitle}
+                      </p>
+                    )}
                   </div>
                 </div>
-
-                <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#dfa742] tracking-tight">
-                  {servicesBanner.title || "Our Services & Products"}
-                </h2>
-                <p className="text-sm sm:text-base text-gray-200 font-light tracking-wide">
-                  {servicesBanner.subtitle || "Professional Care. Premium Quality."}
-                </p>
-                <div className="text-xs text-gray-400 pt-1">
-                  <span>Home</span> &gt; <span className="text-gray-200">Services &amp; Products</span>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Editing Form */}
