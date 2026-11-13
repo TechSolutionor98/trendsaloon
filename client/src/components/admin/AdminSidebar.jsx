@@ -59,6 +59,7 @@ const AdminSidebar = () => {
   const navRef = useRef(null)
   const restoreUntil = useRef(0)
   const { adminLogout, isSuperAdmin, hasPermission } = useAuth()
+  const isSuper = isSuperAdmin || localStorage.getItem("isSuperAdmin") === "true"
 
   const [openDropdowns, setOpenDropdowns] = useState({
     services: false,
@@ -704,12 +705,12 @@ const AdminSidebar = () => {
     return items
       .filter((item) => {
         // Super admin only items
-        if (item.superAdminOnly && !isSuperAdmin) {
+        if (item.superAdminOnly && !isSuper) {
           return false
         }
 
         // If user is super admin, show everything
-        if (isSuperAdmin) {
+        if (isSuper) {
           return true
         }
 

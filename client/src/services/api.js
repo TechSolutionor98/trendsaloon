@@ -5,7 +5,10 @@ const API_URL = config.API_URL
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
-  const token = localStorage.getItem("token")
+  const token =
+    localStorage.getItem("adminToken") ||
+    localStorage.getItem("token") ||
+    JSON.parse(localStorage.getItem("userInfo") || "{}").token
   const seoUnlockToken = getSeoUnlockTokenIfValid()
   return {
     "Content-Type": "application/json",

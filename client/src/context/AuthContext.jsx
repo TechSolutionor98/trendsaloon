@@ -314,6 +314,9 @@ export const AuthProvider = ({ children }) => {
       // Force explicit unlock per admin login
       clearSeoUnlockStorage()
       localStorage.setItem("adminToken", data.token)
+      // Also sync token and userInfo so any component checking "token" or "userInfo" works
+      localStorage.setItem("token", data.token)
+      localStorage.setItem("userInfo", JSON.stringify(data))
       // Store permissions in localStorage for persistence
       localStorage.setItem("isSuperAdmin", data.isSuperAdmin ? "true" : "false")
       localStorage.setItem("adminPermissions", JSON.stringify(data.permissions || {}))
@@ -333,6 +336,8 @@ export const AuthProvider = ({ children }) => {
   const adminLogout = () => {
     clearSeoUnlockStorage()
     localStorage.removeItem("adminToken")
+    localStorage.removeItem("token")
+    localStorage.removeItem("userInfo")
     localStorage.removeItem("isSuperAdmin")
     localStorage.removeItem("adminPermissions")
     dispatch({ type: AUTH_ACTIONS.ADMIN_LOGOUT })
@@ -341,22 +346,43 @@ export const AuthProvider = ({ children }) => {
   // Check if admin has specific permission
   const hasPermission = (permission) => {
     // Super admin has all permissions
-    if (state.isSuperAdmin) return true
+    if (state.isSuperAdmin || localStorage.getItem("isSuperAdmin") === "true") return true
     // Check for full access
     if (state.adminPermissions?.fullAccess) return true
     // Check specific permission
     return state.adminPermissions?.[permission] === true
   }
 
-  // Load admin permissions from localStorage on mount
+  // Load admin permissions from localStorage on mount and sync session
   useEffect(() => {
     const adminToken = localStorage.getItem("adminToken")
     if (adminToken) {
+      if (!localStorage.getItem("token")) {
+        localStorage.setItem("token", adminToken)
+      }
       const isSuperAdmin = localStorage.getItem("isSuperAdmin") === "true"
       const permissions = JSON.parse(localStorage.getItem("adminPermissions") || "{}")
       dispatch({
         type: AUTH_ACTIONS.SET_ADMIN_PERMISSIONS,
         payload: { isSuperAdmin, permissions },
+      })
+
+      // Fetch live admin profile to keep session fresh
+      adminAPI.getProfile().then((profile) => {
+        if (profile) {
+          localStorage.setItem("isSuperAdmin", profile.isSuperAdmin ? "true" : "false")
+          localStorage.setItem("adminPermissions", JSON.stringify(profile.permissions || {}))
+          localStorage.setItem("userInfo", JSON.stringify(profile))
+          dispatch({
+            type: AUTH_ACTIONS.ADMIN_LOGIN_SUCCESS,
+            payload: {
+              admin: profile,
+              token: adminToken,
+            },
+          })
+        }
+      }).catch((err) => {
+        console.warn("Admin session sync notice:", err?.message)
       })
     }
   }, [])

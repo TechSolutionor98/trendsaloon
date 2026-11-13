@@ -466,7 +466,7 @@ const Cart = () => {
 
   // Products only: the subtotal this sits next to excludes protection plans.
   const itemCount = regularCartItems.reduce((sum, item) => sum + item.quantity, 0)
-  const productHref = (item) => getLocalizedPath(`/product/${encodeURIComponent(item.slug || item._id)}`)
+  const productHref = () => getLocalizedPath("/services-products")
 
   // One cart line. Picture, name and options on top; the price breakdown in a light
   // strip; quantity and the line total on the last row. The same markup serves phones

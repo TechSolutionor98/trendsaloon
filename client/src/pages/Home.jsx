@@ -9,6 +9,7 @@ import { useLanguage } from "../context/LanguageContext"
 import { useToast } from "../context/ToastContext"
 import TrendHeader from "../components/TrendHeader"
 import TrendFooter from "../components/TrendFooter"
+import { getFullImageUrl } from "../utils/imageUtils"
 import {
   fetchSalonCatalog,
   DEFAULT_SERVICES,
@@ -86,10 +87,10 @@ function BarberPole() {
       {/* Top Chrome Cap with brass finial */}
       <div className="w-12 sm:w-14 h-4 bg-gradient-to-r from-gray-400 via-gray-100 to-gray-400 rounded-t-full shadow-md" />
       <div className="w-14 sm:w-16 h-3 bg-gradient-to-r from-gray-500 via-gray-200 to-gray-500 rounded-sm shadow-inner" />
-      
+
       {/* Cylindrical Glass Pole with Rotating Barber Stripes */}
       <div className="relative w-10 sm:w-12 flex-1 overflow-hidden rounded-md border-2 border-white/40 shadow-inner bg-white">
-        <div 
+        <div
           className="absolute inset-0 w-full h-[200%] animate-barber-spin"
           style={{
             background: "repeating-linear-gradient(45deg, #d32f2f, #d32f2f 12px, #ffffff 12px, #ffffff 24px, #1976d2 24px, #1976d2 36px, #ffffff 36px, #ffffff 48px)",
@@ -102,7 +103,7 @@ function BarberPole() {
       {/* Bottom Chrome Cap */}
       <div className="w-14 sm:w-16 h-3 bg-gradient-to-r from-gray-500 via-gray-200 to-gray-500 rounded-sm shadow-inner" />
       <div className="w-12 sm:w-14 h-5 bg-gradient-to-r from-gray-400 via-gray-100 to-gray-400 rounded-b-full shadow-md" />
-      
+
       {/* Small wall bracket */}
       <div className="w-4 h-2 bg-gray-600 rounded-b-sm" />
     </div>
@@ -123,13 +124,20 @@ export default function Home() {
 
   // Homepage displays top 6 items; 'See More' navigates to full services/products page
   const visibleServices = services.slice(0, 6)
-  const visibleProducts = products.slice(0, 6)
+  const visibleProducts = products.slice(0, 5)
   const [heroBanner, setHeroBanner] = useState({
-    title: "Trend Salon",
-    tagline: "Look Good • Feel Great",
-    subtitle: "Premium Grooming & Wellness Services for the Modern Gentleman",
-    image: "/salon/hero-man-transparent.png",
-    buttonText: "Book Now",
+    title: "",
+    tagline: "",
+    subtitle: "",
+    image: "",
+    buttonText: "",
+  })
+  const [offersBanner, setOffersBanner] = useState({
+    title: "Special Offers",
+    subtitle: "Look Better. Pay Less.",
+    image: "",
+    buttonText: "View All Offers",
+    link: "",
   })
 
   // Fetch dynamic products and services from database/Admin
@@ -146,15 +154,16 @@ export default function Home() {
     }
     loadData()
 
-    // Fetch dynamic hero banner
+    // Fetch dynamic hero & offers banner
     async function loadBanner() {
       try {
         const res = await axios.get(`${config.API_URL}/api/banners/salon-banners?_t=${Date.now()}`)
-        if (isMounted && res.data?.home) {
-          setHeroBanner((prev) => ({ ...prev, ...res.data.home }))
+        if (isMounted && res.data) {
+          if (res.data.home) setHeroBanner((prev) => ({ ...prev, ...res.data.home }))
+          if (res.data.offers) setOffersBanner((prev) => ({ ...prev, ...res.data.offers }))
         }
       } catch (err) {
-        // Fallback already in heroBanner state
+        // Fallback already in banner states
       }
     }
     loadBanner()
@@ -209,71 +218,125 @@ export default function Home() {
       {/* -------------------------------------------------------------
           2. HERO SECTION (Full Luxury Banner matching Mockup)
           ------------------------------------------------------------- */}
-      <section className="relative bg-[#0d0e11] text-white overflow-hidden pt-8 sm:pt-14 pb-24 sm:pb-32">
-        {/* Soft Ambient Radial Lights */}
-        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#dfa742]/10 rounded-full blur-3xl pointer-events-none" />
+      <section className="relative bg-[#0d0e11] text-white overflow-hidden">
+        {Boolean(heroBanner.image && heroBanner.image !== "/salon/hero-man-transparent.png") ? (
+          /* Full-Width Custom Designed Banner */
+          <div className="relative w-full overflow-hidden select-none">
+            <img
+              src={getFullImageUrl(heroBanner.image)}
+              alt={heroBanner.title || "Trend Gents Saloon"}
+              className="w-full h-auto min-h-[260px] sm:min-h-[380px] md:min-h-[480px] max-h-[650px] object-cover object-center"
+            />
 
-        {/* Right Hero Image: Gentleman shaving scene seamlessly blended into dark background */}
-        <div className="absolute top-0 right-0 bottom-0 w-full sm:w-3/5 lg:w-[54%] pointer-events-none overflow-hidden select-none">
-          <img
-            src={heroBanner.image || "/salon/hero-man-transparent.png"}
-            alt="Trend Salon Gentleman Grooming"
-            className="w-full h-full object-cover object-right sm:object-center filter brightness-95"
-          />
-          {/* Mobile Dark Gradient Overlay to ensure crisp readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e11] via-[#0d0e11]/85 to-transparent sm:hidden" />
-          {/* Subtle bottom fade to curve */}
-          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#0d0e11] to-transparent" />
-        </div>
+            {/* If user provided text, overlay it cleanly; if text was removed, show purely the custom designed banner */}
+            {Boolean(heroBanner.title?.trim() || heroBanner.tagline?.trim() || heroBanner.subtitle?.trim()) && (
+              <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent flex items-center">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                  <div className="max-w-xl lg:max-w-2xl text-left space-y-4 py-4">
+                    {heroBanner.tagline && (
+                      <div className="inline-flex items-center gap-2.5 text-xs sm:text-sm font-medium tracking-[0.2em] uppercase text-gray-300">
+                        <span>{heroBanner.tagline}</span>
+                      </div>
+                    )}
+                    {heroBanner.title && (
+                      <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-bold text-white tracking-tight leading-[1.1]">
+                        {heroBanner.title}
+                      </h1>
+                    )}
+                    {heroBanner.subtitle && (
+                      <p className="text-sm sm:text-base text-gray-300 max-w-lg font-light leading-relaxed">
+                        {heroBanner.subtitle}
+                      </p>
+                    )}
+                    {heroBanner.buttonText && (
+                      <div className="pt-2">
+                        <button
+                          onClick={() => scrollToSection("services")}
+                          className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-sm sm:text-base px-7 py-3 rounded-full flex items-center gap-2 shadow-lg shadow-[#dfa742]/25 transition-all duration-300 hover:scale-105 active:scale-95"
+                        >
+                          <span>{heroBanner.buttonText}</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Default Split Hero Layout */
+          <div className="relative pt-8 sm:pt-14 pb-24 sm:pb-32">
+            {/* Soft Ambient Radial Lights */}
+            <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#dfa742]/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-xl lg:max-w-2xl text-left space-y-5 sm:space-y-6 py-4 sm:py-8">
-            {/* Tagline */}
-            <div className="inline-flex items-center gap-2.5 text-xs sm:text-sm font-medium tracking-[0.2em] uppercase text-gray-300">
-              <span>{heroBanner.tagline || "Look Good • Feel Great"}</span>
+            {/* Right Hero Image: Gentleman shaving scene seamlessly blended into dark background */}
+            <div className="absolute top-0 right-0 bottom-0 w-full sm:w-3/5 lg:w-[54%] pointer-events-none overflow-hidden select-none">
+              <img
+                src={getFullImageUrl(heroBanner.image) || "/salon/hero-man-transparent.png"}
+                alt="Trend Salon Gentleman Grooming"
+                className="w-full h-full object-cover object-right sm:object-center filter brightness-95"
+              />
+              {/* Mobile Dark Gradient Overlay to ensure crisp readability */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e11] via-[#0d0e11]/85 to-transparent sm:hidden" />
+              {/* Subtle bottom fade to curve */}
+              <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#0d0e11] to-transparent" />
             </div>
 
-            {/* Main Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold text-white tracking-tight leading-[1.1]">
-              {heroBanner.title?.includes(" ") ? (
-                <>
-                  {heroBanner.title.split(" ").slice(0, -1).join(" ")}{" "}
-                  <span className="italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-[#dfa742] via-[#f7e7a9] to-[#c59d5f]">
-                    {heroBanner.title.split(" ").slice(-1)[0]}
-                  </span>
-                </>
-              ) : (
-                <span className="text-[#dfa742]">{heroBanner.title || "Trend Salon"}</span>
-              )}
-            </h1>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+              <div className="max-w-xl lg:max-w-2xl text-left space-y-5 sm:space-y-6 py-4 sm:py-8">
+                {/* Tagline */}
+                {heroBanner.tagline && (
+                  <div className="inline-flex items-center gap-2.5 text-xs sm:text-sm font-medium tracking-[0.2em] uppercase text-gray-300">
+                    <span>{heroBanner.tagline}</span>
+                  </div>
+                )}
 
-            {/* Subheadline */}
-            <p className="text-base sm:text-lg text-gray-300 max-w-lg font-light leading-relaxed">
-              {heroBanner.subtitle || "Premium Grooming & Wellness Services for the Modern Gentleman"}
-            </p>
+                {/* Main Headline */}
+                {heroBanner.title && (
+                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold text-white tracking-tight leading-[1.1]">
+                    {heroBanner.title.includes(" ") ? (
+                      <>
+                        {heroBanner.title.split(" ").slice(0, -1).join(" ")}{" "}
+                        <span className="italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-[#dfa742] via-[#f7e7a9] to-[#c59d5f]">
+                          {heroBanner.title.split(" ").slice(-1)[0]}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-[#dfa742]">{heroBanner.title}</span>
+                    )}
+                  </h1>
+                )}
 
-            {/* Two CTA Buttons matching Mockup */}
-            <div className="flex flex-wrap items-center gap-4 pt-3">
-              {/* Button 1: Book Now -> */}
-              <button
-                onClick={() => scrollToSection("services")}
-                className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-sm sm:text-base px-7 py-3 rounded-full flex items-center gap-2 shadow-lg shadow-[#dfa742]/25 transition-all duration-300 hover:scale-105 active:scale-95"
-              >
-                <span>{heroBanner.buttonText || "Book Now"}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+                {/* Subheadline */}
+                {heroBanner.subtitle && (
+                  <p className="text-base sm:text-lg text-gray-300 max-w-lg font-light leading-relaxed">
+                    {heroBanner.subtitle}
+                  </p>
+                )}
 
-              {/* Button 2: Shop Products */}
-              <button
-                onClick={() => scrollToSection("products")}
-                className="border border-white/30 hover:border-white/70 bg-black/40 hover:bg-black/60 text-white font-medium text-sm sm:text-base px-6 py-3 rounded-full flex items-center gap-2 backdrop-blur-sm transition-all duration-300 hover:scale-105 active:scale-95"
-              >
-                <ShoppingCart className="w-4 h-4 text-[#dfa742]" />
-                <span>Shop Products</span>
-              </button>
+                {/* Two CTA Buttons matching Mockup */}
+                <div className="flex flex-wrap items-center gap-4 pt-3">
+                  <button
+                    onClick={() => scrollToSection("services")}
+                    className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-sm sm:text-base px-7 py-3 rounded-full flex items-center gap-2 shadow-lg shadow-[#dfa742]/25 transition-all duration-300 hover:scale-105 active:scale-95"
+                  >
+                    <span>{heroBanner.buttonText || "Book Now"}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={() => scrollToSection("products")}
+                    className="border border-white/30 hover:border-white/70 bg-black/40 hover:bg-black/60 text-white font-medium text-sm sm:text-base px-6 py-3 rounded-full flex items-center gap-2 backdrop-blur-sm transition-all duration-300 hover:scale-105 active:scale-95"
+                  >
+                    <ShoppingCart className="w-4 h-4 text-[#dfa742]" />
+                    <span>Shop Products</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* -------------------------------------------------------------
             Curved Transition Divider to White Section with Gold Ribbon
@@ -337,10 +400,7 @@ export default function Home() {
                   className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col items-center text-center p-3 group"
                 >
                   {/* Top Service Image with Rounded Corners */}
-                  <div
-                    onClick={() => service.slug && navigate(getLocalizedPath(`/product/${service.slug}`))}
-                    className="w-full aspect-[4/3] rounded-xl overflow-hidden mb-3 bg-gray-100 cursor-pointer"
-                  >
+                  <div className="w-full aspect-[4/3] rounded-xl overflow-hidden mb-3 bg-gray-100">
                     <img
                       src={service.image}
                       alt={service.name}
@@ -355,10 +415,7 @@ export default function Home() {
                   </div>
 
                   {/* Service Title */}
-                  <h3
-                    onClick={() => service.slug && navigate(getLocalizedPath(`/product/${service.slug}`))}
-                    className="text-xs sm:text-sm font-bold text-gray-900 leading-tight mb-1 min-h-[32px] flex items-center justify-center cursor-pointer hover:text-[#dfa742] transition-colors"
-                  >
+                  <h3 className="text-xs sm:text-sm font-bold text-gray-900 leading-tight mb-1 min-h-[32px] flex items-center justify-center">
                     {service.name}
                   </h3>
 
@@ -370,11 +427,10 @@ export default function Home() {
                   {/* User Request: Replace 'Book Now' with 'Add to Cart' */}
                   <button
                     onClick={(e) => handleAddToCart(service, e)}
-                    className={`mt-auto text-xs font-semibold px-3 py-1.5 rounded-full flex items-center justify-center gap-1 transition-all duration-200 ${
-                      isAdded
-                        ? "bg-green-600 text-white"
-                        : "text-gray-900 hover:text-[#b38743] hover:bg-amber-50 group-hover:text-[#dfa742]"
-                    }`}
+                    className={`mt-auto text-xs font-semibold px-3 py-1.5 rounded-full flex items-center justify-center gap-1 transition-all duration-200 ${isAdded
+                      ? "bg-green-600 text-white"
+                      : "text-gray-900 hover:text-[#b38743] hover:bg-amber-50 group-hover:text-[#dfa742]"
+                      }`}
                   >
                     {isAdded ? (
                       <>
@@ -410,116 +466,146 @@ export default function Home() {
       </section>
 
       {/* -------------------------------------------------------------
-          4. SPECIAL OFFERS SECTION (Curved Black & Gold Banner)
+          4. SPECIAL OFFERS SECTION (Square/Rectangular Dynamic Banner)
           ------------------------------------------------------------- */}
-      <section id="offers" className="relative bg-[#0c0d10] text-white py-14 sm:py-20 overflow-hidden my-6">
-        {/* Curved Top Golden Wave Ribbon */}
-        <div className="absolute top-0 left-0 right-0 w-full overflow-hidden leading-none pointer-events-none">
-          <svg className="w-full h-8 sm:h-12" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M0,0 C400,80 800,80 1200,0 L1200,0 L0,0 Z" fill="#ffffff" />
-            <path d="M0,0 C400,80 800,80 1200,0" fill="none" stroke="url(#goldOfferGradient)" strokeWidth="3" />
-            <defs>
-              <linearGradient id="goldOfferGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#c59d5f" />
-                <stop offset="50%" stopColor="#f7e7a9" />
-                <stop offset="100%" stopColor="#dfa742" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
+      <section id="offers" className="relative bg-[#0c0d10] text-white overflow-hidden my-6">
+        {Boolean(offersBanner.image) ? (
+          /* Custom Full-Width Square/Rectangular Banner Image */
+          <div className="relative w-full overflow-hidden select-none">
+            <img
+              src={getFullImageUrl(offersBanner.image)}
+              alt={offersBanner.title || "Special Offers"}
+              className="w-full h-auto min-h-[160px] sm:min-h-[240px] md:min-h-[300px] max-h-[500px] object-cover object-center"
+            />
 
-        {/* Faded Barber Watermark in background */}
-        <div className="absolute -left-10 top-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
-          <Scissors className="w-96 h-96 text-white" />
-        </div>
-
-        {/* Golden Swooshing Arc Ribbon Graphic across center */}
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none opacity-40"
-          viewBox="0 0 1440 320"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M-100,160 C320,60 800,300 1540,80"
-            fill="none"
-            stroke="url(#goldOfferGradient)"
-            strokeWidth="1.5"
-          />
-          <path
-            d="M-50,220 C400,120 900,360 1500,140"
-            fill="none"
-            stroke="url(#goldOfferGradient)"
-            strokeWidth="1"
-          />
-        </svg>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
-            {/* Left Content */}
-            <div className="text-center lg:text-left space-y-3">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
-                Special Offers
-              </h2>
-              <p className="text-white text-base sm:text-lg font-light tracking-wide">
-                Look Better. Pay Less.
-              </p>
-              <div className="pt-3">
-                <button
-                  onClick={() => setOffersModalOpen(true)}
-                  className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-xs sm:text-sm px-6 py-2.5 rounded-full inline-flex items-center gap-2 shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
-                >
-                  <span>View All Offers</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Right Side: Golden Brush Splash Badge + Classic Barber Pole */}
-            <div className="flex items-center gap-6 sm:gap-10">
-              {/* Golden Brush Splatter Offer Badge */}
-              <div
-                onClick={(e) => handleAddToCart(SPECIAL_OFFER_COMBO, e)}
-                className="relative cursor-pointer group transition-transform duration-300 hover:scale-105"
-                title="Click to Add Combo Deal to Cart"
-              >
-                {/* Stylized Golden Brush Splash Badge SVG */}
-                <div className="relative w-64 sm:w-72 h-32 sm:h-36 flex flex-col items-center justify-center p-4">
-                  {/* Gold organic brush splatter background */}
-                  <div className="absolute inset-0 bg-[#dfa742] rounded-3xl transform -rotate-1 group-hover:rotate-0 transition-transform duration-300 shadow-2xl filter drop-shadow-[0_8px_20px_rgba(223,167,66,0.35)]" />
-                  
-                  {/* Badge Text Content */}
-                  <div className="relative z-10 text-center text-black">
-                    <div className="text-3xl sm:text-4xl font-black tracking-tight leading-none">
-                      AED 50
-                    </div>
-                    <div className="text-xs sm:text-sm font-bold uppercase tracking-wider mt-1 px-2">
-                      Haircut + Beard Trim
-                      <br />
-                      + Manicure
-                    </div>
-                    {/* Add to Cart micro indicator */}
-                    <div className="mt-2 text-[10px] uppercase tracking-widest font-extrabold bg-black text-[#dfa742] py-0.5 px-2.5 rounded-full inline-flex items-center gap-1 group-hover:bg-neutral-900">
-                      {addedItemIds[SPECIAL_OFFER_COMBO._id] ? "✓ Added to Cart" : "+ Add to Cart"}
-                    </div>
+            {/* If user provided text, overlay cleanly; if text was left empty, show pure designed banner */}
+            {Boolean(offersBanner.title?.trim() || offersBanner.subtitle?.trim() || offersBanner.buttonText?.trim()) && (
+              <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent flex items-center">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                  <div className="max-w-xl text-left space-y-3 py-4">
+                    {offersBanner.title && (
+                      <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
+                        {offersBanner.title}
+                      </h2>
+                    )}
+                    {offersBanner.subtitle && (
+                      <p className="text-white text-base sm:text-lg font-light tracking-wide">
+                        {offersBanner.subtitle}
+                      </p>
+                    )}
+                    {offersBanner.buttonText && (
+                      <div className="pt-2">
+                        <button
+                          onClick={() => {
+                            if (offersBanner.link) {
+                              navigate(getLocalizedPath(offersBanner.link))
+                            } else {
+                              setOffersModalOpen(true)
+                            }
+                          }}
+                          className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-xs sm:text-sm px-6 py-2.5 rounded-full inline-flex items-center gap-2 shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
+                        >
+                          <span>{offersBanner.buttonText}</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
+            )}
+          </div>
+        ) : (
+          /* Default Rectangular/Square Luxury Section (Curves removed so it stays clean & square) */
+          <div className="py-14 sm:py-20 relative">
+            {/* Faded Barber Watermark in background */}
+            <div className="absolute -left-10 top-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
+              <Scissors className="w-96 h-96 text-white" />
+            </div>
 
-              {/* Classic Animated Barber Pole */}
-              <div className="flex-shrink-0">
-                <BarberPole />
+            {/* Subtle Golden Swoosh Graphic */}
+            <svg
+              className="absolute inset-0 w-full h-full pointer-events-none opacity-30"
+              viewBox="0 0 1440 320"
+              preserveAspectRatio="none"
+            >
+              <defs>
+                <linearGradient id="goldOfferGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#c59d5f" />
+                  <stop offset="50%" stopColor="#f7e7a9" />
+                  <stop offset="100%" stopColor="#dfa742" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M-100,160 C320,60 800,300 1540,80"
+                fill="none"
+                stroke="url(#goldOfferGradient)"
+                strokeWidth="1.5"
+              />
+            </svg>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+              <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+                {/* Left Content */}
+                <div className="text-center lg:text-left space-y-3">
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
+                    {offersBanner.title || "Special Offers"}
+                  </h2>
+                  <p className="text-white text-base sm:text-lg font-light tracking-wide">
+                    {offersBanner.subtitle || "Look Better. Pay Less."}
+                  </p>
+                  <div className="pt-3">
+                    <button
+                      onClick={() => {
+                        if (offersBanner.link) {
+                          navigate(getLocalizedPath(offersBanner.link))
+                        } else {
+                          setOffersModalOpen(true)
+                        }
+                      }}
+                      className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-xs sm:text-sm px-6 py-2.5 rounded-full inline-flex items-center gap-2 shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
+                    >
+                      <span>{offersBanner.buttonText || "View All Offers"}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right Side: Golden Brush Splash Badge + Classic Barber Pole */}
+                <div className="flex items-center gap-6 sm:gap-10">
+                  {/* Golden Brush Splatter Offer Badge */}
+                  <div
+                    onClick={(e) => handleAddToCart(SPECIAL_OFFER_COMBO, e)}
+                    className="relative cursor-pointer group transition-transform duration-300 hover:scale-105"
+                    title="Click to Add Combo Deal to Cart"
+                  >
+                    <div className="relative w-64 sm:w-72 h-32 sm:h-36 flex flex-col items-center justify-center p-4">
+                      <div className="absolute inset-0 bg-[#dfa742] rounded-3xl transform -rotate-1 group-hover:rotate-0 transition-transform duration-300 shadow-2xl filter drop-shadow-[0_8px_20px_rgba(223,167,66,0.35)]" />
+                      <div className="relative z-10 text-center text-black">
+                        <div className="text-3xl sm:text-4xl font-black tracking-tight leading-none">
+                          AED 50
+                        </div>
+                        <div className="text-xs sm:text-sm font-bold uppercase tracking-wider mt-1 px-2">
+                          Haircut + Beard Trim
+                          <br />
+                          + Manicure
+                        </div>
+                        <div className="mt-2 text-[10px] uppercase tracking-widest font-extrabold bg-black text-[#dfa742] py-0.5 px-2.5 rounded-full inline-flex items-center gap-1 group-hover:bg-neutral-900">
+                          {addedItemIds[SPECIAL_OFFER_COMBO._id] ? "✓ Added to Cart" : "+ Add to Cart"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Classic Animated Barber Pole */}
+                  <div className="flex-shrink-0">
+                    <BarberPole />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Curved Bottom Golden Wave Ribbon */}
-        <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-none pointer-events-none">
-          <svg className="w-full h-8 sm:h-12" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M0,120 C400,40 800,40 1200,120 L1200,120 L0,120 Z" fill="#ffffff" />
-            <path d="M0,120 C400,40 800,40 1200,120" fill="none" stroke="url(#goldOfferGradient)" strokeWidth="3" />
-          </svg>
-        </div>
+        )}
       </section>
 
       {/* -------------------------------------------------------------
@@ -553,10 +639,7 @@ export default function Home() {
                   className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 p-3 flex flex-col items-center text-center group"
                 >
                   {/* Product Image Frame */}
-                  <div
-                    onClick={() => product.slug && navigate(getLocalizedPath(`/product/${product.slug}`))}
-                    className="w-full aspect-[4/3] flex items-center justify-center mb-3 overflow-hidden rounded-xl bg-gray-50/50 p-2 cursor-pointer"
-                  >
+                  <div className="w-full aspect-[4/3] flex items-center justify-center mb-3 overflow-hidden rounded-xl bg-gray-50/50 p-2">
                     <img
                       src={product.image}
                       alt={product.name}
@@ -566,10 +649,7 @@ export default function Home() {
                   </div>
 
                   {/* Product Title */}
-                  <h3
-                    onClick={() => product.slug && navigate(getLocalizedPath(`/product/${product.slug}`))}
-                    className="text-xs sm:text-sm font-bold text-gray-900 leading-tight mb-1 min-h-[32px] flex items-center justify-center line-clamp-2 cursor-pointer hover:text-[#dfa742] transition-colors"
-                  >
+                  <h3 className="text-xs sm:text-sm font-bold text-gray-900 leading-tight mb-1 min-h-[32px] flex items-center justify-center line-clamp-2">
                     {product.name}
                   </h3>
 
@@ -581,11 +661,10 @@ export default function Home() {
                   {/* Add to Cart Gold Pill Button */}
                   <button
                     onClick={(e) => handleAddToCart(product, e)}
-                    className={`mt-auto w-full max-w-[120px] py-1.5 px-3 rounded-full text-xs font-semibold shadow-sm transition-all duration-200 active:scale-95 ${
-                      isAdded
-                        ? "bg-green-600 text-white"
-                        : "bg-[#dfa742] hover:bg-[#caa638] text-black shadow-[#dfa742]/20"
-                    }`}
+                    className={`mt-auto w-full max-w-[120px] py-1.5 px-3 rounded-full text-xs font-semibold shadow-sm transition-all duration-200 active:scale-95 ${isAdded
+                      ? "bg-green-600 text-white"
+                      : "bg-[#dfa742] hover:bg-[#caa638] text-black shadow-[#dfa742]/20"
+                      }`}
                   >
                     {isAdded ? "✓ Added" : "Add to Cart"}
                   </button>
@@ -593,46 +672,50 @@ export default function Home() {
               )
             })}
 
-            {/* Featured CTA Dark Card (Shown when < 6 products) */}
-            {products.length < 6 && (
-              <div className="bg-[#111113] text-white rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1.5 border border-white/10 group min-h-[220px]">
-                {/* Golden Outline Shopping Bag Icon */}
-                <div className="w-12 h-12 rounded-2xl border-2 border-[#dfa742] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-[#dfa742]/10">
-                  <ShoppingBag className="w-6 h-6 text-[#dfa742]" />
-                </div>
-
-                {/* Headline */}
-                <h3 className="text-xs sm:text-sm font-bold text-white mb-3 leading-snug">
-                  Shop Premium
-                  <br />
-                  Salon Products
-                </h3>
-
-                {/* Shop Now Button */}
-                <button
-                  onClick={() => navigate(getLocalizedPath("/products"))}
-                  className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-xs px-4 py-2 rounded-full inline-flex items-center gap-1 shadow-md shadow-[#dfa742]/20 transition-all duration-200 hover:scale-105 active:scale-95"
-                >
-                  <span>Shop All</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+            {/* 6th Card: Featured CTA Dark Card (Always displayed matching exact design) */}
+            <div
+              onClick={() => navigate(getLocalizedPath("/products"))}
+              className="bg-[#111113] text-white rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1.5 border border-white/10 group min-h-[220px] cursor-pointer"
+              title="View all products"
+            >
+              {/* Golden Outline Shopping Bag Icon */}
+              <div className="w-12 h-12 rounded-2xl border-2 border-[#dfa742] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-[#dfa742]/10">
+                <ShoppingBag className="w-6 h-6 text-[#dfa742]" />
               </div>
-            )}
-          </div>
 
-          {/* User Request: 6 products ke baad See More button -> navigates to products page */}
-          {products.length > 6 && (
-            <div className="text-center mt-8">
+              {/* Headline */}
+              <h3 className="text-xs sm:text-sm font-bold text-white mb-3 leading-snug">
+                Shop Premium
+                <br />
+                Salon Products
+              </h3>
+
+              {/* Shop All Button */}
               <button
                 type="button"
-                onClick={() => navigate(getLocalizedPath("/products"))}
-                className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-xs sm:text-sm font-semibold border-2 border-[#dfa742] text-gray-900 bg-white hover:bg-[#dfa742] hover:text-black transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigate(getLocalizedPath("/products"))
+                }}
+                className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-xs px-4 py-2 rounded-full inline-flex items-center gap-1 shadow-md shadow-[#dfa742]/20 transition-all duration-200 hover:scale-105 active:scale-95"
               >
-                <span>See More</span>
-                <ArrowRight className="w-4 h-4 text-[#dfa742] group-hover:text-black group-hover:translate-x-1 transition-all" />
+                <span>Shop All</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
-          )}
+          </div>
+
+          {/* User Request: See More button navigates to products page */}
+          <div className="text-center mt-8">
+            <button
+              type="button"
+              onClick={() => navigate(getLocalizedPath("/products"))}
+              className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-xs sm:text-sm font-semibold border-2 border-[#dfa742] text-gray-900 bg-white hover:bg-[#dfa742] hover:text-black transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
+            >
+              <span>See More</span>
+              <ArrowRight className="w-4 h-4 text-[#dfa742] group-hover:text-black group-hover:translate-x-1 transition-all" />
+            </button>
+          </div>
         </div>
       </section>
 

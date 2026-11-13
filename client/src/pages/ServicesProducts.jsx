@@ -140,14 +140,18 @@ export default function ServicesProducts() {
             </div>
 
             {/* Title styled with luxury gold matching mockup */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
-              {servicesBanner.title || "Our Services & Products"}
-            </h1>
+            {Boolean(servicesBanner.title?.trim()) && (
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
+                {servicesBanner.title}
+              </h1>
+            )}
 
             {/* Subtitle */}
-            <p className="text-gray-200 text-sm sm:text-base font-light tracking-wide">
-              {servicesBanner.subtitle || "Professional Care. Premium Quality."}
-            </p>
+            {Boolean(servicesBanner.subtitle?.trim()) && (
+              <p className="text-gray-200 text-sm sm:text-base font-light tracking-wide">
+                {servicesBanner.subtitle}
+              </p>
+            )}
 
             {/* Breadcrumbs */}
             <nav className="flex items-center gap-2 text-xs text-gray-400 pt-1" aria-label="Breadcrumb">

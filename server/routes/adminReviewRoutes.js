@@ -507,7 +507,7 @@ const router = express.Router()
 // Admin middleware
 const admin = (req, res, next) => {
   console.log("Admin middleware - user:", req.user)
-  if (req.user && (req.user.isAdmin || req.user.role === "admin")) {
+  if (req.user && (req.user.isAdmin || req.user.isSuperAdmin || req.user.role === "admin")) {
     next()
   } else {
     res.status(403)

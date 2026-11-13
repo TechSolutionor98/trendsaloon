@@ -7,7 +7,7 @@ import axios from "axios"
 import ImageUpload from "../ImageUpload"
 import VideoUpload from "../VideoUpload"
 import TipTapEditor from "../TipTapEditor"
-import { Plus, X } from "lucide-react"
+import { Plus, X, ChevronDown, ChevronUp, Sparkles, Settings } from "lucide-react"
 import ProductVariationModal from "./ProductVariationModal"
 import ColorVariationForm from "./ColorVariationForm"
 import DosVariationForm from "./DosVariationForm"
@@ -80,6 +80,7 @@ const ProductForm = ({ product, onSubmit, onCancel }) => {
   const [parentCategories, setParentCategories] = useState([])
   const [taxes, setTaxes] = useState([])
   const [loading, setLoading] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     sku: "",
@@ -1092,6 +1093,118 @@ const ProductForm = ({ product, onSubmit, onCancel }) => {
       <h2 className="text-xl font-bold mb-6">{product ? "Edit Product" : "Add New Product"}</h2>
   
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* ESSENTIAL QUICK EDIT CARD (Name, Price, Image) */}
+        <div className="bg-[#12141a] border border-[#dfa742]/30 rounded-2xl p-6 text-white shadow-xl space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#22252d] gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-[#dfa742]/15 border border-[#dfa742]/40 flex items-center justify-center text-[#dfa742]">
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-white">Item Details</h3>
+                <p className="text-xs text-gray-400">Name, Price and Image</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="inline-flex items-center gap-2 text-xs font-semibold px-3.5 py-2 rounded-xl bg-[#1a1d24] text-gray-300 hover:text-white border border-[#2b2f3a] hover:border-[#dfa742]/50 transition-all self-start sm:self-auto"
+            >
+              <Settings size={14} className="text-[#dfa742]" />
+              <span>{showAdvanced ? "Hide Advanced Options" : "Show Advanced Options"}</span>
+              {showAdvanced ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Name */}
+            <div>
+              <label className="block text-xs uppercase tracking-wider font-bold text-gray-300 mb-2">
+                Name <span className="text-[#dfa742]">*</span>
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 rounded-xl bg-[#0d0e11] border border-[#2b2f3a] text-white focus:outline-none focus:border-[#dfa742] focus:ring-1 focus:ring-[#dfa742] text-sm font-medium"
+                placeholder="Enter name"
+                required
+              />
+            </div>
+
+            {/* Price (AED) */}
+            <div>
+              <label className="block text-xs uppercase tracking-wider font-bold text-gray-300 mb-2">
+                Price <span className="text-[#dfa742]">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <span className="px-2 py-0.5 rounded bg-[#dfa742]/15 border border-[#dfa742]/30 text-[#dfa742] text-xs font-bold tracking-wider">
+                    AED
+                  </span>
+                </div>
+                <input
+                  type="number"
+                  name="basePrice"
+                  value={basePrice}
+                  onChange={handleInputChange}
+                  className="w-full pl-20 pr-4 py-3 rounded-xl bg-[#0d0e11] border border-[#2b2f3a] text-white focus:outline-none focus:border-[#dfa742] focus:ring-1 focus:ring-[#dfa742] text-sm font-semibold"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Image */}
+          <div>
+            <label className="block text-xs uppercase tracking-wider font-bold text-gray-300 mb-2">
+              Image
+            </label>
+            <div className="bg-[#0d0e11] border border-[#2b2f3a] rounded-xl p-4">
+              <ImageUpload
+                onImageUpload={(uploaded) => {
+                  if (uploaded) {
+                    const imgUrl = typeof uploaded === "string" ? uploaded : (uploaded[0] || "")
+                    setFormData((prev) => ({ ...prev, image: imgUrl }))
+                  }
+                }}
+                currentImage={formData.image}
+                label="Upload Image"
+                multiple={false}
+                isProduct={true}
+              />
+              {formData.image && (
+                <div className="mt-3 flex items-center gap-3 p-3 bg-[#14161d] border border-[#262933] rounded-lg">
+                  <img
+                    src={getFullImageUrl(formData.image)}
+                    alt="Preview"
+                    className="w-14 h-14 object-cover rounded-md border border-white/10"
+                    onError={(e) => { e.target.style.display = "none" }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-white truncate">Main Image</p>
+                    <p className="text-[11px] text-gray-400 truncate mt-0.5">{formData.image}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, image: "" }))}
+                    className="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ADVANCED FIELDS (Optional) */}
+        {showAdvanced && (
+          <div className="space-y-6 pt-4 border-t border-gray-200">
         {/* Basic Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
           <div>
@@ -2559,6 +2672,8 @@ const ProductForm = ({ product, onSubmit, onCancel }) => {
             </div>
           </div>
         </div>
+        </div>
+        )}
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-4 pt-6 border-t">

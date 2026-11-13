@@ -36,6 +36,14 @@ export default function AdminBanners() {
     buttonText: "Book Now",
   })
 
+  const [offersBanner, setOffersBanner] = useState({
+    title: "Special Offers",
+    subtitle: "Look Better. Pay Less.",
+    image: "",
+    buttonText: "View All Offers",
+    link: "",
+  })
+
   const [servicesBanner, setServicesBanner] = useState({
     title: "Our Services & Products",
     subtitle: "Professional Care. Premium Quality.",
@@ -59,6 +67,7 @@ export default function AdminBanners() {
       const res = await axios.get(`${config.API_URL}/api/banners/salon-banners?_t=${Date.now()}`)
       if (res.data) {
         if (res.data.home) setHomeBanner((prev) => ({ ...prev, ...res.data.home }))
+        if (res.data.offers) setOffersBanner((prev) => ({ ...prev, ...res.data.offers }))
         if (res.data.services) setServicesBanner((prev) => ({ ...prev, ...res.data.services }))
         if (res.data.products) setProductsBanner((prev) => ({ ...prev, ...res.data.products }))
       }
@@ -79,8 +88,15 @@ export default function AdminBanners() {
       const formData = new FormData()
       formData.append("image", file)
 
-      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}")
-      const token = userInfo.token || localStorage.getItem("token")
+      const token =
+        localStorage.getItem("adminToken") ||
+        localStorage.getItem("token") ||
+        JSON.parse(localStorage.getItem("userInfo") || "{}").token
+
+      if (!token) {
+        showToast("Please login as admin first", "error")
+        return
+      }
 
       const res = await axios.post(`${config.API_URL}/api/upload/single`, formData, {
         headers: {
@@ -93,6 +109,8 @@ export default function AdminBanners() {
         const uploadedUrl = res.data.url
         if (bannerType === "home") {
           setHomeBanner((prev) => ({ ...prev, image: uploadedUrl }))
+        } else if (bannerType === "offers") {
+          setOffersBanner((prev) => ({ ...prev, image: uploadedUrl }))
         } else if (bannerType === "services") {
           setServicesBanner((prev) => ({ ...prev, image: uploadedUrl }))
         } else {
@@ -112,12 +130,22 @@ export default function AdminBanners() {
   const handleSave = async (bannerType) => {
     try {
       setSaving(true)
-      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}")
-      const token = userInfo.token || localStorage.getItem("token")
+      const token =
+        localStorage.getItem("adminToken") ||
+        localStorage.getItem("token") ||
+        JSON.parse(localStorage.getItem("userInfo") || "{}").token
+
+      if (!token) {
+        showToast("Please login as admin first", "error")
+        return
+      }
 
       const payload = {}
       if (bannerType === "home" || bannerType === "all") {
         payload.home = homeBanner
+      }
+      if (bannerType === "offers" || bannerType === "all") {
+        payload.offers = offersBanner
       }
       if (bannerType === "services" || bannerType === "all") {
         payload.services = servicesBanner
@@ -185,6 +213,18 @@ export default function AdminBanners() {
           </button>
 
           <button
+            onClick={() => setActiveTab("offers")}
+            className={`py-3 px-5 text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2.5 ${
+              activeTab === "offers"
+                ? "border-[#dfa742] text-[#b38743] bg-white shadow-sm"
+                : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/50"
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-[#dfa742]" />
+            <span>2. Homepage 2nd Banner (Offers)</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab("services")}
             className={`py-3 px-5 text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2.5 ${
               activeTab === "services"
@@ -193,7 +233,7 @@ export default function AdminBanners() {
             }`}
           >
             <Scissors className="w-4 h-4 text-[#dfa742]" />
-            <span>2. Services Page Banner</span>
+            <span>3. Services Page Banner</span>
           </button>
 
           <button
@@ -205,7 +245,7 @@ export default function AdminBanners() {
             }`}
           >
             <ShoppingBag className="w-4 h-4 text-[#dfa742]" />
-            <span>3. Products Page Banner</span>
+            <span>4. Products Page Banner</span>
           </button>
         </div>
 
@@ -213,43 +253,90 @@ export default function AdminBanners() {
         {activeTab === "home" && (
           <div className="space-y-8 animate-fadeIn">
             {/* Live Visual Preview */}
-            <div className="bg-[#0d0e11] text-white rounded-3xl overflow-hidden p-6 sm:p-10 border border-[#dfa742]/30 shadow-2xl relative">
-              <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-[#dfa742] flex items-center gap-1.5 border border-[#dfa742]/30">
+            <div className="bg-[#0d0e11] text-white rounded-3xl overflow-hidden border border-[#dfa742]/30 shadow-2xl relative min-h-[220px]">
+              <div className="absolute top-4 right-4 z-20 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-[#dfa742] flex items-center gap-1.5 border border-[#dfa742]/30">
                 <Eye className="w-3.5 h-3.5" />
                 <span>Live Preview (Homepage)</span>
               </div>
 
-              {/* Background Image Preview */}
-              <div className="absolute top-0 right-0 bottom-0 w-full sm:w-1/2 pointer-events-none opacity-80 overflow-hidden">
-                <img
-                  src={getFullImageUrl(homeBanner.image) || "/salon/hero-man-transparent.png"}
-                  alt="Hero Preview"
-                  className="w-full h-full object-cover object-center"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e11] via-[#0d0e11]/70 to-transparent" />
-              </div>
+              {Boolean(homeBanner.image && homeBanner.image !== "/salon/hero-man-transparent.png") ? (
+                /* Custom Graphic Banner Preview */
+                <div className="relative w-full">
+                  <img
+                    src={getFullImageUrl(homeBanner.image)}
+                    alt="Hero Preview"
+                    className="w-full h-auto max-h-[360px] object-cover object-center"
+                  />
+                  {Boolean(homeBanner.title?.trim() || homeBanner.tagline?.trim() || homeBanner.subtitle?.trim()) && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex items-center p-6 sm:p-10">
+                      <div className="max-w-lg space-y-3">
+                        {homeBanner.tagline && (
+                          <div className="text-xs uppercase font-medium tracking-[0.2em] text-gray-300">
+                            {homeBanner.tagline}
+                          </div>
+                        )}
+                        {homeBanner.title && (
+                          <h2 className="text-2xl sm:text-4xl font-serif font-bold text-white tracking-tight">
+                            {homeBanner.title}
+                          </h2>
+                        )}
+                        {homeBanner.subtitle && (
+                          <p className="text-xs sm:text-sm text-gray-300 font-light leading-relaxed">
+                            {homeBanner.subtitle}
+                          </p>
+                        )}
+                        {homeBanner.buttonText && (
+                          <div className="pt-1">
+                            <span className="bg-[#dfa742] text-black font-semibold text-xs px-4 py-2 rounded-full inline-flex items-center gap-1.5 shadow-md">
+                              <span>{homeBanner.buttonText}</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Default Gentleman Layout Preview */
+                <div className="p-6 sm:p-10 relative">
+                  <div className="absolute top-0 right-0 bottom-0 w-full sm:w-1/2 pointer-events-none opacity-80 overflow-hidden">
+                    <img
+                      src={getFullImageUrl(homeBanner.image) || "/salon/hero-man-transparent.png"}
+                      alt="Hero Preview"
+                      className="w-full h-full object-cover object-center"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e11] via-[#0d0e11]/70 to-transparent" />
+                  </div>
 
-              {/* Foreground Typography */}
-              <div className="relative z-10 max-w-lg space-y-4 py-4">
-                <div className="text-xs uppercase font-medium tracking-[0.2em] text-gray-400">
-                  {homeBanner.tagline || "Look Good • Feel Great"}
+                  <div className="relative z-10 max-w-lg space-y-4 py-4">
+                    {homeBanner.tagline && (
+                      <div className="text-xs uppercase font-medium tracking-[0.2em] text-gray-400">
+                        {homeBanner.tagline}
+                      </div>
+                    )}
+                    {homeBanner.title && (
+                      <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">
+                        {homeBanner.title}
+                      </h2>
+                    )}
+                    {homeBanner.subtitle && (
+                      <p className="text-sm text-gray-300 font-light leading-relaxed">
+                        {homeBanner.subtitle}
+                      </p>
+                    )}
+                    <div className="pt-2 flex items-center gap-3">
+                      <span className="bg-[#dfa742] text-black font-semibold text-xs px-5 py-2.5 rounded-full inline-flex items-center gap-1.5 shadow-md">
+                        <span>{homeBanner.buttonText || "Book Now"}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                      <span className="border border-white/30 text-white font-medium text-xs px-4 py-2.5 rounded-full bg-black/40">
+                        Shop Products
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">
-                  {homeBanner.title || "Trend Salon"}
-                </h2>
-                <p className="text-sm text-gray-300 font-light leading-relaxed">
-                  {homeBanner.subtitle || "Premium Grooming & Wellness Services for the Modern Gentleman"}
-                </p>
-                <div className="pt-2 flex items-center gap-3">
-                  <span className="bg-[#dfa742] text-black font-semibold text-xs px-5 py-2.5 rounded-full inline-flex items-center gap-1.5 shadow-md">
-                    <span>{homeBanner.buttonText || "Book Now"}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </span>
-                  <span className="border border-white/30 text-white font-medium text-xs px-4 py-2.5 rounded-full bg-black/40">
-                    Shop Products
-                  </span>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Editing Form */}
@@ -361,7 +448,180 @@ export default function AdminBanners() {
           </div>
         )}
 
-        {/* TAB 2: SERVICES & PRODUCTS PAGE BANNER */}
+        {/* TAB 2: HOMEPAGE 2ND BANNER (SPECIAL OFFERS) */}
+        {activeTab === "offers" && (
+          <div className="space-y-8 animate-fadeIn">
+            {/* Live Visual Preview */}
+            <div className="bg-[#0c0d10] text-white rounded-3xl overflow-hidden border border-[#dfa742]/30 shadow-2xl relative min-h-[220px]">
+              <div className="absolute top-4 right-4 z-20 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-[#dfa742] flex items-center gap-1.5 border border-[#dfa742]/30">
+                <Eye className="w-3.5 h-3.5" />
+                <span>Live Preview (Special Offers Banner)</span>
+              </div>
+
+              {Boolean(offersBanner.image) ? (
+                /* Custom Graphic Banner Preview (Square / Rectangular) */
+                <div className="relative w-full">
+                  <img
+                    src={getFullImageUrl(offersBanner.image)}
+                    alt="Special Offers Preview"
+                    className="w-full h-auto max-h-[340px] object-cover object-center"
+                  />
+                  {Boolean(offersBanner.title?.trim() || offersBanner.subtitle?.trim() || offersBanner.buttonText?.trim()) && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex items-center p-6 sm:p-10">
+                      <div className="max-w-lg space-y-3">
+                        {offersBanner.title && (
+                          <h2 className="text-2xl sm:text-4xl font-serif font-bold text-[#dfa742] tracking-tight">
+                            {offersBanner.title}
+                          </h2>
+                        )}
+                        {offersBanner.subtitle && (
+                          <p className="text-xs sm:text-sm text-gray-300 font-light leading-relaxed">
+                            {offersBanner.subtitle}
+                          </p>
+                        )}
+                        {offersBanner.buttonText && (
+                          <div className="pt-1">
+                            <span className="bg-[#dfa742] text-black font-semibold text-xs px-4 py-2 rounded-full inline-flex items-center gap-1.5 shadow-md">
+                              <span>{offersBanner.buttonText}</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Default Luxury Rectangular Section Preview */
+                <div className="p-6 sm:p-10 relative">
+                  <div className="relative z-10 max-w-lg space-y-3 py-4">
+                    <h2 className="text-2xl sm:text-4xl font-serif font-bold text-[#dfa742] tracking-tight">
+                      {offersBanner.title || "Special Offers"}
+                    </h2>
+                    <p className="text-sm text-gray-300 font-light leading-relaxed">
+                      {offersBanner.subtitle || "Look Better. Pay Less."}
+                    </p>
+                    <div className="pt-2">
+                      <span className="bg-[#dfa742] text-black font-semibold text-xs px-5 py-2.5 rounded-full inline-flex items-center gap-1.5 shadow-md">
+                        <span>{offersBanner.buttonText || "View All Offers"}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Editing Form */}
+            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200 shadow-sm space-y-6">
+              <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3">
+                Edit Homepage 2nd Banner (Special Offers)
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Banner Graphic Image URL / Upload */}
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
+                    Banner Graphic Image (Square / Rectangular)
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={offersBanner.image}
+                      onChange={(e) => setOffersBanner({ ...offersBanner, image: e.target.value })}
+                      placeholder="Upload custom graphical banner or enter URL"
+                      className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
+                    />
+                    <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 border border-gray-300 transition-colors">
+                      <Upload className="w-3.5 h-3.5 text-gray-600" />
+                      <span>{uploading ? "Uploading..." : "Upload"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleImageUpload(e, "offers")}
+                      />
+                    </label>
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    Upload any custom designed graphical banner. Top and bottom curves have been removed so your banner renders straight and full-width!
+                  </p>
+                </div>
+
+                {/* Title */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
+                    Banner Title (Optional if text is inside image)
+                  </label>
+                  <input
+                    type="text"
+                    value={offersBanner.title}
+                    onChange={(e) => setOffersBanner({ ...offersBanner, title: e.target.value })}
+                    placeholder="Special Offers"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
+                  />
+                </div>
+
+                {/* Subtitle */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
+                    Subtitle (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={offersBanner.subtitle}
+                    onChange={(e) => setOffersBanner({ ...offersBanner, subtitle: e.target.value })}
+                    placeholder="Look Better. Pay Less."
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
+                  />
+                </div>
+
+                {/* Button Text */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
+                    Button Text (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={offersBanner.buttonText}
+                    onChange={(e) => setOffersBanner({ ...offersBanner, buttonText: e.target.value })}
+                    placeholder="View All Offers"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
+                  />
+                </div>
+
+                {/* Target Link */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
+                    Button Target Link (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={offersBanner.link}
+                    onChange={(e) => setOffersBanner({ ...offersBanner, link: e.target.value })}
+                    placeholder="/services-products or leave empty for Offers popup"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Submit CTA */}
+              <div className="pt-4 border-t border-gray-100 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => handleSave("offers")}
+                  disabled={saving}
+                  className="bg-[#dfa742] hover:bg-[#caa638] text-black font-bold text-sm px-7 py-3 rounded-xl inline-flex items-center gap-2 shadow-lg shadow-[#dfa742]/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{saving ? "Saving..." : "Save Special Offers Banner"}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: SERVICES & PRODUCTS PAGE BANNER */}
         {activeTab === "services" && (
           <div className="space-y-8 animate-fadeIn">
             {/* Live Visual Preview */}

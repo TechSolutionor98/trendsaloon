@@ -143,14 +143,18 @@ export default function ProductsPage() {
             </div>
 
             {/* Title styled with luxury gold matching mockup */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
-              {productsBanner.title || "Our Products"}
-            </h1>
+            {Boolean(productsBanner.title?.trim()) && (
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
+                {productsBanner.title}
+              </h1>
+            )}
 
             {/* Subtitle */}
-            <p className="text-gray-200 text-sm sm:text-base font-light tracking-wide">
-              {productsBanner.subtitle || "Premium Grooming & Care Products for the Modern Gentleman."}
-            </p>
+            {Boolean(productsBanner.subtitle?.trim()) && (
+              <p className="text-gray-200 text-sm sm:text-base font-light tracking-wide">
+                {productsBanner.subtitle}
+              </p>
+            )}
 
             {/* Breadcrumbs */}
             <nav className="flex items-center gap-2 text-xs text-gray-400 pt-1" aria-label="Breadcrumb">
@@ -217,10 +221,7 @@ export default function ProductsPage() {
                   </div>
 
                   {/* Product Image Frame */}
-                  <div
-                    onClick={() => product.slug && navigate(getLocalizedPath(`/product/${product.slug}`))}
-                    className="w-full aspect-[4/3] rounded-xl overflow-hidden mb-3 bg-gray-50 flex items-center justify-center p-3 cursor-pointer"
-                  >
+                  <div className="w-full aspect-[4/3] rounded-xl overflow-hidden mb-3 bg-gray-50 flex items-center justify-center p-3">
                     <img
                       src={product.image}
                       alt={product.name}
@@ -235,10 +236,7 @@ export default function ProductsPage() {
                   </div>
 
                   {/* Product Title */}
-                  <h3
-                    onClick={() => product.slug && navigate(getLocalizedPath(`/product/${product.slug}`))}
-                    className="text-sm sm:text-base font-bold text-gray-900 leading-snug cursor-pointer hover:text-[#dfa742] transition-colors min-h-[40px] flex items-center justify-center line-clamp-2"
-                  >
+                  <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-snug min-h-[40px] flex items-center justify-center line-clamp-2">
                     {product.name}
                   </h3>
 

@@ -67,6 +67,7 @@ router.get(
   asyncHandler(async (req, res) => {
     try {
       const homeBanner = await Banner.findOne({ position: "home-hero", isActive: true })
+      const offersBanner = await Banner.findOne({ position: "home-offers", isActive: true })
       const servicesBanner = await Banner.findOne({ position: "services-hero", isActive: true })
       const productsBanner = await Banner.findOne({ position: "products-hero", isActive: true })
 
@@ -74,11 +75,11 @@ router.get(
         home: homeBanner
           ? {
               _id: homeBanner._id,
-              title: homeBanner.title,
-              tagline: homeBanner.description || "Look Good • Feel Great",
-              subtitle: homeBanner.subtitle || "Premium Grooming & Wellness Services for the Modern Gentleman",
-              image: homeBanner.image,
-              buttonText: homeBanner.buttonText || "Book Now",
+              title: homeBanner.title !== undefined ? homeBanner.title : "",
+              tagline: homeBanner.description !== undefined ? homeBanner.description : "",
+              subtitle: homeBanner.subtitle !== undefined ? homeBanner.subtitle : "",
+              image: homeBanner.image || "/salon/hero-man-transparent.png",
+              buttonText: homeBanner.buttonText !== undefined ? homeBanner.buttonText : "",
             }
           : {
               title: "Trend Salon",
@@ -87,11 +88,27 @@ router.get(
               image: "/salon/hero-man-transparent.png",
               buttonText: "Book Now",
             },
+        offers: offersBanner
+          ? {
+              _id: offersBanner._id,
+              title: offersBanner.title !== undefined ? offersBanner.title : "",
+              subtitle: offersBanner.subtitle !== undefined ? offersBanner.subtitle : "",
+              image: offersBanner.image || "",
+              buttonText: offersBanner.buttonText !== undefined ? offersBanner.buttonText : "",
+              link: offersBanner.buttonLink || offersBanner.link || "",
+            }
+          : {
+              title: "Special Offers",
+              subtitle: "Look Better. Pay Less.",
+              image: "",
+              buttonText: "View All Offers",
+              link: "",
+            },
         services: servicesBanner
           ? {
               _id: servicesBanner._id,
-              title: servicesBanner.title,
-              subtitle: servicesBanner.subtitle || "Professional Care. Premium Quality.",
+              title: servicesBanner.title !== undefined ? servicesBanner.title : "",
+              subtitle: servicesBanner.subtitle !== undefined ? servicesBanner.subtitle : "",
               image: servicesBanner.image || "/salon/services-man.png",
             }
           : {
@@ -102,8 +119,8 @@ router.get(
         products: productsBanner
           ? {
               _id: productsBanner._id,
-              title: productsBanner.title,
-              subtitle: productsBanner.subtitle || "Premium Grooming & Care Products for the Modern Gentleman.",
+              title: productsBanner.title !== undefined ? productsBanner.title : "",
+              subtitle: productsBanner.subtitle !== undefined ? productsBanner.subtitle : "",
               image: productsBanner.image || "/salon/services-man.png",
             }
           : {
@@ -121,6 +138,13 @@ router.get(
           subtitle: "Premium Grooming & Wellness Services for the Modern Gentleman",
           image: "/salon/hero-man-transparent.png",
           buttonText: "Book Now",
+        },
+        offers: {
+          title: "Special Offers",
+          subtitle: "Look Better. Pay Less.",
+          image: "",
+          buttonText: "View All Offers",
+          link: "",
         },
         services: {
           title: "Our Services & Products",
@@ -145,18 +169,35 @@ router.put(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const { home, services, products } = req.body
+    const { home, offers, services, products } = req.body
 
     if (home) {
       await Banner.findOneAndUpdate(
         { position: "home-hero" },
         {
-          title: home.title || "Trend Salon",
-          description: home.tagline || "Look Good • Feel Great",
-          subtitle: home.subtitle || "Premium Grooming & Wellness Services for the Modern Gentleman",
+          title: typeof home.title === "string" ? home.title : "",
+          description: typeof home.tagline === "string" ? home.tagline : "",
+          subtitle: typeof home.subtitle === "string" ? home.subtitle : "",
           image: home.image || "/salon/hero-man-transparent.png",
-          buttonText: home.buttonText || "Book Now",
+          buttonText: typeof home.buttonText === "string" ? home.buttonText : "",
           position: "home-hero",
+          isActive: true,
+          createdBy: req.user._id,
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      )
+    }
+
+    if (offers) {
+      await Banner.findOneAndUpdate(
+        { position: "home-offers" },
+        {
+          title: typeof offers.title === "string" ? offers.title : "",
+          subtitle: typeof offers.subtitle === "string" ? offers.subtitle : "",
+          image: typeof offers.image === "string" ? offers.image : "",
+          buttonText: typeof offers.buttonText === "string" ? offers.buttonText : "",
+          buttonLink: typeof offers.link === "string" ? offers.link : "",
+          position: "home-offers",
           isActive: true,
           createdBy: req.user._id,
         },
@@ -168,8 +209,8 @@ router.put(
       await Banner.findOneAndUpdate(
         { position: "services-hero" },
         {
-          title: services.title || "Our Services & Products",
-          subtitle: services.subtitle || "Professional Care. Premium Quality.",
+          title: typeof services.title === "string" ? services.title : "",
+          subtitle: typeof services.subtitle === "string" ? services.subtitle : "",
           image: services.image || "/salon/services-hero.jpg",
           position: "services-hero",
           isActive: true,
@@ -183,8 +224,8 @@ router.put(
       await Banner.findOneAndUpdate(
         { position: "products-hero" },
         {
-          title: products.title || "Our Products",
-          subtitle: products.subtitle || "Premium Grooming & Care Products for the Modern Gentleman.",
+          title: typeof products.title === "string" ? products.title : "",
+          subtitle: typeof products.subtitle === "string" ? products.subtitle : "",
           image: products.image || "/salon/services-hero.jpg",
           position: "products-hero",
           isActive: true,

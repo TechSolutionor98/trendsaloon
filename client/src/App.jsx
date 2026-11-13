@@ -237,7 +237,7 @@ function App() {
                         path="/product-category/:parentCategory/:subcategory/:subcategory2/:subcategory3/:subcategory4"
                         element={<Shop />}
                       />
-                      <Route path="/product/:slug" element={<ProductDetails />} />
+                      <Route path="/product/:slug" element={<Navigate to="/services-products" replace />} />
                       <Route path="/cart" element={<Cart />} />
                       <Route path="/login" element={<Login />} />
                       <Route path="/register" element={<Register />} />

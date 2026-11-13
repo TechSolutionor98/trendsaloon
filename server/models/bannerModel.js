@@ -4,7 +4,7 @@ const bannerSchema = mongoose.Schema(
   {
     title: {
       type: String,
-      required: true,
+      default: "",
     },
     subtitle: {
       type: String,
@@ -14,7 +14,7 @@ const bannerSchema = mongoose.Schema(
     },
     image: {
       type: String,
-      required: true,
+      default: "",
     },
     backgroundImage: {
       type: String,
@@ -33,6 +33,7 @@ const bannerSchema = mongoose.Schema(
       enum: [
         "hero",
         "home-hero",
+        "home-offers",
         "services-hero",
         "services",
         "category",
