@@ -375,7 +375,11 @@ router.post(
 
     const user = await User.findOne({ email: normalizedEmail })
 
-    if (user && (await user.matchPassword(password))) {
+    const rawPassword = String(password || "")
+    const trimmedPassword = rawPassword.trim()
+    const isPasswordMatch = user ? ((await user.matchPassword(rawPassword)) || (await user.matchPassword(trimmedPassword))) : false
+
+    if (user && isPasswordMatch) {
       if (!user.isEmailVerified) {
         // Answered directly rather than thrown, so the response can carry the
         // flag the sign-in form needs to offer a "Verify here" link. A thrown

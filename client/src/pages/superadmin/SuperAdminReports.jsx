@@ -230,19 +230,19 @@ const SuperAdminReports = () => {
 
   const getActionColor = (action) => {
     const colors = {
-      CREATE: "bg-green-100 text-green-700 border-green-200",
-      UPDATE: "bg-blue-100 text-blue-700 border-blue-200",
-      DELETE: "bg-red-100 text-red-700 border-red-200",
-      LOGIN: "bg-purple-100 text-purple-700 border-purple-200",
-      LOGOUT: "bg-gray-100 text-gray-700 border-gray-200",
-      VIEW: "bg-cyan-100 text-cyan-700 border-cyan-200",
-      EXPORT: "bg-yellow-100 text-yellow-700 border-yellow-200",
-      IMPORT: "bg-indigo-100 text-indigo-700 border-indigo-200",
-      STATUS_CHANGE: "bg-orange-100 text-orange-700 border-orange-200",
-      PERMISSION_CHANGE: "bg-pink-100 text-pink-700 border-pink-200",
-      BULK_ACTION: "bg-teal-100 text-teal-700 border-teal-200",
+      CREATE: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+      UPDATE: "bg-[#dfa742]/15 text-[#dfa742] border-[#dfa742]/30",
+      DELETE: "bg-red-500/15 text-red-400 border-red-500/30",
+      LOGIN: "bg-purple-500/15 text-purple-400 border-purple-500/30",
+      LOGOUT: "bg-gray-500/15 text-gray-400 border-gray-500/30",
+      VIEW: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
+      EXPORT: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+      IMPORT: "bg-indigo-500/15 text-indigo-400 border-indigo-500/30",
+      STATUS_CHANGE: "bg-orange-500/15 text-orange-400 border-orange-500/30",
+      PERMISSION_CHANGE: "bg-pink-500/15 text-pink-400 border-pink-500/30",
+      BULK_ACTION: "bg-teal-500/15 text-teal-400 border-teal-500/30",
     }
-    return colors[action] || "bg-gray-100 text-gray-700 border-gray-200"
+    return colors[action] || "bg-white/10 text-gray-300 border-white/10"
   }
 
   const getModuleIcon = (module) => {
@@ -632,9 +632,9 @@ const SuperAdminReports = () => {
       {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Activity Reports</h1>
-          <p className="text-slate-500 mt-1">
-            Comprehensive activity logs report for all admins and super admins
+          <h1 className="text-2xl font-bold text-white tracking-wide">Activity Reports</h1>
+          <p className="text-gray-400 text-sm mt-1">
+            Comprehensive activity logs and downloadable audit reports for all administrators
           </p>
         </div>
 
@@ -642,7 +642,7 @@ const SuperAdminReports = () => {
           {/* Refresh */}
           <button
             onClick={() => { fetchLogs(); fetchStats(); }}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition-all duration-200"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#13151b] border border-white/10 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-all"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             Refresh
@@ -651,16 +651,16 @@ const SuperAdminReports = () => {
           {/* Filter Toggle */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl transition-all duration-200 ${
+            className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl transition-all font-medium ${
               showFilters || hasActiveFilters
-                ? "bg-green-50 border-green-200 text-green-700"
-                : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                ? "bg-gradient-to-r from-[#dfa742] to-[#c99335] text-black border-transparent shadow-lg shadow-[#dfa742]/20 font-semibold"
+                : "bg-[#13151b] border-white/10 text-gray-300 hover:text-white hover:border-[#dfa742]/50"
             }`}
           >
             <Filter className="w-4 h-4" />
             Filters
             {hasActiveFilters && (
-              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              <span className="w-2 h-2 bg-black rounded-full"></span>
             )}
           </button>
 
@@ -669,7 +669,7 @@ const SuperAdminReports = () => {
             <button
               onClick={() => setShowExportMenu(!showExportMenu)}
               disabled={exporting}
-              className="flex items-center gap-2 px-4 py-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all duration-200 disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#dfa742] to-[#c99335] text-black font-semibold rounded-xl hover:brightness-110 transition-all shadow-lg shadow-[#dfa742]/20 disabled:opacity-50"
             >
               {exporting ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -681,66 +681,66 @@ const SuperAdminReports = () => {
             </button>
 
             {showExportMenu && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50">
-                <div className="px-3 py-2 border-b border-slate-100">
-                  <p className="text-xs font-semibold text-slate-500 uppercase">Export Options</p>
+              <div className="absolute right-0 mt-2 w-64 bg-[#16181f] rounded-2xl shadow-2xl border border-white/10 py-2 z-50 text-gray-100">
+                <div className="px-4 py-2 border-b border-white/10">
+                  <p className="text-xs font-semibold text-[#dfa742] uppercase tracking-wider">Export Options</p>
                 </div>
                 
                 <button
                   onClick={exportToPDF}
                   disabled={exporting}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
                 >
-                  <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                    <FileText className="w-4 h-4 text-red-600" />
+                  <div className="w-8 h-8 bg-red-500/15 border border-red-500/30 rounded-lg flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-red-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-900">Activity Logs PDF</p>
-                    <p className="text-xs text-slate-500">All filtered logs</p>
+                    <p className="text-sm font-medium text-white">Activity Logs PDF</p>
+                    <p className="text-xs text-gray-400">All filtered logs</p>
                   </div>
                 </button>
 
                 <button
                   onClick={exportToCSV}
                   disabled={exporting}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
                 >
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <FileSpreadsheet className="w-4 h-4 text-green-600" />
+                  <div className="w-8 h-8 bg-emerald-500/15 border border-emerald-500/30 rounded-lg flex items-center justify-center">
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-900">Activity Logs CSV</p>
-                    <p className="text-xs text-slate-500">Excel compatible format</p>
+                    <p className="text-sm font-medium text-white">Activity Logs CSV</p>
+                    <p className="text-xs text-gray-400">Excel compatible format</p>
                   </div>
                 </button>
 
-                <div className="border-t border-slate-100 my-2"></div>
+                <div className="border-t border-white/10 my-1"></div>
 
                 <button
                   onClick={exportAdminReport}
                   disabled={exporting}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
                 >
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Users className="w-4 h-4 text-blue-600" />
+                  <div className="w-8 h-8 bg-blue-500/15 border border-blue-500/30 rounded-lg flex items-center justify-center">
+                    <Users className="w-4 h-4 text-blue-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-900">Admin-wise Report</p>
-                    <p className="text-xs text-slate-500">Grouped by each admin</p>
+                    <p className="text-sm font-medium text-white">Admin-wise Report</p>
+                    <p className="text-xs text-gray-400">Grouped by each admin</p>
                   </div>
                 </button>
 
                 <button
                   onClick={exportModuleReport}
                   disabled={exporting}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
                 >
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="w-4 h-4 text-purple-600" />
+                  <div className="w-8 h-8 bg-[#dfa742]/15 border border-[#dfa742]/30 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="w-4 h-4 text-[#dfa742]" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-900">Module-wise Report</p>
-                    <p className="text-xs text-slate-500">Grouped by each section</p>
+                    <p className="text-sm font-medium text-white">Module-wise Report</p>
+                    <p className="text-xs text-gray-400">Grouped by each section</p>
                   </div>
                 </button>
               </div>
@@ -751,50 +751,50 @@ const SuperAdminReports = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="bg-[#13151b] rounded-2xl border border-white/10 p-5 shadow-lg">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-              <Activity className="w-6 h-6 text-green-600" />
+            <div className="w-12 h-12 bg-[#dfa742]/15 border border-[#dfa742]/30 rounded-xl flex items-center justify-center">
+              <Activity className="w-6 h-6 text-[#dfa742]" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">{stats.totalLogs.toLocaleString()}</p>
-              <p className="text-sm text-slate-500">Total Activities</p>
+              <p className="text-2xl font-bold text-white">{stats.totalLogs.toLocaleString()}</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wider mt-0.5">Total Activities</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="bg-[#13151b] rounded-2xl border border-white/10 p-5 shadow-lg">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-              <Clock className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-blue-500/15 border border-blue-500/30 rounded-xl flex items-center justify-center">
+              <Clock className="w-6 h-6 text-blue-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">{stats.todayLogs.toLocaleString()}</p>
-              <p className="text-sm text-slate-500">Today's Activities</p>
+              <p className="text-2xl font-bold text-white">{stats.todayLogs.toLocaleString()}</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wider mt-0.5">Today's Activities</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="bg-[#13151b] rounded-2xl border border-white/10 p-5 shadow-lg">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-purple-600" />
+            <div className="w-12 h-12 bg-purple-500/15 border border-purple-500/30 rounded-xl flex items-center justify-center">
+              <Calendar className="w-6 h-6 text-purple-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">{stats.weekLogs.toLocaleString()}</p>
-              <p className="text-sm text-slate-500">This Week</p>
+              <p className="text-2xl font-bold text-white">{stats.weekLogs.toLocaleString()}</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wider mt-0.5">This Week</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="bg-[#13151b] rounded-2xl border border-white/10 p-5 shadow-lg">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-              <BarChart3 className="w-6 h-6 text-orange-600" />
+            <div className="w-12 h-12 bg-amber-500/15 border border-amber-500/30 rounded-xl flex items-center justify-center">
+              <BarChart3 className="w-6 h-6 text-amber-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">{stats.monthLogs.toLocaleString()}</p>
-              <p className="text-sm text-slate-500">This Month</p>
+              <p className="text-2xl font-bold text-white">{stats.monthLogs.toLocaleString()}</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wider mt-0.5">This Month</p>
             </div>
           </div>
         </div>
@@ -802,13 +802,13 @@ const SuperAdminReports = () => {
 
       {/* Filters Panel */}
       {showFilters && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="bg-[#13151b] rounded-2xl border border-white/10 p-6 shadow-xl">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-slate-900">Filter Activity Logs</h3>
+            <h3 className="font-semibold text-white">Filter Activity Logs</h3>
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="flex items-center gap-1 text-sm text-red-600 hover:text-red-700"
+                className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 font-medium"
               >
                 <X className="w-4 h-4" />
                 Clear All
@@ -819,26 +819,26 @@ const SuperAdminReports = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
             {/* Search */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Search</label>
+              <label className="block text-xs font-medium text-gray-300 mb-1">Search</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                   placeholder="Search logs..."
-                  className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full pl-9 pr-3 py-2 bg-[#1a1d24] border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#dfa742] focus:ring-1 focus:ring-[#dfa742]"
                 />
               </div>
             </div>
 
             {/* Admin Filter */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Admin</label>
+              <label className="block text-xs font-medium text-gray-300 mb-1">Admin</label>
               <select
                 value={filters.adminId}
                 onChange={(e) => setFilters({ ...filters, adminId: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 bg-[#1a1d24] border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#dfa742] focus:ring-1 focus:ring-[#dfa742]"
               >
                 <option value="">All Admins</option>
                 {admins.map((admin) => (
@@ -851,11 +851,11 @@ const SuperAdminReports = () => {
 
             {/* Action Filter */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Action</label>
+              <label className="block text-xs font-medium text-gray-300 mb-1">Action</label>
               <select
                 value={filters.action}
                 onChange={(e) => setFilters({ ...filters, action: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 bg-[#1a1d24] border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#dfa742] focus:ring-1 focus:ring-[#dfa742]"
               >
                 {actionTypes.map((action) => (
                   <option key={action.value} value={action.value}>
@@ -867,11 +867,11 @@ const SuperAdminReports = () => {
 
             {/* Module Filter */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Module</label>
+              <label className="block text-xs font-medium text-gray-300 mb-1">Module</label>
               <select
                 value={filters.module}
                 onChange={(e) => setFilters({ ...filters, module: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 bg-[#1a1d24] border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#dfa742] focus:ring-1 focus:ring-[#dfa742]"
               >
                 {moduleTypes.map((module) => (
                   <option key={module.value} value={module.value}>
@@ -883,23 +883,23 @@ const SuperAdminReports = () => {
 
             {/* Start Date */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">From Date</label>
+              <label className="block text-xs font-medium text-gray-300 mb-1">From Date</label>
               <input
                 type="date"
                 value={filters.startDate}
                 onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 bg-[#1a1d24] border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#dfa742] focus:ring-1 focus:ring-[#dfa742]"
               />
             </div>
 
             {/* End Date */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">To Date</label>
+              <label className="block text-xs font-medium text-gray-300 mb-1">To Date</label>
               <input
                 type="date"
                 value={filters.endDate}
                 onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 bg-[#1a1d24] border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#dfa742] focus:ring-1 focus:ring-[#dfa742]"
               />
             </div>
           </div>
@@ -907,13 +907,13 @@ const SuperAdminReports = () => {
       )}
 
       {/* Activity Logs Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200">
+      <div className="bg-[#13151b] rounded-2xl border border-white/10 shadow-xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/10">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-slate-900">
+            <h3 className="font-semibold text-white">
               Activity Logs
-              <span className="ml-2 text-sm font-normal text-slate-500">
-                ({pagination.total.toLocaleString()} records)
+              <span className="ml-2 text-xs font-normal text-[#dfa742] bg-[#dfa742]/10 px-2 py-0.5 rounded-full border border-[#dfa742]/30">
+                {pagination.total.toLocaleString()} records
               </span>
             </h3>
           </div>
@@ -922,19 +922,19 @@ const SuperAdminReports = () => {
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <RefreshCw className="w-8 h-8 text-green-500 animate-spin mx-auto mb-3" />
-              <p className="text-slate-500">Loading activity logs...</p>
+              <RefreshCw className="w-8 h-8 text-[#dfa742] animate-spin mx-auto mb-3" />
+              <p className="text-gray-400">Loading activity logs...</p>
             </div>
           </div>
         ) : logs.length === 0 ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <Activity className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">No activity logs found</p>
+              <Activity className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-400">No activity logs found</p>
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
-                  className="mt-3 text-green-600 hover:text-green-700 text-sm font-medium"
+                  className="mt-3 text-[#dfa742] hover:underline text-sm font-medium"
                 >
                   Clear filters
                 </button>
@@ -946,46 +946,46 @@ const SuperAdminReports = () => {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-slate-50">
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  <tr className="bg-[#1a1d24] border-b border-white/10">
+                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                       Date & Time
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                       Admin
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                       Action
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                       Module
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                       Description
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                       IP Address
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-white/5">
                   {logs.map((log) => (
-                    <tr key={log._id} className="hover:bg-slate-50 transition-colors">
+                    <tr key={log._id} className="hover:bg-white/[0.02] transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                          <Clock className="w-4 h-4 text-slate-400" />
+                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                          <Clock className="w-3.5 h-3.5 text-gray-500" />
                           {formatDate(log.createdAt)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-semibold text-green-700">
+                          <div className="w-8 h-8 bg-[#dfa742]/15 border border-[#dfa742]/30 rounded-full flex items-center justify-center">
+                            <span className="text-xs font-bold text-[#dfa742]">
                               {log.userName?.charAt(0).toUpperCase() || "?"}
                             </span>
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-slate-900">{log.userName || "Unknown"}</p>
-                            <p className="text-xs text-slate-500">{log.userEmail || ""}</p>
+                            <p className="text-sm font-medium text-white">{log.userName || "Unknown"}</p>
+                            <p className="text-xs text-gray-400">{log.userEmail || ""}</p>
                           </div>
                         </div>
                       </td>
@@ -996,23 +996,23 @@ const SuperAdminReports = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1.5 text-sm text-slate-700">
+                        <span className="inline-flex items-center gap-1.5 text-xs text-gray-300 bg-[#1a1d24] px-2.5 py-1 rounded-lg border border-white/10">
                           {getModuleIcon(log.module)}
                           {formatModuleName(log.module)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-sm text-slate-600 max-w-md truncate" title={log.description}>
+                        <p className="text-sm text-gray-300 max-w-md truncate" title={log.description}>
                           {log.description}
                         </p>
                         {log.targetName && (
-                          <p className="text-xs text-slate-400 mt-0.5">
+                          <p className="text-xs text-[#dfa742]/80 mt-0.5">
                             Target: {log.targetName}
                           </p>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-slate-500 font-mono">
+                        <span className="text-xs text-gray-400 font-mono">
                           {log.ipAddress || "N/A"}
                         </span>
                       </td>
@@ -1024,15 +1024,15 @@ const SuperAdminReports = () => {
 
             {/* Pagination */}
             {pagination.pages > 1 && (
-              <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
-                <p className="text-sm text-slate-500">
+              <div className="px-6 py-4 border-t border-white/10 flex items-center justify-between">
+                <p className="text-xs text-gray-400">
                   Showing page {pagination.page} of {pagination.pages}
                 </p>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
                     disabled={pagination.page === 1}
-                    className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1.5 border border-white/10 rounded-lg text-xs text-gray-300 hover:bg-white/5 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   >
                     Previous
                   </button>
@@ -1044,10 +1044,10 @@ const SuperAdminReports = () => {
                       <button
                         key={pageNum}
                         onClick={() => setPagination(prev => ({ ...prev, page: pageNum }))}
-                        className={`px-3 py-1.5 rounded-lg text-sm ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                           pagination.page === pageNum
-                            ? "bg-green-500 text-white"
-                            : "border border-slate-200 text-slate-700 hover:bg-slate-50"
+                            ? "bg-[#dfa742] text-black font-semibold shadow-md shadow-[#dfa742]/20"
+                            : "border border-white/10 text-gray-300 hover:bg-white/5 hover:text-white"
                         }`}
                       >
                         {pageNum}
@@ -1058,7 +1058,7 @@ const SuperAdminReports = () => {
                   <button
                     onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
                     disabled={pagination.page === pagination.pages}
-                    className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1.5 border border-white/10 rounded-lg text-xs text-gray-300 hover:bg-white/5 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   >
                     Next
                   </button>

@@ -63,7 +63,7 @@ const SuperAdminSidebar = () => {
   const handleLogout = async () => {
     try {
       await adminLogout()
-      navigate("/grabiansuperadmin/login")
+      navigate("/superadmin/login")
     } catch (error) {
       console.error("Logout failed:", error)
     }
@@ -124,27 +124,27 @@ const SuperAdminSidebar = () => {
             onClick={() => toggleDropdown(item.dropdown)}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
               isDropdownActive
-                ? "bg-green-100 text-green-700"
-                : "text-slate-600 hover:bg-green-50 hover:text-green-600"
+                ? "bg-[#dfa742]/15 text-[#dfa742] border border-[#dfa742]/30"
+                : "text-gray-300 hover:bg-white/5 hover:text-[#dfa742]"
             }`}
           >
             <div className="flex items-center gap-3">
               <Icon className="w-5 h-5" />
-              <span className="font-medium">{item.title}</span>
+              <span className="font-medium text-sm">{item.title}</span>
             </div>
-            {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            {isOpen ? <ChevronDown className="w-4 h-4 text-[#dfa742]" /> : <ChevronRight className="w-4 h-4 text-gray-500" />}
           </button>
           {isOpen && (
-            <div className="ml-4 mt-1 space-y-1 border-l-2 border-green-200 pl-4">
+            <div className="ml-4 mt-1 space-y-1 border-l-2 border-[#dfa742]/30 pl-4">
               {item.items.map((subItem, subIndex) => (
                 <Link
                   key={subIndex}
                   to={subItem.path}
                   onClick={() => setIsMobileOpen(false)}
-                  className={`block px-4 py-2 rounded-lg transition-all duration-200 ${
+                  className={`block px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
                     isActive(subItem.path)
-                      ? "bg-green-500 text-white"
-                      : "text-slate-600 hover:bg-green-50 hover:text-green-600"
+                      ? "bg-gradient-to-r from-[#dfa742] to-[#c99335] text-slate-950 font-bold shadow-md shadow-[#dfa742]/20"
+                      : "text-gray-400 hover:bg-white/5 hover:text-[#dfa742]"
                   }`}
                 >
                   {subItem.title}
@@ -161,10 +161,10 @@ const SuperAdminSidebar = () => {
         key={index}
         to={item.path}
         onClick={() => setIsMobileOpen(false)}
-        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all duration-200 ${
           isActive(item.path)
-            ? "bg-green-500 text-white shadow-lg shadow-green-200"
-            : "text-slate-600 hover:bg-green-50 hover:text-green-600"
+            ? "bg-gradient-to-r from-[#dfa742] via-[#e5b555] to-[#c99335] text-slate-950 font-bold shadow-lg shadow-[#dfa742]/20"
+            : "text-gray-300 hover:bg-white/5 hover:text-[#dfa742]"
         }`}
       >
         <Icon className="w-5 h-5" />
@@ -178,7 +178,7 @@ const SuperAdminSidebar = () => {
       {/* Mobile Toggle Button */}
       <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-green-500 text-white rounded-xl shadow-lg"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2.5 bg-[#dfa742] text-slate-950 rounded-xl shadow-lg"
       >
         {isMobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
       </button>
@@ -186,65 +186,79 @@ const SuperAdminSidebar = () => {
       {/* Mobile Overlay */}
       {isMobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          className="lg:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-[133.33vh] w-72 bg-white border-r border-green-100 shadow-xl z-40 transform transition-transform duration-300 ${
+        className={`fixed left-0 top-0 h-[133.33vh] w-72 bg-[#13151b] border-r border-white/10 shadow-2xl z-40 transform transition-transform duration-300 ${
           isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         {/* Header */}
-        <div className="p-6 border-b border-green-100">
+        <div className="p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-green-500 rounded-2xl flex items-center justify-center shadow-lg shadow-green-200">
-              <ShieldCheck className="w-7 h-7 text-white" />
+            <div className="w-12 h-12 bg-gradient-to-br from-[#dfa742] to-[#c99335] rounded-2xl flex items-center justify-center shadow-lg shadow-[#dfa742]/20 border border-[#dfa742]/30 flex-shrink-0">
+              <svg
+                className="w-7 h-7 text-slate-950"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="6" cy="6" r="3" />
+                <circle cx="6" cy="18" r="3" />
+                <line x1="20" y1="4" x2="8.12" y2="15.88" />
+                <line x1="14.47" y1="14.48" x2="20" y2="20" />
+                <line x1="8.12" y1="8.12" x2="12" y2="12" />
+              </svg>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900">Super Admin</h1>
-              <p className="text-sm text-green-600">Control Panel</p>
+              <h1 className="text-lg font-serif font-bold text-white tracking-wide">Trend Saloon</h1>
+              <p className="text-xs font-semibold text-[#dfa742] uppercase tracking-wider">Super Admin</p>
             </div>
           </div>
         </div>
 
         {/* User Info */}
-        <div className="p-4 mx-4 mt-4 bg-green-50 rounded-2xl border border-green-100">
+        <div className="p-3.5 mx-4 mt-4 bg-[#1a1d24] rounded-2xl border border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 bg-[#dfa742]/15 border border-[#dfa742]/30 rounded-xl flex items-center justify-center">
+              <Shield className="w-4 h-4 text-[#dfa742]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-900 truncate">
+              <p className="text-xs font-semibold text-white truncate">
                 {admin?.name || "Super Admin"}
               </p>
-              <p className="text-xs text-green-600 truncate">{admin?.email}</p>
+              <p className="text-[11px] text-[#dfa742] truncate">{admin?.email}</p>
             </div>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-2 flex-1 overflow-y-auto max-h-[calc(133.33vh-320px)]">
+        <nav className="p-4 space-y-1.5 flex-1 overflow-y-auto max-h-[calc(133.33vh-320px)]">
           {menuItems.map(renderMenuItem)}
         </nav>
 
         {/* Footer Actions */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-green-100 bg-white">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 bg-[#13151b]">
           <Link
             to="/admin/dashboard"
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-green-50 hover:text-green-600 transition-all duration-200 mb-2"
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-300 hover:bg-white/5 hover:text-[#dfa742] transition-all duration-200 mb-1 text-sm font-medium"
           >
-            <ClipboardList className="w-5 h-5" />
-            <span className="font-medium">Go to Admin Panel</span>
+            <ClipboardList className="w-4 h-4 text-[#dfa742]" />
+            <span>Go to Admin Panel</span>
           </Link>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-all duration-200"
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200 text-sm font-medium"
           >
-            <LogOut className="w-5 h-5" />
-            <span className="font-medium">Logout</span>
+            <LogOut className="w-4 h-4" />
+            <span>Sign Out</span>
           </button>
         </div>
       </aside>

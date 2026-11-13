@@ -37,7 +37,11 @@ const AdminLogin = () => {
     try {
       setLoading(true)
       setError("")
-      const result = await adminLogin(formData)
+      const payload = {
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password.trim(),
+      }
+      const result = await adminLogin(payload)
       if (result.success) {
         navigate("/admin/dashboard")
       } else {

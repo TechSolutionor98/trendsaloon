@@ -1058,7 +1058,11 @@ router.post(
       ? await User.findOne({ email: { $regex: `^${escapeRegex(normalizedEmail)}$`, $options: "i" } })
       : null
 
-    if (user && (await user.matchPassword(password)) && (user.isAdmin || user.isSuperAdmin)) {
+    const rawPassword = String(password || "")
+    const trimmedPassword = rawPassword.trim()
+    const isPasswordMatch = user ? ((await user.matchPassword(rawPassword)) || (await user.matchPassword(trimmedPassword))) : false
+
+    if (user && isPasswordMatch && (user.isAdmin || user.isSuperAdmin)) {
       // Log the login activity
       await logActivity({
         user: user,

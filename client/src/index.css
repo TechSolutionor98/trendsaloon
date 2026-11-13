@@ -398,3 +398,29 @@ main a:not([class*="text-"]):not([class*="bg-"]):hover {
     animation: barber-spin 3s linear infinite;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Custom Luxury Scrollbar for Admin Sidebar & Admin Panels
+   --------------------------------------------------------------------------- */
+.admin-sidebar-nav {
+  scrollbar-width: thin;
+  scrollbar-color: #2b2f3a #0d0e11;
+}
+
+.admin-sidebar-nav::-webkit-scrollbar {
+  width: 5px;
+}
+
+.admin-sidebar-nav::-webkit-scrollbar-track {
+  background: #0d0e11;
+}
+
+.admin-sidebar-nav::-webkit-scrollbar-thumb {
+  background: #2b2f3a;
+  border-radius: 9999px;
+}
+
+.admin-sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: #dfa742;
+}
+

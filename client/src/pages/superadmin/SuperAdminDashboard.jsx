@@ -168,27 +168,33 @@ const SuperAdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#0d0e11]">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-green-600">Loading dashboard...</p>
+          <div className="w-12 h-12 border-4 border-[#dfa742] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-[#dfa742] font-medium text-sm">Loading dashboard...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-gray-100">
       {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl p-6 text-white shadow-xl shadow-green-200">
-        <div className="flex items-center justify-between">
+      <div className="bg-gradient-to-r from-[#1c1f26] via-[#16181f] to-[#111217] border border-[#dfa742]/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-[#dfa742]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex items-center justify-between relative z-10">
           <div>
-            <h1 className="text-2xl font-bold mb-2">Welcome back, {admin?.name || "Super Admin"}!</h1>
-            <p className="text-green-100">Here's what's happening in your Super Admin portal.</p>
+            <span className="inline-block px-3 py-1 bg-[#dfa742]/15 border border-[#dfa742]/30 rounded-full text-[#dfa742] text-[11px] font-semibold tracking-wider uppercase mb-2">
+              Super Admin Console
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white mb-1">
+              Welcome back, <span className="text-[#dfa742]">{admin?.name || "Super Admin"}</span>!
+            </h1>
+            <p className="text-gray-400 text-sm">Real-time overview of Trend Gents Saloon administrative operations.</p>
           </div>
           <div className="hidden md:flex items-center gap-4">
-            <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-              <ShieldCheck className="w-10 h-10 text-white" />
+            <div className="w-16 h-16 bg-[#dfa742]/10 border border-[#dfa742]/30 rounded-2xl flex items-center justify-center shadow-lg shadow-[#dfa742]/10">
+              <ShieldCheck className="w-9 h-9 text-[#dfa742]" />
             </div>
           </div>
         </div>
@@ -201,19 +207,19 @@ const SuperAdminDashboard = () => {
           return (
             <div
               key={index}
-              className="bg-white rounded-2xl p-5 border border-green-100 shadow-sm hover:shadow-lg transition-all duration-200"
+              className="bg-[#13151b] rounded-2xl p-5 border border-white/10 shadow-lg hover:border-[#dfa742]/40 transition-all duration-200"
             >
               <div className="flex items-center justify-between mb-3">
-                <div className={`w-12 h-12 bg-${stat.color}-100 rounded-xl flex items-center justify-center`}>
-                  <Icon className={`w-6 h-6 text-${stat.color}-600`} />
+                <div className="w-11 h-11 bg-[#dfa742]/10 border border-[#dfa742]/20 rounded-xl flex items-center justify-center">
+                  <Icon className="w-5 h-5 text-[#dfa742]" />
                 </div>
-                <div className={`flex items-center gap-1 text-sm ${stat.trendUp ? "text-green-600" : "text-red-600"}`}>
-                  {stat.trendUp ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                <div className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-[#dfa742]/10 text-[#dfa742]">
+                  {stat.trendUp ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
                   <span>{stat.trend}</span>
                 </div>
               </div>
-              <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
-              <p className="text-sm text-slate-500">{stat.title}</p>
+              <p className="text-2xl font-bold text-white">{stat.value}</p>
+              <p className="text-xs text-gray-400 mt-1 uppercase tracking-wider">{stat.title}</p>
             </div>
           )
         })}
@@ -222,9 +228,10 @@ const SuperAdminDashboard = () => {
       {/* Quick Actions & Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quick Actions */}
-        <div className="bg-white rounded-2xl border border-green-100 shadow-sm">
-          <div className="p-5 border-b border-green-100">
-            <h2 className="text-lg font-semibold text-slate-900">Quick Actions</h2>
+        <div className="bg-[#13151b] rounded-2xl border border-white/10 shadow-xl overflow-hidden">
+          <div className="p-5 border-b border-white/10 flex items-center justify-between">
+            <h2 className="text-base font-semibold text-white">Quick Actions</h2>
+            <span className="text-xs text-[#dfa742] font-medium">Administration</span>
           </div>
           <div className="p-5 grid grid-cols-2 gap-4">
             {quickActions.map((action, index) => {
@@ -233,13 +240,13 @@ const SuperAdminDashboard = () => {
                 <Link
                   key={index}
                   to={action.path}
-                  className={`p-4 rounded-xl border border-${action.color}-100 hover:border-${action.color}-300 hover:bg-${action.color}-50 transition-all duration-200 group`}
+                  className="p-4 rounded-xl border border-white/5 bg-[#1a1d24]/50 hover:border-[#dfa742]/40 hover:bg-[#1a1d24] transition-all duration-200 group"
                 >
-                  <div className={`w-10 h-10 bg-${action.color}-100 rounded-xl flex items-center justify-center mb-3 group-hover:bg-${action.color}-200 transition-all`}>
-                    <Icon className={`w-5 h-5 text-${action.color}-600`} />
+                  <div className="w-10 h-10 bg-[#dfa742]/10 border border-[#dfa742]/20 rounded-xl flex items-center justify-center mb-3 group-hover:bg-[#dfa742]/20 transition-all">
+                    <Icon className="w-5 h-5 text-[#dfa742]" />
                   </div>
-                  <h3 className="font-semibold text-slate-900 text-sm">{action.title}</h3>
-                  <p className="text-xs text-slate-500 mt-1">{action.description}</p>
+                  <h3 className="font-semibold text-white text-sm group-hover:text-[#dfa742] transition-colors">{action.title}</h3>
+                  <p className="text-xs text-gray-400 mt-1">{action.description}</p>
                 </Link>
               )
             })}
@@ -247,40 +254,40 @@ const SuperAdminDashboard = () => {
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white rounded-2xl border border-green-100 shadow-sm">
-          <div className="p-5 border-b border-green-100 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Recent Activity</h2>
+        <div className="bg-[#13151b] rounded-2xl border border-white/10 shadow-xl overflow-hidden">
+          <div className="p-5 border-b border-white/10 flex items-center justify-between">
+            <h2 className="text-base font-semibold text-white">Recent Activity</h2>
             <Link
               to="/superadmin/activity-logs"
-              className="text-sm text-green-600 hover:text-green-700 font-medium"
+              className="text-xs text-[#dfa742] hover:text-[#f3c46e] font-medium transition-colors"
             >
-              View All
+              View All Logs →
             </Link>
           </div>
           <div className="p-5">
             {recentLogs.length === 0 ? (
-              <div className="text-center py-8 text-slate-500">
-                <Activity className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-                <p>No recent activities</p>
+              <div className="text-center py-8 text-gray-500">
+                <Activity className="w-10 h-10 mx-auto mb-3 text-gray-600" />
+                <p className="text-sm">No recent activities recorded</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {recentLogs.map((log, index) => (
                   <div
                     key={index}
-                    className="flex items-start gap-3 p-3 rounded-xl hover:bg-green-50 transition-all"
+                    className="flex items-start gap-3 p-3 rounded-xl bg-[#1a1d24]/40 hover:bg-white/5 border border-white/5 transition-all"
                   >
-                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                       {getActionIcon(log.action)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-900 font-medium truncate">
+                      <p className="text-xs text-gray-200 font-medium truncate">
                         {log.description}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-slate-500">{log.userName}</span>
-                        <span className="text-slate-300">•</span>
-                        <span className="text-xs text-slate-400 flex items-center gap-1">
+                        <span className="text-[11px] text-[#dfa742]">{log.userName || "System"}</span>
+                        <span className="text-gray-600">•</span>
+                        <span className="text-[11px] text-gray-500 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {formatTimeAgo(log.createdAt)}
                         </span>

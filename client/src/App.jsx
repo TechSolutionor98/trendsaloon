@@ -81,7 +81,7 @@ function DefaultCanonical() {
   if (location.pathname !== "/") {
     return null
   }
-  const href = typeof window !== "undefined" ? `${window.location.origin.replace(/\/+$/, "")}/ae-en` : "/ae-en"
+  const href = typeof window !== "undefined" ? `${window.location.origin.replace(/\/+$/, "")}/` : "/"
   return (
     <Helmet prioritizeSeoTags>
       <link rel="canonical" href={href} />
@@ -104,39 +104,20 @@ function RouteCanonical() {
   )
 }
 
-function RootRedirect() {
-  const savedLang = typeof window !== "undefined" && localStorage.getItem("preferred-language")
-  return <Navigate to={savedLang === "ar" ? "/ae-ar" : "/ae-en"} replace />
-}
+function LegacyCountryLangRedirect() {
+  const params = useParams()
+  const countryLang = params.countryLang || ""
+  const rest = params["*"] || ""
 
-function CountryLangLayout({ lazyFallback }) {
-  const { countryLang } = useParams()
-
-  if (
-    countryLang === "admin" ||
-    countryLang === "superadmin" ||
-    countryLang === "grabiansadmin" ||
-    countryLang === "grabiansuperadmin"
-  ) {
-    if (countryLang === "grabiansadmin" || countryLang === "admin") {
-      return <Navigate to="/admin/login" replace />
-    }
-    if (countryLang === "grabiansuperadmin" || countryLang === "superadmin") {
-      return <Navigate to="/superadmin/login" replace />
-    }
-    return (
-      <Suspense fallback={lazyFallback}>
-        <AdminPortal />
-      </Suspense>
-    )
+  if (countryLang === "admin" || countryLang === "grabiansadmin") {
+    return <Navigate to="/admin/login" replace />
+  }
+  if (countryLang === "superadmin" || countryLang === "grabiansuperadmin") {
+    return <Navigate to="/superadmin/login" replace />
   }
 
-  return (
-    <>
-      <RouteCanonical />
-      <Layout />
-    </>
-  )
+  const cleanPath = rest ? `/${rest}` : "/"
+  return <Navigate to={cleanPath} replace />
 }
 
 function App() {
@@ -168,396 +149,181 @@ function App() {
                 <div className="App">
                   <Suspense fallback={lazyFallback}>
                   <Routes>
-                    {/* Home Route - Redirect directly to /ae-en for Trend Salon storefront */}
-                    <Route index element={<Navigate to="/ae-en" replace />} />
-                    <Route path="/" element={<Navigate to="/ae-en" replace />} />
-                    <Route path="/select-country" element={<Navigate to="/ae-en" replace />} />
-                  
+                    {/* Super Admin Portal Routes */}
+                    <Route
+                      path="/superadmin/login"
+                      element={
+                        <Suspense fallback={lazyFallback}>
+                          <SuperAdminLogin />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="/grabiansuperadmin/login"
+                      element={<Navigate to="/superadmin/login" replace />}
+                    />
+                    <Route
+                      path="/superadmin"
+                      element={<Navigate to="/superadmin/dashboard" replace />}
+                    />
+                    <Route
+                      path="/superadmin/*"
+                      element={
+                        <Suspense fallback={lazyFallback}>
+                          <SuperAdminPortal />
+                        </Suspense>
+                      }
+                    />
 
-                  
-                  {/* Super Admin Portal Routes */}
-                  <Route
-                    path="/superadmin/login"
-                    element={
-                      <Suspense fallback={lazyFallback}>
-                        <SuperAdminLogin />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/grabiansuperadmin/login"
-                    element={<Navigate to="/superadmin/login" replace />}
-                  />
-                  <Route
-                    path="/superadmin"
-                    element={<Navigate to="/superadmin/dashboard" replace />}
-                  />
-                  <Route
-                    path="/superadmin/*"
-                    element={
-                      <Suspense fallback={lazyFallback}>
-                        <SuperAdminPortal />
-                      </Suspense>
-                    }
-                  />
+                    {/* Admin Routes */}
+                    <Route
+                      path="/admin/login"
+                      element={
+                        <Suspense fallback={lazyFallback}>
+                          <AdminLogin />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="/grabiansadmin/login"
+                      element={<Navigate to="/admin/login" replace />}
+                    />
+                    <Route
+                      path="/admin"
+                      element={<Navigate to="/admin/dashboard" replace />}
+                    />
+                    <Route
+                      path="/admin/*"
+                      element={
+                        <Suspense fallback={lazyFallback}>
+                          <AdminPortal />
+                        </Suspense>
+                      }
+                    />
 
-                  {/* Admin Routes */}
-                  <Route
-                    path="/admin/login"
-                    element={
-                      <Suspense fallback={lazyFallback}>
-                        <AdminLogin />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/grabiansadmin/login"
-                    element={<Navigate to="/admin/login" replace />}
-                  />
-                  <Route
-                    path="/admin"
-                    element={<Navigate to="/admin/dashboard" replace />}
-                  />
-                  <Route
-                    path="/admin/*"
-                    element={
-                      <Suspense fallback={lazyFallback}>
-                        <AdminPortal />
-                      </Suspense>
-                    }
-                  />
+                    {/* Clean Storefront Routes without /ae-en prefix */}
+                    <Route
+                      element={
+                        <>
+                          <RouteCanonical />
+                          <Layout />
+                        </>
+                      }
+                    >
+                      <Route index element={<Home />} />
+                      <Route path="/" element={<Home />} />
+                      <Route path="/select-country" element={<Navigate to="/" replace />} />
+                      <Route path="/services" element={<ServicesProducts />} />
+                      <Route path="/services-and-products" element={<ServicesProducts />} />
+                      <Route path="/products" element={<ProductsPage />} />
+                      <Route path="/shop" element={<Shop />} />
+                      <Route path="/shop/:parentCategory" element={<Shop />} />
+                      <Route path="/shop/:parentCategory/:subcategory" element={<Shop />} />
+                      <Route path="/shop/:parentCategory/:subcategory/:subcategory2" element={<Shop />} />
+                      <Route path="/shop/:parentCategory/:subcategory/:subcategory2/:subcategory3" element={<Shop />} />
+                      <Route
+                        path="/shop/:parentCategory/:subcategory/:subcategory2/:subcategory3/:subcategory4"
+                        element={<Shop />}
+                      />
+                      <Route path="/product-category" element={<Shop />} />
+                      <Route path="/product-category/:parentCategory" element={<Shop />} />
+                      <Route path="/product-category/:parentCategory/:subcategory" element={<Shop />} />
+                      <Route path="/product-category/:parentCategory/:subcategory/:subcategory2" element={<Shop />} />
+                      <Route
+                        path="/product-category/:parentCategory/:subcategory/:subcategory2/:subcategory3"
+                        element={<Shop />}
+                      />
+                      <Route
+                        path="/product-category/:parentCategory/:subcategory/:subcategory2/:subcategory3/:subcategory4"
+                        element={<Shop />}
+                      />
+                      <Route path="/product/:slug" element={<ProductDetails />} />
+                      <Route path="/cart" element={<Cart />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
+                      <Route path="/verify-email" element={<EmailVerification />} />
+                      <Route path="/track-order" element={<TrackOrder />} />
+                      <Route path="/unsubscribe/:token" element={<UnsubscribePage mode="unsubscribe" />} />
+                      <Route path="/resubscribe/:token" element={<UnsubscribePage mode="resubscribe" />} />
+                      <Route path="/about" element={<About />} />
+                      <Route path="/blogs" element={<BlogList />} />
+                      <Route path="/blogs/:slug" element={<BlogPost />} />
+                      <Route path="/privacy-policy" element={<PrivacyAndPolicy />} />
+                      <Route path="/privacy-policy-arabic" element={<ArabicContent />} />
+                      <Route path="/disclaimer-policy" element={<DisclaimerPolicy />} />
+                      <Route path="/terms-conditions" element={<TermAndCondition />} />
+                      <Route path="/refund-return" element={<RefundAndReturn />} />
+                      <Route path="/cookies-policy" element={<CookiesAndPolicy />} />
+                      <Route path="/bulk-purchase" element={<ReqBulkPurchase />} />
+                      <Route path="/contact" element={<ContactUs />} />
+                      <Route path="/guest" element={<Guest />} />
+                      <Route path="/guest-order" element={<GuestOrder />} />
+                      <Route path="/payment/success" element={<PaymentSuccess />} />
+                      <Route path="/payment/cancel" element={<PaymentCancel />} />
+                      <Route path="/forgot-password" element={<ForgotPassword />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
+                      <Route path="/green-friday-promotional" element={<PromotionalPage />} />
+                      <Route path="/backtoschool-acer-professional" element={<BackToSchoolProfessional />} />
+                      <Route path="/voucher-terms" element={<VoucherTerms />} />
+                      <Route path="/referral-program-terms" element={<ReferralProgramTerms />} />
+                      <Route path="/grabian-points-terms" element={<GrabianPointsTerms />} />
+                      <Route path="/delivery-terms" element={<DeliveryTerms />} />
+                      <Route path="/offers/:slug" element={<OfferPage />} />
+                      <Route path="/gaming-zone/:slug" element={<GamingZonePage />} />
 
-                  {/* Public Routes with Dynamic Country & Language Prefix (e.g. /sa-en, /sa-ar, /qa-en, /om-en, /kw-en, /bh-en, /eg-en, /ae-en) */}
-                  <Route
-                    path="/:countryLang/*"
-                    element={<CountryLangLayout lazyFallback={lazyFallback} />}
-                  >
-                    <Route index element={<Home />} />
-                    <Route path="services" element={<ServicesProducts />} />
-                    <Route path="services-and-products" element={<ServicesProducts />} />
-                    <Route path="products" element={<ProductsPage />} />
-                    <Route path="shop" element={<Shop />} />
-                    <Route path="shop/:parentCategory" element={<Shop />} />
-                    <Route path="shop/:parentCategory/:subcategory" element={<Shop />} />
-                    <Route path="shop/:parentCategory/:subcategory/:subcategory2" element={<Shop />} />
-                    <Route path="shop/:parentCategory/:subcategory/:subcategory2/:subcategory3" element={<Shop />} />
-                    <Route
-                      path="shop/:parentCategory/:subcategory/:subcategory2/:subcategory3/:subcategory4"
-                      element={<Shop />}
-                    />
-                    <Route path="product-category" element={<Shop />} />
-                    <Route path="product-category/:parentCategory" element={<Shop />} />
-                    <Route path="product-category/:parentCategory/:subcategory" element={<Shop />} />
-                    <Route path="product-category/:parentCategory/:subcategory/:subcategory2" element={<Shop />} />
-                    <Route
-                      path="product-category/:parentCategory/:subcategory/:subcategory2/:subcategory3"
-                      element={<Shop />}
-                    />
-                    <Route
-                      path="product-category/:parentCategory/:subcategory/:subcategory2/:subcategory3/:subcategory4"
-                      element={<Shop />}
-                    />
-                    <Route path="product/:slug" element={<ProductDetails />} />
-                    <Route path="cart" element={<Cart />} />
-                    <Route path="login" element={<Login />} />
-                    <Route path="register" element={<Register />} />
-                    <Route path="verify-email" element={<EmailVerification />} />
-                    <Route path="track-order" element={<TrackOrder />} />
-                    <Route path="unsubscribe/:token" element={<UnsubscribePage mode="unsubscribe" />} />
-                    <Route path="resubscribe/:token" element={<UnsubscribePage mode="resubscribe" />} />
-                    <Route path="about" element={<About />} />
-                    <Route path="blogs" element={<BlogList />} />
-                    <Route path="blogs/:slug" element={<BlogPost />} />
-                    <Route path="privacy-policy" element={<PrivacyAndPolicy />} />
-                    <Route path="privacy-policy-arabic" element={<ArabicContent />} />
-                    <Route path="disclaimer-policy" element={<DisclaimerPolicy />} />
-                    <Route path="terms-conditions" element={<TermAndCondition />} />
-                    <Route path="refund-return" element={<RefundAndReturn />} />
-                    <Route path="cookies-policy" element={<CookiesAndPolicy />} />
-                    <Route path="bulk-purchase" element={<ReqBulkPurchase />} />
-                    <Route path="contact" element={<ContactUs />} />
-                    <Route path="guest" element={<Guest />} />
-                    <Route path="guest-order" element={<GuestOrder />} />
-                    <Route path="payment/success" element={<PaymentSuccess />} />
-                    <Route path="payment/cancel" element={<PaymentCancel />} />
-                    <Route path="forgot-password" element={<ForgotPassword />} />
-                    <Route path="reset-password" element={<ResetPassword />} />
-                    <Route path="green-friday-promotional" element={<PromotionalPage />} />
-                    <Route path="backtoschool-acer-professional" element={<BackToSchoolProfessional />} />
-                    <Route path="voucher-terms" element={<VoucherTerms />} />
-                    <Route path="referral-program-terms" element={<ReferralProgramTerms />} />
-                    <Route path="grabian-points-terms" element={<GrabianPointsTerms />} />
-                    <Route path="delivery-terms" element={<DeliveryTerms />} />
-                    <Route path="offers/:slug" element={<OfferPage />} />
-                    <Route path="gaming-zone/:slug" element={<GamingZonePage />} />
+                      {/* Protected Routes */}
+                      <Route
+                        path="/checkout"
+                        element={
+                          <ProtectedRoute>
+                            <Checkout />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/profile"
+                        element={
+                          <ProtectedRoute>
+                            <Profile />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/orders"
+                        element={
+                          <ProtectedRoute>
+                            <UserOrders />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/email-preferences"
+                        element={
+                          <ProtectedRoute>
+                            <EmailPreferences />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/wishlist"
+                        element={
+                          <ProtectedRoute>
+                            <Wishlist />
+                          </ProtectedRoute>
+                        }
+                      />
+                    </Route>
 
-                    {/* Protected Routes */}
-                    <Route
-                      path="checkout"
-                      element={
-                        <ProtectedRoute>
-                          <Checkout />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="profile"
-                      element={
-                        <ProtectedRoute>
-                          <Profile />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="orders"
-                      element={
-                        <ProtectedRoute>
-                          <UserOrders />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="email-preferences"
-                      element={
-                        <ProtectedRoute>
-                          <EmailPreferences />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="wishlist"
-                      element={
-                        <ProtectedRoute>
-                          <Wishlist />
-                        </ProtectedRoute>
-                      }
-                    />
-                  </Route>
+                    {/* Legacy country/language redirects (e.g. /ae-en, /ae-en/services -> /, /services) */}
+                    <Route path="/ae-ar/*" element={<LegacyCountryLangRedirect />} />
+                    <Route path="/ae-ar" element={<LegacyCountryLangRedirect />} />
+                    <Route path="/:countryLang/*" element={<LegacyCountryLangRedirect />} />
+                    <Route path="/:countryLang" element={<LegacyCountryLangRedirect />} />
 
-                  {/* Public Routes with Language Prefix (Arabic) */}
-                  <Route
-                    path="/ae-ar/*"
-                    element={
-                      <>
-                        <RouteCanonical />
-                        <Layout />
-                      </>
-                    }
-                  >
-                    <Route index element={<Home />} />
-                    <Route path="services" element={<ServicesProducts />} />
-                    <Route path="services-and-products" element={<ServicesProducts />} />
-                    <Route path="products" element={<ProductsPage />} />
-                    <Route path="shop" element={<Shop />} />
-                    <Route path="shop/:parentCategory" element={<Shop />} />
-                    <Route path="shop/:parentCategory/:subcategory" element={<Shop />} />
-                    <Route path="shop/:parentCategory/:subcategory/:subcategory2" element={<Shop />} />
-                    <Route path="shop/:parentCategory/:subcategory/:subcategory2/:subcategory3" element={<Shop />} />
-                    <Route
-                      path="shop/:parentCategory/:subcategory/:subcategory2/:subcategory3/:subcategory4"
-                      element={<Shop />}
-                    />
-                    <Route path="product-category" element={<Shop />} />
-                    <Route path="product-category/:parentCategory" element={<Shop />} />
-                    <Route path="product-category/:parentCategory/:subcategory" element={<Shop />} />
-                    <Route path="product-category/:parentCategory/:subcategory/:subcategory2" element={<Shop />} />
-                    <Route
-                      path="product-category/:parentCategory/:subcategory/:subcategory2/:subcategory3"
-                      element={<Shop />}
-                    />
-                    <Route
-                      path="product-category/:parentCategory/:subcategory/:subcategory2/:subcategory3/:subcategory4"
-                      element={<Shop />}
-                    />
-                    <Route path="product/:slug" element={<ProductDetails />} />
-                    <Route path="cart" element={<Cart />} />
-                    <Route path="login" element={<Login />} />
-                    <Route path="register" element={<Register />} />
-                    <Route path="verify-email" element={<EmailVerification />} />
-                    <Route path="track-order" element={<TrackOrder />} />
-                    <Route path="unsubscribe/:token" element={<UnsubscribePage mode="unsubscribe" />} />
-                    <Route path="resubscribe/:token" element={<UnsubscribePage mode="resubscribe" />} />
-                    <Route path="about" element={<About />} />
-                    <Route path="blogs" element={<BlogList />} />
-                    <Route path="blogs/:slug" element={<BlogPost />} />
-                    <Route path="privacy-policy" element={<PrivacyAndPolicy />} />
-                    <Route path="privacy-policy-arabic" element={<ArabicContent />} />
-                    <Route path="disclaimer-policy" element={<DisclaimerPolicy />} />
-                    <Route path="terms-conditions" element={<TermAndCondition />} />
-                    <Route path="refund-return" element={<RefundAndReturn />} />
-                    <Route path="cookies-policy" element={<CookiesAndPolicy />} />
-                    <Route path="bulk-purchase" element={<ReqBulkPurchase />} />
-                    <Route path="contact" element={<ContactUs />} />
-                    <Route path="guest" element={<Guest />} />
-                    <Route path="guest-order" element={<GuestOrder />} />
-                    <Route path="payment/success" element={<PaymentSuccess />} />
-                    <Route path="payment/cancel" element={<PaymentCancel />} />
-                    <Route path="forgot-password" element={<ForgotPassword />} />
-                    <Route path="reset-password" element={<ResetPassword />} />
-                    <Route path="green-friday-promotional" element={<PromotionalPage />} />
-                    <Route path="backtoschool-acer-professional" element={<BackToSchoolProfessional />} />
-                    <Route path="voucher-terms" element={<VoucherTerms />} />
-                    <Route path="referral-program-terms" element={<ReferralProgramTerms />} />
-                    <Route path="grabian-points-terms" element={<GrabianPointsTerms />} />
-                    <Route path="delivery-terms" element={<DeliveryTerms />} />
-                    <Route path="offers/:slug" element={<OfferPage />} />
-                    <Route path="gaming-zone/:slug" element={<GamingZonePage />} />
-
-                    {/* Protected Routes */}
-                    <Route
-                      path="checkout"
-                      element={
-                        <ProtectedRoute>
-                          <Checkout />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="profile"
-                      element={
-                        <ProtectedRoute>
-                          <Profile />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="orders"
-                      element={
-                        <ProtectedRoute>
-                          <UserOrders />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="email-preferences"
-                      element={
-                        <ProtectedRoute>
-                          <EmailPreferences />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="wishlist"
-                      element={
-                        <ProtectedRoute>
-                          <Wishlist />
-                        </ProtectedRoute>
-                      }
-                    />
-                  </Route>
-
-                  {/* Fallback for old routes without language prefix - redirect to English */}
-                  <Route
-                    path="*"
-                    element={
-                      <>
-                        <RouteCanonical />
-                        <Layout />
-                      </>
-                    }
-                  >
-                    <Route path="services" element={<ServicesProducts />} />
-                    <Route path="services-and-products" element={<ServicesProducts />} />
-                    <Route path="products" element={<ProductsPage />} />
-                    <Route path="shop" element={<Shop />} />
-                    <Route path="shop/:parentCategory" element={<Shop />} />
-                    <Route path="shop/:parentCategory/:subcategory" element={<Shop />} />
-                    <Route path="shop/:parentCategory/:subcategory/:subcategory2" element={<Shop />} />
-                    <Route path="shop/:parentCategory/:subcategory/:subcategory2/:subcategory3" element={<Shop />} />
-                    <Route
-                      path="shop/:parentCategory/:subcategory/:subcategory2/:subcategory3/:subcategory4"
-                      element={<Shop />}
-                    />
-                    <Route path="product-category" element={<Shop />} />
-                    <Route path="product-category/:parentCategory" element={<Shop />} />
-                    <Route path="product-category/:parentCategory/:subcategory" element={<Shop />} />
-                    <Route path="product-category/:parentCategory/:subcategory/:subcategory2" element={<Shop />} />
-                    <Route
-                      path="product-category/:parentCategory/:subcategory/:subcategory2/:subcategory3"
-                      element={<Shop />}
-                    />
-                    <Route
-                      path="product-category/:parentCategory/:subcategory/:subcategory2/:subcategory3/:subcategory4"
-                      element={<Shop />}
-                    />
-                    <Route path="product/:slug" element={<ProductDetails />} />
-                    <Route path="cart" element={<Cart />} />
-                    <Route path="login" element={<Login />} />
-                    <Route path="register" element={<Register />} />
-                    <Route path="verify-email" element={<EmailVerification />} />
-                    <Route path="track-order" element={<TrackOrder />} />
-                    <Route path="unsubscribe/:token" element={<UnsubscribePage mode="unsubscribe" />} />
-                    <Route path="resubscribe/:token" element={<UnsubscribePage mode="resubscribe" />} />
-                    <Route path="about" element={<About />} />
-                    <Route path="blogs" element={<BlogList />} />
-                    <Route path="blogs/:slug" element={<BlogPost />} />
-                    <Route path="privacy-policy" element={<PrivacyAndPolicy />} />
-                    <Route path="privacy-policy-arabic" element={<ArabicContent />} />
-                    <Route path="disclaimer-policy" element={<DisclaimerPolicy />} />
-                    <Route path="terms-conditions" element={<TermAndCondition />} />
-                    <Route path="refund-return" element={<RefundAndReturn />} />
-                    <Route path="cookies-policy" element={<CookiesAndPolicy />} />
-                    <Route path="bulk-purchase" element={<ReqBulkPurchase />} />
-                    <Route path="contact" element={<ContactUs />} />
-                    <Route path="guest" element={<Guest />} />
-                    <Route path="guest-order" element={<GuestOrder />} />
-                    <Route path="payment/success" element={<PaymentSuccess />} />
-                    <Route path="payment/cancel" element={<PaymentCancel />} />
-                    <Route path="forgot-password" element={<ForgotPassword />} />
-                    <Route path="reset-password" element={<ResetPassword />} />
-                    <Route path="green-friday-promotional" element={<PromotionalPage />} />
-                    <Route path="backtoschool-acer-professional" element={<BackToSchoolProfessional />} />
-                    <Route path="voucher-terms" element={<VoucherTerms />} />
-                    <Route path="referral-program-terms" element={<ReferralProgramTerms />} />
-                    <Route path="grabian-points-terms" element={<GrabianPointsTerms />} />
-                    <Route path="delivery-terms" element={<DeliveryTerms />} />
-                    <Route path="offers/:slug" element={<OfferPage />} />
-                    <Route path="gaming-zone/:slug" element={<GamingZonePage />} />
-
-                    {/* Protected Routes */}
-                    <Route
-                      path="checkout"
-                      element={
-                        <ProtectedRoute>
-                          <Checkout />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="profile"
-                      element={
-                        <ProtectedRoute>
-                          <Profile />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="orders"
-                      element={
-                        <ProtectedRoute>
-                          <UserOrders />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="email-preferences"
-                      element={
-                        <ProtectedRoute>
-                          <EmailPreferences />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="wishlist"
-                      element={
-                        <ProtectedRoute>
-                          <Wishlist />
-                        </ProtectedRoute>
-                      }
-                    />
-                  </Route>
-                </Routes>
-                </Suspense>
+                    {/* 404 Route */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                  </Suspense>
               </div>
             </LanguageProvider>
                 </ThemeProvider>

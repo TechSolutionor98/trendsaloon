@@ -20,14 +20,14 @@ export const LANGUAGES = {
     name: "English",
     nativeName: "English",
     dir: "ltr",
-    urlPrefix: "ae-en",
+    urlPrefix: "",
   },
   AR: {
     code: "ar",
     name: "Arabic",
     nativeName: "العربية",
     dir: "rtl",
-    urlPrefix: "ae-ar",
+    urlPrefix: "ar",
   },
 }
 
@@ -62,29 +62,28 @@ export const LanguageProvider = ({ children }) => {
     const search = location.search || ""
     const hash = location.hash || ""
 
-    // Skip language prefix logic for root path, admin, super admin, and country selector routes
-    if (path === "/" ||
-        path.startsWith("/admin") || 
-        path.startsWith("/grabiansadmin") ||
-        path.startsWith("/superadmin") ||
-        path.startsWith("/grabiansuperadmin") ||
-        path.startsWith("/select-country")) {
+    // Skip language prefix logic for admin and super admin routes
+    if (
+      path.startsWith("/admin") || 
+      path.startsWith("/grabiansadmin") ||
+      path.startsWith("/superadmin") ||
+      path.startsWith("/grabiansuperadmin")
+    ) {
       return
     }
 
-    // Match any country-language prefix e.g. /sa-en, /sa-ar, /qa-en, /om-ar, /ae-en, /kw-en, /eg-ar
-    const match = path.match(/^\/([a-z]{2})-(en|ar)(\/|$)/i)
+    // Match any legacy country-language prefix e.g. /sa-en, /sa-ar, /qa-en, /om-ar, /ae-en, /kw-en, /eg-ar
+    const match = path.match(/^\/([a-z]{2})-(en|ar)(\/.*)?$/i)
     if (match) {
       const countryCode = match[1].toUpperCase()
       const langCode = match[2].toLowerCase()
+      const remainingPath = match[3] || ""
+      const cleanPath = remainingPath || "/"
 
-      // Sync selected country in localStorage and dispatch event for CurrencyContext
-      const currentStoredCountry = localStorage.getItem("selected-country-code")
-      if (currentStoredCountry !== countryCode) {
-        localStorage.setItem("selected-country-code", countryCode)
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("country-changed", { detail: countryCode }))
-        }
+      // Sync selected country in localStorage
+      localStorage.setItem("selected-country-code", countryCode)
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("country-changed", { detail: countryCode }))
       }
 
       if (langCode === "ar") {
@@ -100,15 +99,24 @@ export const LanguageProvider = ({ children }) => {
         document.documentElement.setAttribute("lang", "en")
         document.body.setAttribute("dir", "ltr")
       }
+
+      // Immediately redirect from /ae-en/... to clean URL /...
+      navigate(`${cleanPath}${search}${hash}`, { replace: true, state: location.state })
+      return
+    }
+
+    // For clean paths (no country/lang prefix) - do NOT redirect, keep clean URLs!
+    const savedLang = localStorage.getItem("preferred-language")
+    if (savedLang === "ar") {
+      setCurrentLanguage(LANGUAGES.AR)
+      document.documentElement.setAttribute("dir", "rtl")
+      document.documentElement.setAttribute("lang", "ar")
+      document.body.setAttribute("dir", "rtl")
     } else {
-      // For paths without language prefix, redirect based on saved preference or default to English
-      const savedLang = localStorage.getItem("preferred-language")
-      const selectedCountry = (localStorage.getItem("selected-country-code") || "AE").toLowerCase()
-      const langPrefix = savedLang === "ar" ? `${selectedCountry}-ar` : `${selectedCountry}-en`
-      const targetPath = `/${langPrefix}${path === "/" ? "" : path}`
-      // Carry router state across the rewrite. Dropping it here used to lose the
-      // "where did you come from" hint that the login page relies on.
-      navigate(`${targetPath}${search}${hash}`, { replace: true, state: location.state })
+      setCurrentLanguage(LANGUAGES.EN)
+      document.documentElement.setAttribute("dir", "ltr")
+      document.documentElement.setAttribute("lang", "en")
+      document.body.setAttribute("dir", "ltr")
     }
   }, [location.pathname, location.search, location.hash, location.state, navigate])
 
@@ -162,7 +170,7 @@ export const LanguageProvider = ({ children }) => {
     return path
   }, [])
 
-  // Get the full path with language prefix
+  // Get the full path with language prefix (returns clean path without /ae-en)
   const getLocalizedPath = useCallback((path, lang = currentLanguage) => {
     const cleanPath = getPathWithoutLangPrefix(path)
     const normalizedPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`
@@ -177,14 +185,8 @@ export const LanguageProvider = ({ children }) => {
       return normalizedPath
     }
 
-    const selectedCountry = (localStorage.getItem("selected-country-code") || "AE").toLowerCase()
-    const prefix = `/${selectedCountry}-${lang.code}`
-
-    if (cleanPath === "/" || cleanPath === "") {
-      return prefix
-    }
-
-    return `${prefix}${normalizedPath}`
+    // Return clean normalized path directly (e.g. "/", "/services", "/products", "/contact")
+    return normalizedPath
   }, [currentLanguage, getPathWithoutLangPrefix])
 
   // Switch language function

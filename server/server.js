@@ -98,7 +98,7 @@ import countryRoutes, { seedDefaultCountries } from "./routes/countryRoutes.js"
 import { ensureSubCategorySlugIndexes } from "./utils/ensureSubCategorySlugIndexes.js"
 import { ensurePaymentChargeIndexes } from "./utils/ensurePaymentChargeIndexes.js"
 
-dotenv.config()
+dotenv.config({ path: path.join(__dirname, ".env") })
 
 // Connect to databases - await both
 await connectDB()

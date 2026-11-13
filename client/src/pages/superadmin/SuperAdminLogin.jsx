@@ -34,7 +34,11 @@ const SuperAdminLogin = () => {
     try {
       setLoading(true)
       setError("")
-      const result = await adminLogin(formData)
+      const payload = {
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password.trim(),
+      }
+      const result = await adminLogin(payload)
       if (result.success) {
         // Check if user is super admin
         if (result.isSuperAdmin) {
@@ -54,40 +58,62 @@ const SuperAdminLogin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-[#0d0e11] text-gray-100 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Ambient background glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#dfa742]/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-72 h-72 bg-[#dfa742]/5 rounded-full blur-2xl pointer-events-none" />
+
+      <div className="w-full max-w-md relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500 rounded-2xl mb-4 shadow-lg shadow-green-200">
-            <ShieldCheck className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#dfa742] to-[#c99335] rounded-3xl mb-4 shadow-xl shadow-[#dfa742]/20 border border-[#dfa742]/40">
+            <svg
+              className="w-10 h-10 text-slate-950"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="6" cy="6" r="3" />
+              <circle cx="6" cy="18" r="3" />
+              <line x1="20" y1="4" x2="8.12" y2="15.88" />
+              <line x1="14.47" y1="14.48" x2="20" y2="20" />
+              <line x1="8.12" y1="8.12" x2="12" y2="12" />
+            </svg>
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Super Admin Portal</h1>
-          <p className="text-slate-600">Secure access for administrators</p>
+          <h1 className="text-3xl font-serif font-bold text-white tracking-wide mb-2">
+            Trend <span className="text-[#dfa742]">Super Admin</span>
+          </h1>
+          <p className="text-gray-400 text-sm">Secure control panel & system configuration</p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-white rounded-3xl shadow-xl border border-green-100 p-8">
+        <div className="bg-[#13151b] rounded-3xl shadow-2xl border border-white/10 p-8 relative">
+          <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-[#dfa742]/50 to-transparent" />
+
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
-              <p className="text-red-600 text-sm">{error}</p>
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-2xl">
+              <p className="text-red-400 text-sm font-medium text-center">{error}</p>
             </div>
           )}
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-5" onSubmit={handleSubmit}>
             {/* Email Field */}
             <div>
-              <label className="block text-slate-700 text-sm font-medium mb-2">
-                Email Address
+              <label className="block text-gray-300 text-xs font-semibold uppercase tracking-wider mb-2">
+                Super Admin Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Mail className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 text-slate-900"
-                  placeholder="Enter your email"
+                  className="w-full pl-11 pr-4 py-3 bg-[#1a1d24] border border-white/10 rounded-xl focus:outline-none focus:border-[#dfa742] focus:ring-1 focus:ring-[#dfa742] transition-all text-white placeholder-gray-500 text-sm"
+                  placeholder="superadmin@trendsaloon.com"
                   required
                 />
               </div>
@@ -95,24 +121,24 @@ const SuperAdminLogin = () => {
 
             {/* Password Field */}
             <div>
-              <label className="block text-slate-700 text-sm font-medium mb-2">
+              <label className="block text-gray-300 text-xs font-semibold uppercase tracking-wider mb-2">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Lock className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 text-slate-900"
-                  placeholder="Enter your password"
+                  className="w-full pl-11 pr-12 py-3 bg-[#1a1d24] border border-white/10 rounded-xl focus:outline-none focus:border-[#dfa742] focus:ring-1 focus:ring-[#dfa742] transition-all text-white placeholder-gray-500 text-sm"
+                  placeholder="••••••••••••"
                   required
                 />
                 <button
                   type="button"
                   onClick={togglePasswordVisibility}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#dfa742] transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -123,34 +149,31 @@ const SuperAdminLogin = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-green-200 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full bg-gradient-to-r from-[#dfa742] via-[#e5b555] to-[#c99335] text-slate-950 font-bold py-3.5 px-6 rounded-xl transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-[#dfa742]/20 hover:shadow-[#dfa742]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm tracking-wide"
             >
               {loading ? (
-                <div className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Authenticating...
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                  <span>Authenticating...</span>
                 </div>
               ) : (
-                "Sign In to Super Admin"
+                "Access Super Admin Panel →"
               )}
             </button>
           </form>
 
           {/* Security Notice */}
-          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-2xl">
-            <div className="flex items-center gap-2 text-green-700 text-sm">
-              <ShieldCheck className="w-4 h-4" />
-              <span>This is a secure area. All activities are logged.</span>
+          <div className="mt-6 p-3 bg-white/5 border border-white/5 rounded-xl">
+            <div className="flex items-center gap-2.5 text-[#dfa742] text-xs">
+              <ShieldCheck className="w-4 h-4 flex-shrink-0" />
+              <span className="text-gray-300">High security restricted area. All access sessions are logged.</span>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="mt-8 text-center">
-            <p className="text-slate-500 text-sm">
-              <span className="font-semibold text-slate-700">Trend Gents Saloon</span> &copy; Super Admin Portal
+          <div className="mt-6 text-center">
+            <p className="text-gray-500 text-xs">
+              <span className="font-semibold text-gray-400">Trend Gents Saloon</span> &copy; Super Admin Portal
             </p>
           </div>
         </div>

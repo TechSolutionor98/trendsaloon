@@ -30,19 +30,13 @@ const SuperAdminHeader = () => {
   }
 
   return (
-    <header className="fixed top-0 left-0 lg:left-72 right-0 h-16 bg-white border-b border-green-100 z-30 shadow-sm">
+    <header className="fixed top-0 left-0 lg:left-72 right-0 h-16 bg-[#13151b]/95 backdrop-blur-md border-b border-white/10 z-30 shadow-lg">
       <div className="h-full px-4 lg:px-6 flex items-center justify-between">
-        {/* Left Section - Search */}
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center">
-            {/* <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search..."
-                className="w-64 pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
-              />
-            </div> */}
+        {/* Left Section - Breadcrumb / Status */}
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5">
+            <span className="w-2 h-2 rounded-full bg-[#dfa742] animate-pulse" />
+            <span className="text-[11px] font-medium text-gray-300">Live Saloon Engine</span>
           </div>
         </div>
 
@@ -52,20 +46,20 @@ const SuperAdminHeader = () => {
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 rounded-xl hover:bg-green-50 text-slate-600 hover:text-green-600 transition-all duration-200"
+              className="relative p-2 rounded-xl hover:bg-white/5 text-gray-400 hover:text-[#dfa742] transition-all duration-200"
             >
               <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full"></span>
+              <span className="absolute top-1 right-1 w-2 h-2 bg-[#dfa742] rounded-full"></span>
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-green-100 py-2 z-50">
-                <div className="px-4 py-3 border-b border-green-100">
-                  <h3 className="font-semibold text-slate-900">Notifications</h3>
+              <div className="absolute right-0 mt-2 w-80 bg-[#16181f] rounded-2xl shadow-2xl border border-white/10 py-2 z-50">
+                <div className="px-4 py-3 border-b border-white/10">
+                  <h3 className="font-semibold text-white text-sm">Notifications</h3>
                 </div>
-                <div className="py-8 text-center text-slate-500">
-                  <Bell className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                  <p>No new notifications</p>
+                <div className="py-8 text-center text-gray-400">
+                  <Bell className="w-8 h-8 mx-auto mb-2 text-gray-500" />
+                  <p className="text-xs">No new notifications</p>
                 </div>
               </div>
             )}
@@ -75,46 +69,46 @@ const SuperAdminHeader = () => {
           <div className="relative">
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="flex items-center gap-3 p-2 rounded-xl hover:bg-green-50 transition-all duration-200"
+              className="flex items-center gap-3 p-1.5 pr-3 rounded-xl hover:bg-white/5 border border-white/5 transition-all duration-200"
             >
-              <div className="w-9 h-9 bg-green-500 rounded-xl flex items-center justify-center shadow-lg shadow-green-200">
-                <ShieldCheck className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 bg-gradient-to-br from-[#dfa742] to-[#c99335] rounded-lg flex items-center justify-center shadow-md shadow-[#dfa742]/20">
+                <ShieldCheck className="w-4 h-4 text-slate-950" />
               </div>
               <div className="hidden md:block text-left">
-                <p className="text-sm font-semibold text-slate-900">{admin?.name || "Super Admin"}</p>
-                <p className="text-xs text-green-600">Super Administrator</p>
+                <p className="text-xs font-semibold text-white">{admin?.name || "Super Admin"}</p>
+                <p className="text-[10px] text-[#dfa742] font-medium">Super Administrator</p>
               </div>
-              <ChevronDown className="w-4 h-4 text-slate-400 hidden md:block" />
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400 hidden md:block" />
             </button>
 
             {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-green-100 py-2 z-50">
-                <div className="px-4 py-3 border-b border-green-100">
-                  <p className="font-semibold text-slate-900">{admin?.name}</p>
-                  <p className="text-sm text-slate-500">{admin?.email}</p>
+              <div className="absolute right-0 mt-2 w-56 bg-[#16181f] rounded-2xl shadow-2xl border border-white/10 py-2 z-50">
+                <div className="px-4 py-3 border-b border-white/10">
+                  <p className="font-semibold text-white text-sm">{admin?.name}</p>
+                  <p className="text-xs text-gray-400 truncate">{admin?.email}</p>
                 </div>
-                <div className="py-2">
+                <div className="py-1">
                   <Link
                     to="/superadmin/profile"
                     onClick={() => setShowProfileMenu(false)}
-                    className="flex items-center gap-3 px-4 py-2 text-slate-600 hover:bg-green-50 hover:text-green-600 transition-all"
+                    className="flex items-center gap-3 px-4 py-2 text-xs text-gray-300 hover:bg-white/5 hover:text-[#dfa742] transition-all"
                   >
-                    <User className="w-4 h-4" />
+                    <User className="w-4 h-4 text-[#dfa742]" />
                     <span>Profile</span>
                   </Link>
                   <Link
                     to="/superadmin/settings"
                     onClick={() => setShowProfileMenu(false)}
-                    className="flex items-center gap-3 px-4 py-2 text-slate-600 hover:bg-green-50 hover:text-green-600 transition-all"
+                    className="flex items-center gap-3 px-4 py-2 text-xs text-gray-300 hover:bg-white/5 hover:text-[#dfa742] transition-all"
                   >
-                    <Settings className="w-4 h-4" />
+                    <Settings className="w-4 h-4 text-[#dfa742]" />
                     <span>Settings</span>
                   </Link>
                 </div>
-                <div className="border-t border-green-100 pt-2">
+                <div className="border-t border-white/10 pt-1">
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 px-4 py-2 w-full text-left text-red-600 hover:bg-red-50 transition-all"
+                    className="flex items-center gap-3 px-4 py-2 w-full text-left text-xs text-red-400 hover:bg-red-500/10 transition-all font-medium"
                   >
                     <LogOut className="w-4 h-4" />
                     <span>Logout</span>

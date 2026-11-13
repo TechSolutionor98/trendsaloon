@@ -64,8 +64,9 @@ const BannerSlider = ({ banners }) => {
       return { href: chosen, isExternal: true }
     }
 
-    if (chosen.startsWith("/ae-en/") || chosen.startsWith("/ae-ar/")) {
-      return { href: chosen, isExternal: false }
+    if (chosen.startsWith("/ae-en/") || chosen.startsWith("/ae-ar/") || chosen.startsWith("/ae-en") || chosen.startsWith("/ae-ar")) {
+      const clean = chosen.replace(/^\/ae-(en|ar)/, "") || "/"
+      return { href: clean, isExternal: false }
     }
 
     const normalizedPath = chosen.startsWith("/") ? chosen : `/${chosen}`

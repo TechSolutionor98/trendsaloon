@@ -30,11 +30,13 @@ const userSchema = mongoose.Schema(
       fullAccess: { type: Boolean, default: false },
       // Granular permissions for each admin section
       dashboard: { type: Boolean, default: false },
+      services: { type: Boolean, default: false },
       products: { type: Boolean, default: false },
       categories: { type: Boolean, default: false },
       subcategories: { type: Boolean, default: false },
       brands: { type: Boolean, default: false },
       orders: { type: Boolean, default: false },
+      quotations: { type: Boolean, default: false },
       users: { type: Boolean, default: false },
       reviews: { type: Boolean, default: false },
       blogs: { type: Boolean, default: false },
@@ -290,7 +292,7 @@ userSchema.methods.verifyDeleteAccountCode = function (code) {
 // Encrypt password before saving
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
-    next()
+    return next()
   }
 
   const salt = await bcrypt.genSalt(10)
