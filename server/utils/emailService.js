@@ -920,19 +920,13 @@ const getEmailTemplate = (type, data) => {
               </div>
             </div>
             <div class="footer">
-              <div class="socials">
-                <a href="https://www.facebook.com/grabatozae/" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107123/WhatsApp_Image_2025-07-21_at_7.10.18_AM_1_axvzvv.jpg" alt="Facebook" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://www.instagram.com/grabatoz/" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107124/WhatsApp_Image_2025-07-21_at_7.10.18_AM_xgjv5f.jpg" alt="Instagram" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://x.com/GrabAtoz" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107545/WhatsApp_Image_2025-07-21_at_7.10.18_AM_2_cwzjg6.png" alt="X" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://www.linkedin.com/company/grabatozae" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107123/WhatsApp_Image_2025-07-21_at_7.10.18_AM_3_ll6y2i.jpg" alt="LinkedIn" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-              </div>
-              <p>This email was sent by: order@grabatoz.ae</p>
+              <p>This email was sent by: ${SENDER_MAILBOXES.orders.email}</p>
               <br/>
               <p>Kindly Do Not Reply to this Email</p>
               <br/>
               <div style="margin-top: 10px; color: #888;">
-                &copy; 2025 Graba2z. All rights reserved.<br />
-                <span style="font-size:12px;">If you did not enter this email address when signing up for Graba2z, disregard this message.</span>
+                &copy; ${new Date().getFullYear()} Trend Gents Saloon. All rights reserved.<br />
+                <span style="font-size:12px;">If you did not enter this email address when signing up for Trend Saloon, disregard this message.</span>
               </div>
             </div>
           </div>
@@ -996,7 +990,7 @@ const getEmailTemplate = (type, data) => {
               </div>
             </div>
             <div class="footer">
-              <h3>Thank you for choosing Graba2z</h3>
+              <h3>Thank you for choosing Trend Saloon</h3>
               <div class="contact-info">For confirmation or changes, reply to this message or contact our support team.</div>
             </div>
           </div>
@@ -1243,19 +1237,13 @@ const getEmailTemplate = (type, data) => {
               </div>
             </div>
             <div class="footer">
-              <div class="socials">
-                <a href="https://www.facebook.com/grabatozae/" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107123/WhatsApp_Image_2025-07-21_at_7.10.18_AM_1_axvzvv.jpg" alt="Facebook" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://www.instagram.com/grabatoz/" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107124/WhatsApp_Image_2025-07-21_at_7.10.18_AM_xgjv5f.jpg" alt="Instagram" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://x.com/GrabAtoz" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107545/WhatsApp_Image_2025-07-21_at_7.10.18_AM_2_cwzjg6.png" alt="X" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://www.linkedin.com/company/grabatozae" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107123/WhatsApp_Image_2025-07-21_at_7.10.18_AM_3_ll6y2i.jpg" alt="LinkedIn" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-              </div>
-              <p>This email was sent by: order@grabatoz.ae</p>
+              <p>This email was sent by: ${SENDER_MAILBOXES.orders.email}</p>
               <br/>
               <p>Kindly Do Not Reply to this Email</p>
               <br/>
               <div style="margin-top: 10px; color: #888;">
-                &copy; 2025 Graba2z. All rights reserved.<br />
-                <span style="font-size:12px;">If you did not enter this email address when signing up for Graba2z, disregard this message.</span>
+                &copy; ${new Date().getFullYear()} Trend Gents Saloon. All rights reserved.<br />
+                <span style="font-size:12px;">If you did not enter this email address when signing up for Trend Saloon, disregard this message.</span>
               </div>
             </div>
           </div>
@@ -1386,14 +1374,14 @@ const getEmailTemplate = (type, data) => {
           <div class="container">
             <div class="header">
               <a href="${SITE_URL}/" target="_blank">
-                <img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753105567/admin-logo_ruxcjj.png" alt="Graba2z Logo" />
+                <img src="${TREND_SALOON_LOGO_URL}" alt="Trend Saloon Logo" style="height: 64px; width: auto; object-fit: contain; margin: 0 auto; display: block;" />
               </a>
               <div class="warning-icon">⚠️</div>
             </div>
             <div class="content">
               <h2>Account Deletion Request</h2>
               <p>Hi <b>${data.name || "User"}</b>,<br />
-              We received a request to permanently delete your Graba2z account. If you want to proceed, please enter the verification code below:</p>
+              We received a request to permanently delete your Trend Saloon account. If you want to proceed, please enter the verification code below:</p>
               <div class="code-box">${data.code || "000000"}</div>
               <div class="warning-box">
                 <strong>⚠️ Warning:</strong> This action is permanent and cannot be undone. Once your account is deleted:
@@ -1410,18 +1398,12 @@ const getEmailTemplate = (type, data) => {
               <p style="margin-top: 2em; color: #888; font-size: 1em;">This code will expire in 10 minutes.<br />If you didn't request account deletion, please ignore this email and secure your account immediately.</p>
             </div>
             <div class="footer">
-              <div class="socials">
-                <a href="https://www.facebook.com/grabatozae/" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107123/WhatsApp_Image_2025-07-21_at_7.10.18_AM_1_axvzvv.jpg" alt="Facebook" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://www.instagram.com/grabatoz/" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107124/WhatsApp_Image_2025-07-21_at_7.10.18_AM_xgjv5f.jpg" alt="Instagram" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://x.com/GrabAtoz" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107545/WhatsApp_Image_2025-07-21_at_7.10.18_AM_2_cwzjg6.png" alt="X" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://www.linkedin.com/company/grabatozae" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107123/WhatsApp_Image_2025-07-21_at_7.10.18_AM_3_ll6y2i.jpg" alt="LinkedIn" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-              </div>
-              <p>This email was sent by: support@grabatoz.ae</p>
+              <p>This email was sent by: ${SENDER_MAILBOXES.support.email}</p>
               <br/>
               <p>Kindly Do Not Reply to this Email</p>
               <br/>
               <div style="margin-top: 10px; color: #888;">
-                &copy; 2025 Graba2z. All rights reserved.<br />
+                &copy; ${new Date().getFullYear()} Trend Gents Saloon. All rights reserved.<br />
                 <span style="font-size:12px;">If you did not request account deletion, please secure your account immediately.</span>
               </div>
             </div>
@@ -1555,18 +1537,12 @@ const getEmailTemplate = (type, data) => {
               <p style="margin-top: 2em; color: #888; font-size: 1em;">This code will expire in 10 minutes.<br />If you didn't submit this review, please ignore this email.</p>
             </div>
             <div class="footer">
-              <div class="socials">
-                <a href="https://www.facebook.com/grabatozae/" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107123/WhatsApp_Image_2025-07-21_at_7.10.18_AM_1_axvzvv.jpg" alt="Facebook" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://www.instagram.com/grabatoz/" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107124/WhatsApp_Image_2025-07-21_at_7.10.18_AM_xgjv5f.jpg" alt="Instagram" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://x.com/GrabAtoz" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107545/WhatsApp_Image_2025-07-21_at_7.10.18_AM_2_cwzjg6.png" alt="X" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://www.linkedin.com/company/grabatozae" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107123/WhatsApp_Image_2025-07-21_at_7.10.18_AM_3_ll6y2i.jpg" alt="LinkedIn" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-              </div>
-              <p>This email was sent by: support@grabatoz.ae</p>
+              <p>This email was sent by: ${SENDER_MAILBOXES.support.email}</p>
               <br/>
               <p>Kindly Do Not Reply to this Email</p>
               <br/>
               <div style="margin-top: 10px; color: #888;">
-                &copy; 2025 Graba2z. All rights reserved.<br />
+                &copy; ${new Date().getFullYear()} Trend Gents Saloon. All rights reserved.<br />
                 <span style="font-size:12px;">If you did not submit this review, disregard this message.</span>
               </div>
             </div>
@@ -1731,7 +1707,7 @@ const getEmailTemplate = (type, data) => {
             </div>
             <div class="content">
               <div class="success-icon">✓</div>
-              <h2>Welcome to Graba2z!</h2>
+              <h2>Welcome to Trend Saloon!</h2>
               <p>Hi <b>${data.name || "Customer"}</b>,<br />
               Your account has been created successfully. You can now use the following credentials to log in anytime:</p>
               <div class="credentials-box">
@@ -1744,21 +1720,15 @@ const getEmailTemplate = (type, data) => {
                 <strong>Important:</strong> We recommend changing your password after your first login for security purposes.
               </div>
               <a href="${SITE_URL}/login" class="login-btn">Login to Your Account</a>
-              <p style="margin-top: 2em; color: #888; font-size: 1em;">Continue shopping and enjoy exclusive deals on Graba2z!</p>
+              <p style="margin-top: 2em; color: #888; font-size: 1em;">Enjoy luxury grooming and exclusive offers at Trend Saloon!</p>
             </div>
             <div class="footer">
-              <div class="socials">
-                <a href="https://www.facebook.com/grabatozae/" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107123/WhatsApp_Image_2025-07-21_at_7.10.18_AM_1_axvzvv.jpg" alt="Facebook" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://www.instagram.com/grabatoz/" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107124/WhatsApp_Image_2025-07-21_at_7.10.18_AM_xgjv5f.jpg" alt="Instagram" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://x.com/GrabAtoz" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107545/WhatsApp_Image_2025-07-21_at_7.10.18_AM_2_cwzjg6.png" alt="X" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://www.linkedin.com/company/grabatozae" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107123/WhatsApp_Image_2025-07-21_at_7.10.18_AM_3_ll6y2i.jpg" alt="LinkedIn" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-              </div>
-              <p>This email was sent by: support@grabatoz.ae</p>
+              <p>This email was sent by: ${SENDER_MAILBOXES.support.email}</p>
               <br/>
               <p>Kindly Do Not Reply to this Email</p>
               <br/>
               <div style="margin-top: 10px; color: #888;">
-                &copy; 2025 Graba2z. All rights reserved.<br />
+                &copy; ${new Date().getFullYear()} Trend Gents Saloon. All rights reserved.<br />
                 <span style="font-size:12px;">If you did not create this account, please contact our support team.</span>
               </div>
             </div>
@@ -1774,30 +1744,24 @@ const getEmailTemplate = (type, data) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Graba2z</title>
+          <title>Trend Saloon</title>
           ${baseStyle}
         </head>
         <body>
           <div class="email-container">
             <div class="header">
-              <img src="${SITE_URL}/logo.png" alt="Graba2z" class="logo" />
+              <img src="${TREND_SALOON_LOGO_URL}" alt="Trend Saloon Logo" class="logo" style="height: 64px; width: auto; object-fit: contain; margin: 0 auto; display: block;" />
             </div>
             <div class="content">
-              <p>Thank you for choosing Graba2z!</p>
+              <p>Thank you for choosing Trend Saloon!</p>
             </div>
             <div class="footer">
               <h3>Get in Touch</h3>
-              <div class="social-icons">
-                <a href="https://facebook.com/graba2z" class="social-icon">f</a>
-                <a href="https://twitter.com/graba2z" class="social-icon">t</a>
-                <a href="https://instagram.com/graba2z" class="social-icon">@</a>
-                <a href="https://linkedin.com/company/graba2z" class="social-icon">in</a>
-              </div>
               <div class="contact-info">
                 <p><strong>This email was sent by:</strong><br>
-                <a href="mailto:order@grabatoz.ae">order@grabatoz.ae</a></p>
+                <a href="mailto:${SENDER_MAILBOXES.orders.email}">${SENDER_MAILBOXES.orders.email}</a></p>
                 <p><strong>For any questions please send an email to:</strong><br>
-                <a href="mailto:support@grabatoz.ae">support@grabatoz.ae</a></p>
+                <a href="mailto:${SENDER_MAILBOXES.support.email}">${SENDER_MAILBOXES.support.email}</a></p>
               </div>
             </div>
           </div>
