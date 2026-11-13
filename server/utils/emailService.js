@@ -899,7 +899,7 @@ const getEmailTemplate = (type, data) => {
           <div class="container">
             <div class="header">
               <a href="${SITE_URL}/" target="_blank">
-                <img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753105567/admin-logo_ruxcjj.png" alt="Graba2z Logo" />
+                <img src="${TREND_SALOON_LOGO_URL}" alt="Trend Saloon Logo" style="height: 64px; width: auto; object-fit: contain; margin: 0 auto; display: block;" />
               </a>
             </div>
             <div class="content">
@@ -968,7 +968,7 @@ const getEmailTemplate = (type, data) => {
         <body>
           <div class="email-container">
             <div class="header">
-              <img class="logo" src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753105567/admin-logo_ruxcjj.png" alt="Graba2z Logo" />
+              <img class="logo" src="${TREND_SALOON_LOGO_URL}" alt="Trend Saloon Logo" style="height: 64px; width: auto; object-fit: contain; margin: 0 auto; display: block;" />
             </div>
             <div class="content">
               <div class="order-number">Quotation #${escapeHtml(quotationNumber)}</div>
@@ -1211,7 +1211,7 @@ const getEmailTemplate = (type, data) => {
           <div class="container">
             <div class="header">
               <a href="${SITE_URL}/" target="_blank">
-                <img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753105567/admin-logo_ruxcjj.png" alt="Graba2z Logo" />
+                <img src="${TREND_SALOON_LOGO_URL}" alt="Trend Saloon Logo" style="height: 64px; width: auto; object-fit: contain; margin: 0 auto; display: block;" />
               </a>
             </div>
             <div class="content">
@@ -1536,7 +1536,7 @@ const getEmailTemplate = (type, data) => {
           <div class="container">
             <div class="header">
               <a href="${SITE_URL}/" target="_blank">
-                <img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753105567/admin-logo_ruxcjj.png" alt="Graba2z Logo" />
+                <img src="${TREND_SALOON_LOGO_URL}" alt="Trend Saloon Logo" style="height: 64px; width: auto; object-fit: contain; margin: 0 auto; display: block;" />
               </a>
             </div>
             <div class="content">
@@ -1726,7 +1726,7 @@ const getEmailTemplate = (type, data) => {
           <div class="container">
             <div class="header">
               <a href="${SITE_URL}/" target="_blank">
-                <img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753105567/admin-logo_ruxcjj.png" alt="Graba2z Logo" />
+                <img src="${TREND_SALOON_LOGO_URL}" alt="Trend Saloon Logo" style="height: 64px; width: auto; object-fit: contain; margin: 0 auto; display: block;" />
               </a>
             </div>
             <div class="content">
