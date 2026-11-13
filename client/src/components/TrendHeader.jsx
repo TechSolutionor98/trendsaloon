@@ -18,44 +18,20 @@ import {
   ShieldCheck,
 } from "lucide-react"
 
-export function TrendLogo() {
+export function TrendLogo({ className = "h-11 sm:h-13" }) {
   const navigate = useNavigate()
   const { getLocalizedPath } = useLanguage()
 
   return (
     <div
       onClick={() => navigate(getLocalizedPath("/"))}
-      className="flex flex-col items-center justify-center select-none group cursor-pointer"
+      className="flex items-center gap-2.5 select-none group cursor-pointer"
     >
-      <div className="relative flex items-center justify-center mb-0.5">
-        <svg
-          className="w-9 h-9 sm:w-10 sm:h-10 text-[#dfa742] filter drop-shadow-[0_2px_4px_rgba(223,167,66,0.4)]"
-          viewBox="0 0 64 64"
-          fill="none"
-        >
-          <circle cx="32" cy="32" r="28" stroke="url(#goldLogoGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
-          <path d="M22 18L42 46M42 18L22 46" stroke="url(#goldLogoGrad)" strokeWidth="2.5" strokeLinecap="round" />
-          <circle cx="20" cy="46" r="5" stroke="url(#goldLogoGrad)" strokeWidth="2" />
-          <circle cx="44" cy="46" r="5" stroke="url(#goldLogoGrad)" strokeWidth="2" />
-          <path d="M28 14L32 8L36 14" stroke="url(#goldLogoGrad)" strokeWidth="1.5" strokeLinejoin="round" />
-          <circle cx="32" cy="8" r="1.5" fill="#f7e7a9" />
-          <circle cx="26" cy="10" r="1.2" fill="#f7e7a9" />
-          <circle cx="38" cy="10" r="1.2" fill="#f7e7a9" />
-          <defs>
-            <linearGradient id="goldLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#dfa742" />
-              <stop offset="50%" stopColor="#f7e7a9" />
-              <stop offset="100%" stopColor="#c59d5f" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-      <span className="font-serif font-black tracking-widest text-[#dfa742] text-sm sm:text-base uppercase leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-        TREND
-      </span>
-      <span className="text-[8px] sm:text-[9px] tracking-[0.25em] text-[#e0cfab] uppercase font-medium mt-0.5">
-        GENTS SALOON
-      </span>
+      <img
+        src="/white-logo.png"
+        alt="Trend Gents Saloon"
+        className={`${className} w-auto object-contain transition-transform duration-300 group-hover:scale-105 filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]`}
+      />
     </div>
   )
 }

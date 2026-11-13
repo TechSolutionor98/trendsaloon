@@ -834,10 +834,14 @@ const AdminSidebar = () => {
   return (
     <aside className="w-64 bg-[#0d0e11] text-gray-200 h-screen inset-y-0 border-r border-[#22252d] fixed left-0 top-0 z-50 flex flex-col shadow-2xl select-none">
       {/* 1. BRAND HEADER */}
-      <div className="p-5 border-b border-[#22252d] bg-[#12141a]/60 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#dfa742] to-[#b8832a] flex items-center justify-center text-black shadow-md shadow-[#dfa742]/20 flex-shrink-0">
-            <Scissors className="w-5 h-5" />
+      <div className="p-4 border-b border-[#22252d] bg-[#12141a]/60 flex-shrink-0">
+        <Link to="/admin/dashboard" className="flex items-center gap-3 group">
+          <div className="w-11 h-11 rounded-xl bg-[#181a20] border border-[#2b2f3a] flex items-center justify-center p-1 flex-shrink-0 group-hover:border-[#dfa742]/50 transition-colors">
+            <img
+              src="/white-logo.png"
+              alt="Trend Saloon"
+              className="w-full h-full object-contain filter drop-shadow-sm transition-transform duration-300 group-hover:scale-105"
+            />
           </div>
           <div className="min-w-0">
             <h1 className="text-sm font-bold tracking-wider text-white uppercase font-serif truncate">
@@ -850,7 +854,7 @@ const AdminSidebar = () => {
               </span>
             </div>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* 2. NAVIGATION MENU (Filtered by Permissions) */}

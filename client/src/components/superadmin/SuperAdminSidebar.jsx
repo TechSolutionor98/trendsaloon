@@ -198,28 +198,18 @@ const SuperAdminSidebar = () => {
         }`}
       >
         {/* Header */}
-        <div className="p-6 border-b border-white/10">
+        <div className="p-5 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-[#dfa742] to-[#c99335] rounded-2xl flex items-center justify-center shadow-lg shadow-[#dfa742]/20 border border-[#dfa742]/30 flex-shrink-0">
-              <svg
-                className="w-7 h-7 text-slate-950"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="6" cy="6" r="3" />
-                <circle cx="6" cy="18" r="3" />
-                <line x1="20" y1="4" x2="8.12" y2="15.88" />
-                <line x1="14.47" y1="14.48" x2="20" y2="20" />
-                <line x1="8.12" y1="8.12" x2="12" y2="12" />
-              </svg>
+            <div className="w-11 h-11 bg-[#181a20] rounded-xl flex items-center justify-center p-1 border border-white/10 flex-shrink-0">
+              <img
+                src="/white-logo.png"
+                alt="Trend Saloon"
+                className="w-full h-full object-contain filter drop-shadow-sm"
+              />
             </div>
             <div>
-              <h1 className="text-lg font-serif font-bold text-white tracking-wide">Trend Saloon</h1>
-              <p className="text-xs font-semibold text-[#dfa742] uppercase tracking-wider">Super Admin</p>
+              <h1 className="text-base font-serif font-bold text-white tracking-wide">Trend Saloon</h1>
+              <p className="text-[10px] font-semibold text-[#dfa742] uppercase tracking-widest">Super Admin</p>
             </div>
           </div>
         </div>
