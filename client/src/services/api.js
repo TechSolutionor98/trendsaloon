@@ -19,7 +19,8 @@ const getAuthHeaders = () => {
 
 // Generic API request function
 const apiRequest = async (endpoint, options = {}) => {
-  const url = `${API_URL}${endpoint}`
+  const baseUrl = config.API_URL || API_URL
+  const url = `${baseUrl}${endpoint}`
   const headers = {
     ...getAuthHeaders(),
     ...(options.headers || {}),

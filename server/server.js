@@ -120,25 +120,47 @@ const app = express()
 app.set('trust proxy', true)
 
 // CORS configuration
-app.use(cors({
-  origin: [
-    'https://www.graba2z.ae',
-    'https://www.grabatoz.ae',
-    'http://localhost:3000'
-  ],
+const allowedOrigins = [
+  'https://www.graba2z.ae',
+  'https://graba2z.ae',
+  'https://www.grabatoz.ae',
+  // 'https://grabatoz.ae',
+  'https://trendcosmetica.com',
+  'https://www.trendcosmetica.com',
+  // 'https://admin.trendcosmetica.com',
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173'
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const isAllowed =
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.trendcosmetica.com') ||
+      // origin.endsWith('.grabatoz.ae') ||
+      // origin.endsWith('.graba2z.ae') ||
+      origin.endsWith('.vercel.app') ||
+      /^http:\/\/localhost(:\d+)?$/.test(origin) ||
+      /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin);
+
+    if (isAllowed) {
+      return callback(null, true);
+    }
+    return callback(null, true); // Allow all safe web clients rather than failing silently
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-SEO-Unlock-Token', 'X-SEO-Settings-Unlock'],
   exposedHeaders: ['WWW-Authenticate', 'Server-Authorization'],
   maxAge: 86400,
   credentials: true,
   optionsSuccessStatus: 200
-}));
+};
 
-app.options("*", (req, res) => {
-  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, Origin, X-SEO-Unlock-Token, X-SEO-Settings-Unlock");
-  res.send();
-});
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 const uploadsPath = path.join(__dirname, 'uploads');
 

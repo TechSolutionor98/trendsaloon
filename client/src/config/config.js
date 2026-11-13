@@ -1,10 +1,36 @@
 // Central app configuration
 const resolveApiUrl = () => {
-  const envUrl = (import.meta.env?.VITE_API_URL || "").trim()
+  // 1. Browser runtime check: if running on a live (non-local) domain,
+  // NEVER use localhost under any circumstances!
+  if (typeof window !== "undefined") {
+    const host = (window.location.hostname || "").toLowerCase()
+    const isLocal =
+      host === "localhost" ||
+      host === "127.0.0.1" ||
+      host.startsWith("192.168.") ||
+      host.startsWith("10.") ||
+      host.endsWith(".local")
 
-  if (envUrl && /^https?:\/\//i.test(envUrl)) return envUrl.replace(/\/$/, "")
+    if (!isLocal) {
+      if (host.includes("trendcosmetica")) {
+        return "https://api.trendcosmetica.com"
+      }
+      if (host.includes("grabatoz") || host.includes("graba2z")) {
+        return "https://api.grabatoz.ae"
+      }
 
-  // Check forced local API env flags
+      // Check if env provides a valid remote https URL
+      const envUrl = (import.meta.env?.VITE_API_URL || "").trim()
+      if (envUrl && /^https:\/\//i.test(envUrl) && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+        return envUrl.replace(/\/$/, "")
+      }
+
+      // Default production backend
+      return "https://api.trendcosmetica.com"
+    }
+  }
+
+  // 2. Localhost development:
   if (
     import.meta.env?.VITE_FORCE_LOCAL_API === "true" ||
     import.meta.env?.VITE_FORCE_LOCAL_API === true
@@ -13,36 +39,48 @@ const resolveApiUrl = () => {
     return localUrl.replace(/\/$/, "")
   }
 
-  // Local fallback for development, or when running on localhost / 127.0.0.1
-  if (
-    import.meta.env?.DEV ||
-    (typeof window !== "undefined" &&
-      (window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1" ||
-        window.location.hostname.startsWith("192.168.")))
-  ) {
-    return "http://localhost:5000"
-  }
+  const envUrl = (import.meta.env?.VITE_API_URL || "").trim()
+  if (envUrl && /^https?:\/\//i.test(envUrl)) return envUrl.replace(/\/$/, "")
 
-  return "https://api.grabatoz.ae"
+  return "http://localhost:5000"
 }
 
 // Resolve Translation API URL
 const resolveTranslationApiUrl = () => {
-  const envUrl = (import.meta.env?.VITE_TRANSLATION_API_URL || "").trim()
+  if (typeof window !== "undefined") {
+    const host = (window.location.hostname || "").toLowerCase()
+    const isLocal =
+      host === "localhost" ||
+      host === "127.0.0.1" ||
+      host.startsWith("192.168.") ||
+      host.startsWith("10.") ||
+      host.endsWith(".local")
 
+    if (!isLocal) {
+      const envUrl = (import.meta.env?.VITE_TRANSLATION_API_URL || "").trim()
+      if (envUrl && /^https:\/\//i.test(envUrl) && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+        return envUrl.replace(/\/$/, "")
+      }
+      return "https://langaimodel.grabatoz.ae"
+    }
+  }
+
+  const envUrl = (import.meta.env?.VITE_TRANSLATION_API_URL || "").trim()
   if (envUrl && /^https?:\/\//i.test(envUrl)) return envUrl.replace(/\/$/, "")
 
-  // Live fallback.
-  return "https://langaimodel.grabatoz.ae" // Production translation API on VPS
+  return "http://localhost:5000"
 }
 
 const config = {
-  // API Configuration - Handle both development and production
-  API_URL: resolveApiUrl(),
+  // API Configuration - Dynamic getter so it evaluates at runtime in browser
+  get API_URL() {
+    return resolveApiUrl()
+  },
 
   // Translation Model API
-  TRANSLATION_API_URL: resolveTranslationApiUrl(),
+  get TRANSLATION_API_URL() {
+    return resolveTranslationApiUrl()
+  },
 
   // Payment Gateway Configuration
   TAMARA_API_KEY: import.meta.env.VITE_TAMARA_API_KEY,
