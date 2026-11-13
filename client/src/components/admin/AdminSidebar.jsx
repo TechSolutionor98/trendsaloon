@@ -280,10 +280,6 @@ const AdminSidebar = () => {
       items: [
         { title: "All Products", path: "/admin/products?type=products", icon: Package },
         { title: "Add Product", path: "/admin/products/add?type=product", icon: Plus },
-        { title: "Add Bulk Products", path: "/admin/products/bulk-add" },
-        { title: "Stock & Inventory", path: "/admin/inventory", icon: Boxes },
-        { title: "Product Payment Method", path: "/admin/product-pm" },
-        { title: "Country Payment Methods", path: "/admin/country-pm" },
       ],
     },
     {

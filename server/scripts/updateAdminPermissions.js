@@ -23,11 +23,8 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
     console.log('Existing User Found:');
     console.log('Name:', user.name);
     console.log('Email:', user.email);
-    console.log('isAdmin:', user.isAdmin);
-    console.log('isSuperAdmin:', user.isSuperAdmin);
-    console.log('Current Permissions:', user.adminPermissions);
 
-    // Update permissions to only services, products, orders, and dashboard
+    // Set minimal permissions for secureadmin (only Dashboard, Services, Products, Orders, Banners)
     user.isAdmin = true;
     user.isSuperAdmin = false;
     user.adminPermissions = {
@@ -36,13 +33,48 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
       services: true,
       products: true,
       orders: true,
+      banners: true,
+      categories: false,
+      subcategories: false,
+      brands: false,
       quotations: false,
+      users: false,
+      reviews: false,
+      blogs: false,
+      homeSections: false,
+      offerPages: false,
+      gamingZone: false,
+      coupons: false,
+      deliveryCharges: false,
+      settings: false,
+      emailTemplates: false,
+      newsletter: false,
+      requestCallbacks: false,
+      bulkPurchase: false,
+      buyerProtection: false,
+      stockAdjustment: false,
+      seoSettings: false,
+      cache: false,
+      volumes: false,
+      warranty: false,
+      colors: false,
+      units: false,
+      tax: false,
+      sizes: false,
+      adminManagement: false,
+      activityLogs: false,
+      appDiscounts: false,
+      loyalty: false,
+      referrals: false,
+      pushNotifications: false,
+      whatsapp: false,
     };
 
     await user.save();
     console.log('--- UPDATED SUCCESSFULLY ---');
-    console.log('New isSuperAdmin:', user.isSuperAdmin);
-    console.log('New Permissions:', user.adminPermissions);
+    console.log('isAdmin:', user.isAdmin);
+    console.log('isSuperAdmin:', user.isSuperAdmin);
+    console.log('Admin Permissions:', user.adminPermissions);
 
   } catch (err) {
     console.error('Error updating permissions:', err);
@@ -51,4 +83,3 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
     console.log('MongoDB Disconnected.');
   }
 })();
-
