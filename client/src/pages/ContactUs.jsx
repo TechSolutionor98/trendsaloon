@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import axios from "axios"
 import config from "../config/config"
@@ -8,6 +8,8 @@ import { useLanguage } from "../context/LanguageContext"
 import { useToast } from "../context/ToastContext"
 import TrendHeader from "../components/TrendHeader"
 import TrendFooter from "../components/TrendFooter"
+import { getFullImageUrl } from "../utils/imageUtils"
+import { getCachedSalonBanners, fetchSalonBanners } from "../services/salonService"
 import {
   MapPin,
   Phone,
@@ -29,6 +31,16 @@ import {
 export default function ContactUs() {
   const { getLocalizedPath } = useLanguage()
   const { showToast } = useToast()
+
+  const [contactBanner, setContactBanner] = useState(() => getCachedSalonBanners().contact || { image: "" })
+
+  useEffect(() => {
+    fetchSalonBanners().then((banners) => {
+      if (banners?.contact) {
+        setContactBanner(banners.contact)
+      }
+    })
+  }, [])
 
   const [form, setForm] = useState({
     name: "",
@@ -92,72 +104,71 @@ export default function ContactUs() {
       <TrendHeader active="contact" />
 
       {/* 2. Hero Banner */}
-      <section className="relative bg-[#0d0e11] text-white overflow-hidden py-10 sm:py-14">
-        {/* Ambient Radial Glow */}
-        <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#dfa742]/10 rounded-full blur-3xl pointer-events-none" />
-
-        {/* Right Hero Graphic */}
-        <div className="absolute top-0 right-0 bottom-0 w-full sm:w-3/5 lg:w-[52%] pointer-events-none overflow-hidden select-none">
+      {contactBanner?.image ? (
+        <section className="w-full bg-[#0d0e11] overflow-hidden select-none">
           <img
-            src="/salon/hero-barber-shave.jpg"
-            alt="Trend Salon Contact & Appointments"
-            className="w-full h-full object-cover object-right sm:object-center filter brightness-95 opacity-60 sm:opacity-90"
+            src={getFullImageUrl(contactBanner.image)}
+            alt="Trend Salon Contact"
+            className="w-full h-auto min-h-[160px] sm:min-h-[220px] md:min-h-[280px] max-h-[460px] object-cover object-center block"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e11] via-[#0d0e11]/80 to-transparent sm:via-[#0d0e11]/30" />
-        </div>
+        </section>
+      ) : (
+        <section className="relative bg-[#0d0e11] text-white overflow-hidden py-10 sm:py-14">
+          <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#dfa742]/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-xl space-y-2.5">
-            {/* Salon Emblem/Logo */}
-            <div className="flex items-center gap-2 pb-0.5">
-              <div className="w-8 h-8 rounded-full bg-[#dfa742]/15 border border-[#dfa742]/40 flex items-center justify-center shadow-sm">
-                <svg
-                  className="w-4 h-4 text-[#dfa742]"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="6" cy="6" r="3" />
-                  <circle cx="6" cy="18" r="3" />
-                  <line x1="20" y1="4" x2="8.12" y2="15.88" />
-                  <line x1="14.47" y1="14.48" x2="20" y2="20" />
-                  <line x1="8.12" y1="8.12" x2="12" y2="12" />
-                </svg>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="max-w-xl space-y-2.5">
+              {/* Salon Emblem/Logo */}
+              <div className="flex items-center gap-2 pb-0.5">
+                <div className="w-8 h-8 rounded-full bg-[#dfa742]/15 border border-[#dfa742]/40 flex items-center justify-center shadow-sm">
+                  <svg
+                    className="w-4 h-4 text-[#dfa742]"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="6" cy="6" r="3" />
+                    <circle cx="6" cy="18" r="3" />
+                    <line x1="20" y1="4" x2="8.12" y2="15.88" />
+                    <line x1="14.47" y1="14.48" x2="20" y2="20" />
+                    <line x1="8.12" y1="8.12" x2="12" y2="12" />
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-serif font-black text-xs tracking-widest text-[#dfa742] uppercase leading-none drop-shadow-sm">
+                    TREND
+                  </span>
+                  <span className="text-[7px] tracking-[0.25em] text-[#e0cfab] uppercase font-medium">
+                    GENTS SALOON
+                  </span>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="font-serif font-black text-xs tracking-widest text-[#dfa742] uppercase leading-none drop-shadow-sm">
-                  TREND
-                </span>
-                <span className="text-[7px] tracking-[0.25em] text-[#e0cfab] uppercase font-medium">
-                  GENTS SALOON
-                </span>
-              </div>
+
+              {/* Title */}
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
+                Contact &amp; Visit Us
+              </h1>
+
+              {/* Subtitle */}
+              <p className="text-gray-200 text-sm sm:text-base font-light tracking-wide">
+                Visit our luxury salon in Ajman or book an appointment with our master barbers.
+              </p>
+
+              {/* Breadcrumbs */}
+              <nav className="flex items-center gap-2 text-xs text-gray-400 pt-1" aria-label="Breadcrumb">
+                <Link to={getLocalizedPath("/")} className="hover:text-[#dfa742] transition-colors">
+                  Home
+                </Link>
+                <ChevronRight className="w-3.5 h-3.5 text-gray-500" />
+                <span className="text-gray-200 font-medium">Contact Us</span>
+              </nav>
             </div>
-
-            {/* Title */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
-              Contact &amp; Visit Us
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-gray-200 text-sm sm:text-base font-light tracking-wide">
-              Visit our luxury salon in Ajman or book an appointment with our master barbers.
-            </p>
-
-            {/* Breadcrumbs */}
-            <nav className="flex items-center gap-2 text-xs text-gray-400 pt-1" aria-label="Breadcrumb">
-              <Link to={getLocalizedPath("/")} className="hover:text-[#dfa742] transition-colors">
-                Home
-              </Link>
-              <ChevronRight className="w-3.5 h-3.5 text-gray-500" />
-              <span className="text-gray-200 font-medium">Contact Us</span>
-            </nav>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 3. Quick Info Cards */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 relative z-20">

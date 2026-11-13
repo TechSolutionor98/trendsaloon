@@ -10,51 +10,29 @@ import {
   ImageIcon,
   Sparkles,
   Scissors,
-  Check,
-  RefreshCw,
-  ArrowRight,
-  Eye,
-  Layers,
   ShoppingBag,
+  Phone,
+  RefreshCw,
+  Eye,
+  Trash2,
+  CheckCircle,
 } from "lucide-react"
 import config from "../../config/config"
 import { getFullImageUrl } from "../../utils/imageUtils"
 
 export default function AdminBanners() {
   const { showToast } = useToast()
-  const [activeTab, setActiveTab] = useState("home") // "home" | "services"
+  const [activeTab, setActiveTab] = useState("home") // "home" | "offers" | "services" | "products" | "contact"
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
 
-  // Banner states
-  const [homeBanner, setHomeBanner] = useState({
-    title: "Trend Salon",
-    tagline: "Look Good • Feel Great",
-    subtitle: "Premium Grooming & Wellness Services for the Modern Gentleman",
-    image: "/salon/hero-man-transparent.png",
-    buttonText: "Book Now",
-  })
-
-  const [offersBanner, setOffersBanner] = useState({
-    title: "Special Offers",
-    subtitle: "Look Better. Pay Less.",
-    image: "",
-    buttonText: "View All Offers",
-    link: "",
-  })
-
-  const [servicesBanner, setServicesBanner] = useState({
-    title: "Our Services & Products",
-    subtitle: "Professional Care. Premium Quality.",
-    image: "/salon/services-man.png",
-  })
-
-  const [productsBanner, setProductsBanner] = useState({
-    title: "Our Products",
-    subtitle: "Premium Grooming & Care Products for the Modern Gentleman.",
-    image: "/salon/services-man.png",
-  })
+  // Banner image states (Pure graphical banners)
+  const [homeBanner, setHomeBanner] = useState({ image: "" })
+  const [offersBanner, setOffersBanner] = useState({ image: "" })
+  const [servicesBanner, setServicesBanner] = useState({ image: "" })
+  const [productsBanner, setProductsBanner] = useState({ image: "" })
+  const [contactBanner, setContactBanner] = useState({ image: "" })
 
   // Fetch current salon banners
   useEffect(() => {
@@ -66,10 +44,11 @@ export default function AdminBanners() {
       setLoading(true)
       const res = await axios.get(`${config.API_URL}/api/banners/salon-banners?_t=${Date.now()}`)
       if (res.data) {
-        if (res.data.home) setHomeBanner((prev) => ({ ...prev, ...res.data.home }))
-        if (res.data.offers) setOffersBanner((prev) => ({ ...prev, ...res.data.offers }))
-        if (res.data.services) setServicesBanner((prev) => ({ ...prev, ...res.data.services }))
-        if (res.data.products) setProductsBanner((prev) => ({ ...prev, ...res.data.products }))
+        if (res.data.home) setHomeBanner({ image: res.data.home.image || "" })
+        if (res.data.offers) setOffersBanner({ image: res.data.offers.image || "" })
+        if (res.data.services) setServicesBanner({ image: res.data.services.image || "" })
+        if (res.data.products) setProductsBanner({ image: res.data.products.image || "" })
+        if (res.data.contact) setContactBanner({ image: res.data.contact.image || "" })
       }
     } catch (err) {
       console.warn("Could not fetch banners:", err.message)
@@ -108,15 +87,17 @@ export default function AdminBanners() {
       if (res.data && res.data.url) {
         const uploadedUrl = res.data.url
         if (bannerType === "home") {
-          setHomeBanner((prev) => ({ ...prev, image: uploadedUrl }))
+          setHomeBanner({ image: uploadedUrl })
         } else if (bannerType === "offers") {
-          setOffersBanner((prev) => ({ ...prev, image: uploadedUrl }))
+          setOffersBanner({ image: uploadedUrl })
         } else if (bannerType === "services") {
-          setServicesBanner((prev) => ({ ...prev, image: uploadedUrl }))
-        } else {
-          setProductsBanner((prev) => ({ ...prev, image: uploadedUrl }))
+          setServicesBanner({ image: uploadedUrl })
+        } else if (bannerType === "products") {
+          setProductsBanner({ image: uploadedUrl })
+        } else if (bannerType === "contact") {
+          setContactBanner({ image: uploadedUrl })
         }
-        showToast("Image uploaded successfully!", "success")
+        showToast("Image uploaded successfully! Click Save to apply changes.", "success")
       }
     } catch (err) {
       console.error("Upload error:", err)
@@ -142,16 +123,41 @@ export default function AdminBanners() {
 
       const payload = {}
       if (bannerType === "home" || bannerType === "all") {
-        payload.home = homeBanner
+        payload.home = {
+          image: homeBanner.image,
+          title: "",
+          tagline: "",
+          subtitle: "",
+          buttonText: "",
+        }
       }
       if (bannerType === "offers" || bannerType === "all") {
-        payload.offers = offersBanner
+        payload.offers = {
+          image: offersBanner.image,
+          title: "",
+          subtitle: "",
+          buttonText: "",
+          link: "",
+        }
       }
       if (bannerType === "services" || bannerType === "all") {
-        payload.services = servicesBanner
+        payload.services = {
+          image: servicesBanner.image,
+          title: "",
+          subtitle: "",
+        }
       }
       if (bannerType === "products" || bannerType === "all") {
-        payload.products = productsBanner
+        payload.products = {
+          image: productsBanner.image,
+          title: "",
+          subtitle: "",
+        }
+      }
+      if (bannerType === "contact" || bannerType === "all") {
+        payload.contact = {
+          image: contactBanner.image,
+        }
       }
 
       await axios.put(`${config.API_URL}/api/banners/salon-banners`, payload, {
@@ -159,6 +165,17 @@ export default function AdminBanners() {
           Authorization: `Bearer ${token}`,
         },
       })
+
+      // Update local storage cache as well for instant frontend reflection
+      try {
+        const cached = JSON.parse(localStorage.getItem("trend_salon_banners_v1") || "{}")
+        if (bannerType === "home" || bannerType === "all") cached.home = payload.home
+        if (bannerType === "offers" || bannerType === "all") cached.offers = payload.offers
+        if (bannerType === "services" || bannerType === "all") cached.services = payload.services
+        if (bannerType === "products" || bannerType === "all") cached.products = payload.products
+        if (bannerType === "contact" || bannerType === "all") cached.contact = payload.contact
+        localStorage.setItem("trend_salon_banners_v1", JSON.stringify(cached))
+      } catch {}
 
       showToast("Banner updated successfully! Changes are live.", "success")
     } catch (err) {
@@ -168,6 +185,61 @@ export default function AdminBanners() {
       setSaving(false)
     }
   }
+
+  // Active banner data getter
+  const getCurrentBannerData = () => {
+    switch (activeTab) {
+      case "home":
+        return {
+          title: "1. Homepage Hero Banner",
+          description: "Top primary banner displayed at the very top of the homepage.",
+          data: homeBanner,
+          setter: setHomeBanner,
+          saveLabel: "Save Homepage Hero Banner",
+          aspectHint: "Recommended size: 1920x650 or 1920x800. Edge-to-edge full width graphic.",
+        }
+      case "offers":
+        return {
+          title: "2. Homepage 2nd Banner (Special Offers)",
+          description: "Middle full-width promotional banner displayed between Services and Products on the homepage.",
+          data: offersBanner,
+          setter: setOffersBanner,
+          saveLabel: "Save Special Offers Banner",
+          aspectHint: "Recommended size: 1920x450 or 1600x400. Clean rectangular graphic (no curved cuts).",
+        }
+      case "services":
+        return {
+          title: "3. Services Page Banner",
+          description: "Header banner for the /services-products page.",
+          data: servicesBanner,
+          setter: setServicesBanner,
+          saveLabel: "Save Services Banner",
+          aspectHint: "Recommended size: 1920x450 or 1600x400. Full-width landscape graphic.",
+        }
+      case "products":
+        return {
+          title: "4. Products Page Banner",
+          description: "Header banner for the dedicated /products catalog page.",
+          data: productsBanner,
+          setter: setProductsBanner,
+          saveLabel: "Save Products Banner",
+          aspectHint: "Recommended size: 1920x450 or 1600x400. Full-width landscape graphic.",
+        }
+      case "contact":
+        return {
+          title: "5. Contact Us Page Banner",
+          description: "Header banner for the /contact page.",
+          data: contactBanner,
+          setter: setContactBanner,
+          saveLabel: "Save Contact Us Banner",
+          aspectHint: "Recommended size: 1920x450 or 1600x400. Full-width landscape graphic.",
+        }
+      default:
+        return null
+    }
+  }
+
+  const current = getCurrentBannerData()
 
   return (
     <div className="flex min-h-screen bg-gray-50 text-gray-900 font-sans">
@@ -182,7 +254,7 @@ export default function AdminBanners() {
               <span>Main Pages Banner Manager</span>
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Easily customize and change the hero banners for both main pages (Homepage & Services Page).
+              Upload custom graphical banners for all salon website pages. All banners render full-width edge-to-edge.
             </p>
           </div>
 
@@ -199,712 +271,172 @@ export default function AdminBanners() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex border-b border-gray-200 mb-8 space-x-2">
+        <div className="flex border-b border-gray-200 mb-8 space-x-2 overflow-x-auto pb-1">
           <button
             onClick={() => setActiveTab("home")}
-            className={`py-3 px-5 text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2.5 ${
+            className={`py-3 px-4 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
               activeTab === "home"
                 ? "border-[#dfa742] text-[#b38743] bg-white shadow-sm"
                 : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/50"
             }`}
           >
             <Sparkles className="w-4 h-4 text-[#dfa742]" />
-            <span>1. Homepage Hero Banner</span>
+            <span>1. Homepage Hero</span>
           </button>
 
           <button
             onClick={() => setActiveTab("offers")}
-            className={`py-3 px-5 text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2.5 ${
+            className={`py-3 px-4 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
               activeTab === "offers"
                 ? "border-[#dfa742] text-[#b38743] bg-white shadow-sm"
                 : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/50"
             }`}
           >
             <Sparkles className="w-4 h-4 text-[#dfa742]" />
-            <span>2. Homepage 2nd Banner (Offers)</span>
+            <span>2. Homepage 2nd (Offers)</span>
           </button>
 
           <button
             onClick={() => setActiveTab("services")}
-            className={`py-3 px-5 text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2.5 ${
+            className={`py-3 px-4 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
               activeTab === "services"
                 ? "border-[#dfa742] text-[#b38743] bg-white shadow-sm"
                 : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/50"
             }`}
           >
             <Scissors className="w-4 h-4 text-[#dfa742]" />
-            <span>3. Services Page Banner</span>
+            <span>3. Services Page</span>
           </button>
 
           <button
             onClick={() => setActiveTab("products")}
-            className={`py-3 px-5 text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2.5 ${
+            className={`py-3 px-4 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
               activeTab === "products"
                 ? "border-[#dfa742] text-[#b38743] bg-white shadow-sm"
                 : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/50"
             }`}
           >
             <ShoppingBag className="w-4 h-4 text-[#dfa742]" />
-            <span>4. Products Page Banner</span>
+            <span>4. Products Page</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("contact")}
+            className={`py-3 px-4 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
+              activeTab === "contact"
+                ? "border-[#dfa742] text-[#b38743] bg-white shadow-sm"
+                : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/50"
+            }`}
+          >
+            <Phone className="w-4 h-4 text-[#dfa742]" />
+            <span>5. Contact Us Page</span>
           </button>
         </div>
 
-        {/* TAB 1: HOMEPAGE HERO BANNER */}
-        {activeTab === "home" && (
+        {/* ACTIVE TAB CONTENT */}
+        {current && (
           <div className="space-y-8 animate-fadeIn">
             {/* Live Visual Preview */}
             <div className="bg-[#0d0e11] text-white rounded-3xl overflow-hidden border border-[#dfa742]/30 shadow-2xl relative min-h-[220px]">
               <div className="absolute top-4 right-4 z-20 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-[#dfa742] flex items-center gap-1.5 border border-[#dfa742]/30">
                 <Eye className="w-3.5 h-3.5" />
-                <span>Live Preview (Homepage)</span>
-              </div>
-
-              {Boolean(homeBanner.image && homeBanner.image !== "/salon/hero-man-transparent.png") ? (
-                /* Custom Graphic Banner Preview */
-                <div className="relative w-full">
-                  <img
-                    src={getFullImageUrl(homeBanner.image)}
-                    alt="Hero Preview"
-                    className="w-full h-auto max-h-[360px] object-cover object-center"
-                  />
-                  {Boolean(homeBanner.title?.trim() || homeBanner.tagline?.trim() || homeBanner.subtitle?.trim()) && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex items-center p-6 sm:p-10">
-                      <div className="max-w-lg space-y-3">
-                        {homeBanner.tagline && (
-                          <div className="text-xs uppercase font-medium tracking-[0.2em] text-gray-300">
-                            {homeBanner.tagline}
-                          </div>
-                        )}
-                        {homeBanner.title && (
-                          <h2 className="text-2xl sm:text-4xl font-serif font-bold text-white tracking-tight">
-                            {homeBanner.title}
-                          </h2>
-                        )}
-                        {homeBanner.subtitle && (
-                          <p className="text-xs sm:text-sm text-gray-300 font-light leading-relaxed">
-                            {homeBanner.subtitle}
-                          </p>
-                        )}
-                        {homeBanner.buttonText && (
-                          <div className="pt-1">
-                            <span className="bg-[#dfa742] text-black font-semibold text-xs px-4 py-2 rounded-full inline-flex items-center gap-1.5 shadow-md">
-                              <span>{homeBanner.buttonText}</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                /* Default Gentleman Layout Preview */
-                <div className="p-6 sm:p-10 relative">
-                  <div className="absolute top-0 right-0 bottom-0 w-full sm:w-1/2 pointer-events-none opacity-80 overflow-hidden">
-                    <img
-                      src={getFullImageUrl(homeBanner.image) || "/salon/hero-man-transparent.png"}
-                      alt="Hero Preview"
-                      className="w-full h-full object-cover object-center"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e11] via-[#0d0e11]/70 to-transparent" />
-                  </div>
-
-                  <div className="relative z-10 max-w-lg space-y-4 py-4">
-                    {homeBanner.tagline && (
-                      <div className="text-xs uppercase font-medium tracking-[0.2em] text-gray-400">
-                        {homeBanner.tagline}
-                      </div>
-                    )}
-                    {homeBanner.title && (
-                      <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">
-                        {homeBanner.title}
-                      </h2>
-                    )}
-                    {homeBanner.subtitle && (
-                      <p className="text-sm text-gray-300 font-light leading-relaxed">
-                        {homeBanner.subtitle}
-                      </p>
-                    )}
-                    <div className="pt-2 flex items-center gap-3">
-                      <span className="bg-[#dfa742] text-black font-semibold text-xs px-5 py-2.5 rounded-full inline-flex items-center gap-1.5 shadow-md">
-                        <span>{homeBanner.buttonText || "Book Now"}</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </span>
-                      <span className="border border-white/30 text-white font-medium text-xs px-4 py-2.5 rounded-full bg-black/40">
-                        Shop Products
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Editing Form */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200 shadow-sm space-y-6">
-              <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3">
-                Edit Homepage Hero Banner
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Title */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                    Main Title
-                  </label>
-                  <input
-                    type="text"
-                    value={homeBanner.title}
-                    onChange={(e) => setHomeBanner({ ...homeBanner, title: e.target.value })}
-                    placeholder="Trend Salon"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
-                  />
-                </div>
-
-                {/* Tagline */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                    Top Tagline
-                  </label>
-                  <input
-                    type="text"
-                    value={homeBanner.tagline}
-                    onChange={(e) => setHomeBanner({ ...homeBanner, tagline: e.target.value })}
-                    placeholder="Look Good • Feel Great"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
-                  />
-                </div>
-
-                {/* Subtitle */}
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                    Subtitle / Description
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={homeBanner.subtitle}
-                    onChange={(e) => setHomeBanner({ ...homeBanner, subtitle: e.target.value })}
-                    placeholder="Premium Grooming & Wellness Services for the Modern Gentleman"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
-                  />
-                </div>
-
-                {/* Button Text */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                    Primary Button Text
-                  </label>
-                  <input
-                    type="text"
-                    value={homeBanner.buttonText}
-                    onChange={(e) => setHomeBanner({ ...homeBanner, buttonText: e.target.value })}
-                    placeholder="Book Now"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
-                  />
-                </div>
-
-                {/* Banner Image URL / Upload */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                    Banner Graphic Image URL
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={homeBanner.image}
-                      onChange={(e) => setHomeBanner({ ...homeBanner, image: e.target.value })}
-                      placeholder="/salon/hero-man-transparent.png"
-                      className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
-                    />
-                    <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 border border-gray-300 transition-colors">
-                      <Upload className="w-3.5 h-3.5 text-gray-600" />
-                      <span>{uploading ? "Uploading..." : "Upload"}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleImageUpload(e, "home")}
-                      />
-                    </label>
-                  </div>
-                  <p className="text-[11px] text-gray-500 mt-1">
-                    Recommended: Transparent PNG or dark background photo (min 1200x800).
-                  </p>
-                </div>
-              </div>
-
-              {/* Submit CTA */}
-              <div className="pt-4 border-t border-gray-100 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => handleSave("home")}
-                  disabled={saving}
-                  className="bg-[#dfa742] hover:bg-[#caa638] text-black font-bold text-sm px-7 py-3 rounded-xl inline-flex items-center gap-2 shadow-lg shadow-[#dfa742]/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>{saving ? "Saving..." : "Save Homepage Banner"}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2: HOMEPAGE 2ND BANNER (SPECIAL OFFERS) */}
-        {activeTab === "offers" && (
-          <div className="space-y-8 animate-fadeIn">
-            {/* Live Visual Preview */}
-            <div className="bg-[#0c0d10] text-white rounded-3xl overflow-hidden border border-[#dfa742]/30 shadow-2xl relative min-h-[220px]">
-              <div className="absolute top-4 right-4 z-20 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-[#dfa742] flex items-center gap-1.5 border border-[#dfa742]/30">
-                <Eye className="w-3.5 h-3.5" />
-                <span>Live Preview (Special Offers Banner)</span>
-              </div>
-
-              {Boolean(offersBanner.image) ? (
-                /* Custom Graphic Banner Preview (Square / Rectangular) */
-                <div className="relative w-full">
-                  <img
-                    src={getFullImageUrl(offersBanner.image)}
-                    alt="Special Offers Preview"
-                    className="w-full h-auto max-h-[340px] object-cover object-center"
-                  />
-                  {Boolean(offersBanner.title?.trim() || offersBanner.subtitle?.trim() || offersBanner.buttonText?.trim()) && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex items-center p-6 sm:p-10">
-                      <div className="max-w-lg space-y-3">
-                        {offersBanner.title && (
-                          <h2 className="text-2xl sm:text-4xl font-serif font-bold text-[#dfa742] tracking-tight">
-                            {offersBanner.title}
-                          </h2>
-                        )}
-                        {offersBanner.subtitle && (
-                          <p className="text-xs sm:text-sm text-gray-300 font-light leading-relaxed">
-                            {offersBanner.subtitle}
-                          </p>
-                        )}
-                        {offersBanner.buttonText && (
-                          <div className="pt-1">
-                            <span className="bg-[#dfa742] text-black font-semibold text-xs px-4 py-2 rounded-full inline-flex items-center gap-1.5 shadow-md">
-                              <span>{offersBanner.buttonText}</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                /* Default Luxury Rectangular Section Preview */
-                <div className="p-6 sm:p-10 relative">
-                  <div className="relative z-10 max-w-lg space-y-3 py-4">
-                    <h2 className="text-2xl sm:text-4xl font-serif font-bold text-[#dfa742] tracking-tight">
-                      {offersBanner.title || "Special Offers"}
-                    </h2>
-                    <p className="text-sm text-gray-300 font-light leading-relaxed">
-                      {offersBanner.subtitle || "Look Better. Pay Less."}
-                    </p>
-                    <div className="pt-2">
-                      <span className="bg-[#dfa742] text-black font-semibold text-xs px-5 py-2.5 rounded-full inline-flex items-center gap-1.5 shadow-md">
-                        <span>{offersBanner.buttonText || "View All Offers"}</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Editing Form */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200 shadow-sm space-y-6">
-              <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3">
-                Edit Homepage 2nd Banner (Special Offers)
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Banner Graphic Image URL / Upload */}
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                    Banner Graphic Image (Square / Rectangular)
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={offersBanner.image}
-                      onChange={(e) => setOffersBanner({ ...offersBanner, image: e.target.value })}
-                      placeholder="Upload custom graphical banner or enter URL"
-                      className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
-                    />
-                    <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 border border-gray-300 transition-colors">
-                      <Upload className="w-3.5 h-3.5 text-gray-600" />
-                      <span>{uploading ? "Uploading..." : "Upload"}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleImageUpload(e, "offers")}
-                      />
-                    </label>
-                  </div>
-                  <p className="text-[11px] text-gray-500 mt-1">
-                    Upload any custom designed graphical banner. Top and bottom curves have been removed so your banner renders straight and full-width!
-                  </p>
-                </div>
-
-                {/* Title */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                    Banner Title (Optional if text is inside image)
-                  </label>
-                  <input
-                    type="text"
-                    value={offersBanner.title}
-                    onChange={(e) => setOffersBanner({ ...offersBanner, title: e.target.value })}
-                    placeholder="Special Offers"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
-                  />
-                </div>
-
-                {/* Subtitle */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                    Subtitle (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={offersBanner.subtitle}
-                    onChange={(e) => setOffersBanner({ ...offersBanner, subtitle: e.target.value })}
-                    placeholder="Look Better. Pay Less."
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
-                  />
-                </div>
-
-                {/* Button Text */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                    Button Text (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={offersBanner.buttonText}
-                    onChange={(e) => setOffersBanner({ ...offersBanner, buttonText: e.target.value })}
-                    placeholder="View All Offers"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
-                  />
-                </div>
-
-                {/* Target Link */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                    Button Target Link (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={offersBanner.link}
-                    onChange={(e) => setOffersBanner({ ...offersBanner, link: e.target.value })}
-                    placeholder="/services-products or leave empty for Offers popup"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
-                  />
-                </div>
-              </div>
-
-              {/* Submit CTA */}
-              <div className="pt-4 border-t border-gray-100 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => handleSave("offers")}
-                  disabled={saving}
-                  className="bg-[#dfa742] hover:bg-[#caa638] text-black font-bold text-sm px-7 py-3 rounded-xl inline-flex items-center gap-2 shadow-lg shadow-[#dfa742]/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>{saving ? "Saving..." : "Save Special Offers Banner"}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 3: SERVICES & PRODUCTS PAGE BANNER */}
-        {activeTab === "services" && (
-          <div className="space-y-8 animate-fadeIn">
-            {/* Live Visual Preview */}
-            <div className="bg-[#0d0e11] text-white rounded-3xl overflow-hidden border border-[#dfa742]/30 shadow-2xl relative min-h-[220px]">
-              <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-[#dfa742] flex items-center gap-1.5 border border-[#dfa742]/30 z-20">
-                <Eye className="w-3.5 h-3.5" />
-                <span>Live Preview (Services Page)</span>
-              </div>
-
-              {Boolean(servicesBanner.image && servicesBanner.image !== "/salon/services-man.png") ? (
-                /* Full-Width Custom Designed Banner Preview */
-                <div className="relative w-full">
-                  <img
-                    src={getFullImageUrl(servicesBanner.image)}
-                    alt="Services Banner Preview"
-                    className="w-full h-auto max-h-[340px] object-cover object-center"
-                  />
-                  {Boolean(servicesBanner.title?.trim() || servicesBanner.subtitle?.trim()) && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex items-center p-6 sm:p-10">
-                      <div className="max-w-lg space-y-2">
-                        {servicesBanner.title && (
-                          <h2 className="text-2xl sm:text-4xl font-serif font-bold text-[#dfa742] tracking-tight">
-                            {servicesBanner.title}
-                          </h2>
-                        )}
-                        {servicesBanner.subtitle && (
-                          <p className="text-xs sm:text-sm text-gray-200 font-light tracking-wide">
-                            {servicesBanner.subtitle}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                /* Default Split Preview */
-                <div className="p-8 sm:p-12 relative">
-                  <div className="absolute top-0 right-0 bottom-0 w-3/5 pointer-events-none overflow-hidden select-none">
-                    <img
-                      src={getFullImageUrl(servicesBanner.image) || "/salon/services-man.png"}
-                      alt="Services Banner Preview"
-                      className="w-full h-full object-cover object-right filter brightness-100"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e11] via-[#0d0e11]/60 to-transparent sm:via-[#0d0e11]/20" />
-                  </div>
-
-                  <div className="relative z-10 max-w-lg space-y-2 py-4">
-                    {servicesBanner.title && (
-                      <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#dfa742] tracking-tight">
-                        {servicesBanner.title}
-                      </h2>
-                    )}
-                    {servicesBanner.subtitle && (
-                      <p className="text-sm sm:text-base text-gray-200 font-light tracking-wide">
-                        {servicesBanner.subtitle}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Editing Form */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200 shadow-sm space-y-6">
-              <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3">
-                Edit Services &amp; Products Page Banner
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Title */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                    Banner Title
-                  </label>
-                  <input
-                    type="text"
-                    value={servicesBanner.title}
-                    onChange={(e) => setServicesBanner({ ...servicesBanner, title: e.target.value })}
-                    placeholder="Our Services & Products"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
-                  />
-                </div>
-
-                {/* Subtitle */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                    Subtitle
-                  </label>
-                  <input
-                    type="text"
-                    value={servicesBanner.subtitle}
-                    onChange={(e) => setServicesBanner({ ...servicesBanner, subtitle: e.target.value })}
-                    placeholder="Professional Care. Premium Quality."
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
-                  />
-                </div>
-
-                {/* Banner Image URL / Upload */}
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                    Background Image URL
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={servicesBanner.image}
-                      onChange={(e) => setServicesBanner({ ...servicesBanner, image: e.target.value })}
-                      placeholder="/salon/services-man.png"
-                      className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
-                    />
-                    <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 border border-gray-300 transition-colors">
-                      <Upload className="w-3.5 h-3.5 text-gray-600" />
-                      <span>{uploading ? "Uploading..." : "Upload"}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleImageUpload(e, "services")}
-                      />
-                    </label>
-                  </div>
-                  <p className="text-[11px] text-gray-500 mt-1">
-                    Recommended: High-resolution landscape image (1920x600 or 1200x500).
-                  </p>
-                </div>
-              </div>
-
-              {/* Submit CTA */}
-              <div className="pt-4 border-t border-gray-100 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => handleSave("services")}
-                  disabled={saving}
-                  className="bg-[#dfa742] hover:bg-[#caa638] text-black font-bold text-sm px-7 py-3 rounded-xl inline-flex items-center gap-2 shadow-lg shadow-[#dfa742]/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>{saving ? "Saving..." : "Save Services Banner"}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 3: PRODUCTS HERO BANNER */}
-        {activeTab === "products" && (
-          <div className="space-y-8">
-            {/* Live Preview Card */}
-            <div className="relative bg-[#0d0e11] rounded-2xl overflow-hidden border border-gray-800 shadow-2xl min-h-[220px]">
-              <div className="absolute top-3 left-3 bg-[#dfa742] text-black text-[10px] font-bold px-2 py-0.5 rounded-full z-20 flex items-center gap-1 shadow">
-                <Eye className="w-3 h-3" />
                 <span>Live Preview</span>
               </div>
 
-              {Boolean(productsBanner.image && productsBanner.image !== "/salon/services-man.png") ? (
-                /* Full-Width Custom Designed Banner Preview */
+              {Boolean(current.data.image) ? (
                 <div className="relative w-full">
                   <img
-                    src={getFullImageUrl(productsBanner.image)}
-                    alt="Products Banner Preview"
-                    className="w-full h-auto max-h-[340px] object-cover object-center"
+                    src={getFullImageUrl(current.data.image)}
+                    alt="Banner Preview"
+                    className="w-full h-auto max-h-[360px] object-cover object-center block"
                   />
-                  {Boolean(productsBanner.title?.trim() || productsBanner.subtitle?.trim()) && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex items-center p-6 sm:p-10">
-                      <div className="max-w-lg space-y-2">
-                        {productsBanner.title && (
-                          <h2 className="text-2xl sm:text-4xl font-serif font-bold text-[#dfa742] tracking-tight">
-                            {productsBanner.title}
-                          </h2>
-                        )}
-                        {productsBanner.subtitle && (
-                          <p className="text-xs sm:text-sm text-gray-200 font-light tracking-wide">
-                            {productsBanner.subtitle}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
               ) : (
-                /* Default Split Preview */
-                <div className="p-8 sm:p-12 relative text-white">
-                  <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#dfa742]/10 rounded-full blur-3xl pointer-events-none" />
-                  <div className="absolute top-0 right-0 bottom-0 w-3/5 pointer-events-none overflow-hidden select-none">
-                    <img
-                      src={getFullImageUrl(productsBanner.image) || "/salon/services-man.png"}
-                      alt="Products Banner Preview"
-                      className="w-full h-full object-cover object-right filter brightness-100"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e11] via-[#0d0e11]/60 to-transparent sm:via-[#0d0e11]/20" />
+                <div className="p-12 text-center flex flex-col items-center justify-center min-h-[240px]">
+                  <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-3">
+                    <ImageIcon className="w-8 h-8 text-[#dfa742]/60" />
                   </div>
-
-                  <div className="relative z-10 max-w-lg space-y-2 py-4">
-                    {productsBanner.title && (
-                      <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#dfa742] tracking-tight">
-                        {productsBanner.title}
-                      </h2>
-                    )}
-                    {productsBanner.subtitle && (
-                      <p className="text-sm sm:text-base text-gray-200 font-light tracking-wide">
-                        {productsBanner.subtitle}
-                      </p>
-                    )}
-                  </div>
+                  <h3 className="text-base font-semibold text-white">No Banner Uploaded Yet</h3>
+                  <p className="text-xs text-gray-400 mt-1 max-w-sm">
+                    Upload your custom designed banner graphic below. It will immediately show here and on your live website.
+                  </p>
                 </div>
               )}
             </div>
 
-            {/* Editing Form */}
+            {/* Banner Upload & Editing Card (No extra text fields) */}
             <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200 shadow-sm space-y-6">
-              <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-[#dfa742]" />
-                <span>Edit Products Page Banner</span>
-              </h3>
+              <div className="border-b border-gray-100 pb-4">
+                <h3 className="text-lg font-bold text-gray-900 tracking-tight">
+                  {current.title}
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {current.description}
+                </p>
+              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Title */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                    Banner Title
-                  </label>
+              {/* Graphic Banner Image URL & Upload */}
+              <div className="space-y-3">
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">
+                  Banner Graphic Image (Artwork)
+                </label>
+
+                <div className="flex flex-col sm:flex-row gap-2.5">
                   <input
                     type="text"
-                    value={productsBanner.title}
-                    onChange={(e) => setProductsBanner({ ...productsBanner, title: e.target.value })}
-                    placeholder="Our Products"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
+                    value={current.data.image}
+                    onChange={(e) => current.setter({ image: e.target.value })}
+                    placeholder="Upload image or enter file path (/uploads/...)"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm bg-white"
                   />
-                </div>
 
-                {/* Subtitle */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                    Subtitle
-                  </label>
-                  <input
-                    type="text"
-                    value={productsBanner.subtitle}
-                    onChange={(e) => setProductsBanner({ ...productsBanner, subtitle: e.target.value })}
-                    placeholder="Premium Grooming & Care Products for the Modern Gentleman."
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
-                  />
-                </div>
-
-                {/* Banner Image URL / Upload */}
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                    Background Image URL
-                  </label>
                   <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={productsBanner.image}
-                      onChange={(e) => setProductsBanner({ ...productsBanner, image: e.target.value })}
-                      placeholder="/salon/services-man.png"
-                      className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm"
-                    />
-                    <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 border border-gray-300 transition-colors">
-                      <Upload className="w-3.5 h-3.5 text-gray-600" />
-                      <span>{uploading ? "Uploading..." : "Upload"}</span>
+                    <label className="cursor-pointer bg-[#dfa742] hover:bg-[#caa638] text-black px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50">
+                      <Upload className="w-4 h-4" />
+                      <span>{uploading ? "Uploading..." : "Upload Image"}</span>
                       <input
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={(e) => handleImageUpload(e, "products")}
+                        onChange={(e) => handleImageUpload(e, activeTab)}
                       />
                     </label>
+
+                    {Boolean(current.data.image) && (
+                      <button
+                        type="button"
+                        onClick={() => current.setter({ image: "" })}
+                        className="px-3.5 py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-medium inline-flex items-center gap-1 transition-colors"
+                        title="Remove banner"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span className="hidden sm:inline">Remove</span>
+                      </button>
+                    )}
                   </div>
-                  <p className="text-[11px] text-gray-500 mt-1">
-                    Recommended: High-resolution landscape image (1920x600 or 1200x500).
-                  </p>
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] text-gray-500 pt-1">
+                  <span>{current.aspectHint}</span>
+                  {current.data.image && (
+                    <span className="text-emerald-600 font-medium inline-flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" />
+                      Image Selected
+                    </span>
+                  )}
                 </div>
               </div>
 
               {/* Submit CTA */}
-              <div className="pt-4 border-t border-gray-100 flex justify-end">
+              <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => handleSave("products")}
+                  onClick={() => handleSave(activeTab)}
                   disabled={saving}
-                  className="bg-[#dfa742] hover:bg-[#caa638] text-black font-bold text-sm px-7 py-3 rounded-xl inline-flex items-center gap-2 shadow-lg shadow-[#dfa742]/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                  className="bg-[#dfa742] hover:bg-[#caa638] text-black font-bold text-sm px-8 py-3 rounded-xl inline-flex items-center gap-2 shadow-lg shadow-[#dfa742]/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
-                  <span>{saving ? "Saving..." : "Save Products Banner"}</span>
+                  <span>{saving ? "Saving..." : current.saveLabel}</span>
                 </button>
               </div>
             </div>

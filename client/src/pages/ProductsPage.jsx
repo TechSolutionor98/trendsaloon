@@ -9,7 +9,7 @@ import { useLanguage } from "../context/LanguageContext"
 import { useToast } from "../context/ToastContext"
 import TrendHeader from "../components/TrendHeader"
 import TrendFooter from "../components/TrendFooter"
-import { fetchSalonCatalog } from "../services/salonService"
+import { fetchSalonCatalog, getCachedSalonBanners, fetchSalonBanners } from "../services/salonService"
 import { ArrowRight, Check, ChevronRight, ShoppingBag, Sparkles } from "lucide-react"
 import { getFullImageUrl } from "../utils/imageUtils"
 
@@ -22,11 +22,7 @@ export default function ProductsPage() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [addedItemIds, setAddedItemIds] = useState({})
-  const [productsBanner, setProductsBanner] = useState({
-    title: "Our Products",
-    subtitle: "Premium Grooming & Care Products for the Modern Gentleman.",
-    image: "/salon/services-man.png",
-  })
+  const [productsBanner, setProductsBanner] = useState(() => getCachedSalonBanners().products)
 
   // Load catalog dynamically from backend API / MongoDB
   useEffect(() => {
@@ -42,13 +38,9 @@ export default function ProductsPage() {
     loadCatalog()
 
     async function loadBanner() {
-      try {
-        const res = await axios.get(`${config.API_URL}/api/banners/salon-banners?_t=${Date.now()}`)
-        if (isMounted && res.data?.products) {
-          setProductsBanner((prev) => ({ ...prev, ...res.data.products }))
-        }
-      } catch (err) {
-        // Fallback default
+      const data = await fetchSalonBanners()
+      if (isMounted && data?.products) {
+        setProductsBanner((prev) => ({ ...prev, ...data.products }))
       }
     }
     loadBanner()
@@ -95,119 +87,44 @@ export default function ProductsPage() {
       {/* 1. Header Navigation */}
       <TrendHeader active="products" />
 
-      {/* 2. Hero Banner (Matching Exact Luxury Mockup with Dynamic Admin Controls) */}
+      {/* 2. Hero Banner */}
       <section className="relative bg-[#0d0e11] text-white overflow-hidden">
-        {Boolean(productsBanner.image && productsBanner.image !== "/salon/services-man.png") ? (
-          /* Full-Width Custom Designed Banner */
-          <div className="relative w-full overflow-hidden select-none">
-            <img
-              src={getFullImageUrl(productsBanner.image)}
-              alt={productsBanner.title || "Our Products"}
-              className="w-full h-auto min-h-[200px] sm:min-h-[280px] md:min-h-[340px] max-h-[460px] object-cover object-center"
-            />
+        <div className="relative w-full overflow-hidden select-none">
+          <img
+            src={getFullImageUrl(productsBanner.image)}
+            alt={productsBanner.title || "Our Products"}
+            className="w-full h-auto min-h-[180px] sm:min-h-[260px] md:min-h-[320px] max-h-[460px] object-cover object-center"
+          />
 
-            {/* If user provided text, overlay cleanly; if empty, show pure banner */}
-            {Boolean(productsBanner.title?.trim() || productsBanner.subtitle?.trim()) && (
-              <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent flex items-center">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                  <div className="max-w-xl text-left space-y-2.5 py-4">
-                    {/* Salon Emblem/Logo above title matching exact mockup */}
-                    <div className="flex items-center gap-2 pb-0.5">
-                      <div className="w-8 h-8 rounded-full bg-[#dfa742]/15 border border-[#dfa742]/40 flex items-center justify-center shadow-sm">
-                        <ShoppingBag className="w-4 h-4 text-[#dfa742]" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-serif font-black text-xs tracking-widest text-[#dfa742] uppercase leading-none drop-shadow-sm">
-                          TREND
-                        </span>
-                        <span className="text-[7px] tracking-[0.25em] text-[#e0cfab] uppercase font-medium">
-                          GENTS SALOON
-                        </span>
-                      </div>
-                    </div>
+          {Boolean(productsBanner.title?.trim() || productsBanner.subtitle?.trim()) && (
+            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent flex items-center">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                <div className="max-w-xl text-left space-y-2.5 py-4">
+                  {productsBanner.title && (
+                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
+                      {productsBanner.title}
+                    </h1>
+                  )}
 
-                    {productsBanner.title && (
-                      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
-                        {productsBanner.title}
-                      </h1>
-                    )}
+                  {productsBanner.subtitle && (
+                    <p className="text-gray-200 text-sm sm:text-base font-light tracking-wide">
+                      {productsBanner.subtitle}
+                    </p>
+                  )}
 
-                    {productsBanner.subtitle && (
-                      <p className="text-gray-200 text-sm sm:text-base font-light tracking-wide">
-                        {productsBanner.subtitle}
-                      </p>
-                    )}
-
-                    {/* Breadcrumbs */}
-                    <nav className="flex items-center gap-2 text-xs text-gray-400 pt-1" aria-label="Breadcrumb">
-                      <Link to={getLocalizedPath("/")} className="hover:text-[#dfa742] transition-colors">
-                        Home
-                      </Link>
-                      <ChevronRight className="w-3.5 h-3.5 text-gray-500" />
-                      <span className="text-gray-200 font-medium">Our Products</span>
-                    </nav>
-                  </div>
+                  {/* Breadcrumbs */}
+                  <nav className="flex items-center gap-2 text-xs text-gray-400 pt-1" aria-label="Breadcrumb">
+                    <Link to={getLocalizedPath("/")} className="hover:text-[#dfa742] transition-colors">
+                      Home
+                    </Link>
+                    <ChevronRight className="w-3.5 h-3.5 text-gray-500" />
+                    <span className="text-gray-200 font-medium">Our Products</span>
+                  </nav>
                 </div>
               </div>
-            )}
-          </div>
-        ) : (
-          /* Default Split Gentleman Layout */
-          <div className="relative py-10 sm:py-14">
-            {/* Soft Ambient Radial Lights */}
-            <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#dfa742]/10 rounded-full blur-3xl pointer-events-none" />
-
-            {/* Right Hero Image: Gentleman grooming scene seamlessly blended into dark background */}
-            <div className="absolute top-0 right-0 bottom-0 w-full sm:w-3/5 lg:w-[52%] pointer-events-none overflow-hidden select-none">
-              <img
-                src={getFullImageUrl(productsBanner.image) || "/salon/services-man.png"}
-                alt="Trend Salon Products"
-                className="w-full h-full object-cover object-right sm:object-center filter brightness-100"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e11] via-[#0d0e11]/60 to-transparent sm:via-[#0d0e11]/25" />
             </div>
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-              <div className="max-w-xl space-y-2.5">
-                {/* Salon Emblem/Logo above title matching exact mockup */}
-                <div className="flex items-center gap-2 pb-0.5">
-                  <div className="w-8 h-8 rounded-full bg-[#dfa742]/15 border border-[#dfa742]/40 flex items-center justify-center shadow-sm">
-                    <ShoppingBag className="w-4 h-4 text-[#dfa742]" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-serif font-black text-xs tracking-widest text-[#dfa742] uppercase leading-none drop-shadow-sm">
-                      TREND
-                    </span>
-                    <span className="text-[7px] tracking-[0.25em] text-[#e0cfab] uppercase font-medium">
-                      GENTS SALOON
-                    </span>
-                  </div>
-                </div>
-
-                {Boolean(productsBanner.title?.trim()) && (
-                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
-                    {productsBanner.title}
-                  </h1>
-                )}
-
-                {Boolean(productsBanner.subtitle?.trim()) && (
-                  <p className="text-gray-200 text-sm sm:text-base font-light tracking-wide">
-                    {productsBanner.subtitle}
-                  </p>
-                )}
-
-                {/* Breadcrumbs */}
-                <nav className="flex items-center gap-2 text-xs text-gray-400 pt-1" aria-label="Breadcrumb">
-                  <Link to={getLocalizedPath("/")} className="hover:text-[#dfa742] transition-colors">
-                    Home
-                  </Link>
-                  <ChevronRight className="w-3.5 h-3.5 text-gray-500" />
-                  <span className="text-gray-200 font-medium">Our Products</span>
-                </nav>
-              </div>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </section>
 
       {/* 3. Main Content Area (Full Catalog Grid of Products) */}

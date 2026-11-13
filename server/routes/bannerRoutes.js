@@ -70,6 +70,7 @@ router.get(
       const offersBanner = await Banner.findOne({ position: "home-offers", isActive: true })
       const servicesBanner = await Banner.findOne({ position: "services-hero", isActive: true })
       const productsBanner = await Banner.findOne({ position: "products-hero", isActive: true })
+      const contactBanner = await Banner.findOne({ position: "contact-hero", isActive: true })
 
       res.json({
         home: homeBanner
@@ -128,6 +129,14 @@ router.get(
               subtitle: "Premium Grooming & Care Products for the Modern Gentleman.",
               image: "/salon/services-man.png",
             },
+        contact: contactBanner
+          ? {
+              _id: contactBanner._id,
+              image: contactBanner.image || "",
+            }
+          : {
+              image: "",
+            },
       })
     } catch (err) {
       console.error("Error fetching salon banners:", err)
@@ -169,7 +178,7 @@ router.put(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const { home, offers, services, products } = req.body
+    const { home, offers, services, products, contact } = req.body
 
     if (home) {
       await Banner.findOneAndUpdate(
@@ -228,6 +237,19 @@ router.put(
           subtitle: typeof products.subtitle === "string" ? products.subtitle : "",
           image: typeof products.image === "string" ? products.image : "/salon/services-man.png",
           position: "products-hero",
+          isActive: true,
+          createdBy: req.user._id,
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      )
+    }
+
+    if (contact) {
+      await Banner.findOneAndUpdate(
+        { position: "contact-hero" },
+        {
+          image: typeof contact.image === "string" ? contact.image : "",
+          position: "contact-hero",
           isActive: true,
           createdBy: req.user._id,
         },

@@ -254,6 +254,9 @@ export const getCachedSalonBanners = () => {
       title: "",
       subtitle: "",
     },
+    contact: {
+      image: "",
+    },
   }
 }
 

@@ -15,6 +15,8 @@ import {
   DEFAULT_SERVICES,
   DEFAULT_PRODUCTS,
   SPECIAL_OFFER_COMBO,
+  getCachedSalonBanners,
+  fetchSalonBanners,
 } from "../services/salonService"
 import {
   Scissors,
@@ -125,20 +127,8 @@ export default function Home() {
   // Homepage displays top 6 items; 'See More' navigates to full services/products page
   const visibleServices = services.slice(0, 6)
   const visibleProducts = products.slice(0, 5)
-  const [heroBanner, setHeroBanner] = useState({
-    title: "",
-    tagline: "",
-    subtitle: "",
-    image: "",
-    buttonText: "",
-  })
-  const [offersBanner, setOffersBanner] = useState({
-    title: "Special Offers",
-    subtitle: "Look Better. Pay Less.",
-    image: "",
-    buttonText: "View All Offers",
-    link: "",
-  })
+  const [heroBanner, setHeroBanner] = useState(() => getCachedSalonBanners().home)
+  const [offersBanner, setOffersBanner] = useState(() => getCachedSalonBanners().offers)
 
   // Fetch dynamic products and services from database/Admin
   useEffect(() => {
@@ -156,14 +146,10 @@ export default function Home() {
 
     // Fetch dynamic hero & offers banner
     async function loadBanner() {
-      try {
-        const res = await axios.get(`${config.API_URL}/api/banners/salon-banners?_t=${Date.now()}`)
-        if (isMounted && res.data) {
-          if (res.data.home) setHeroBanner((prev) => ({ ...prev, ...res.data.home }))
-          if (res.data.offers) setOffersBanner((prev) => ({ ...prev, ...res.data.offers }))
-        }
-      } catch (err) {
-        // Fallback already in banner states
+      const data = await fetchSalonBanners()
+      if (isMounted && data) {
+        if (data.home) setHeroBanner((prev) => ({ ...prev, ...data.home }))
+        if (data.offers) setOffersBanner((prev) => ({ ...prev, ...data.offers }))
       }
     }
     loadBanner()
@@ -219,124 +205,49 @@ export default function Home() {
           2. HERO SECTION (Full Luxury Banner matching Mockup)
           ------------------------------------------------------------- */}
       <section className="relative bg-[#0d0e11] text-white overflow-hidden">
-        {Boolean(heroBanner.image && heroBanner.image !== "/salon/hero-man-transparent.png") ? (
-          /* Full-Width Custom Designed Banner */
-          <div className="relative w-full overflow-hidden select-none">
-            <img
-              src={getFullImageUrl(heroBanner.image)}
-              alt={heroBanner.title || "Trend Gents Saloon"}
-              className="w-full h-auto min-h-[260px] sm:min-h-[380px] md:min-h-[480px] max-h-[650px] object-cover object-center"
-            />
+        <div className="relative w-full overflow-hidden select-none">
+          <img
+            src={getFullImageUrl(heroBanner.image)}
+            alt={heroBanner.title || "Trend Gents Saloon"}
+            className="w-full h-auto min-h-[260px] sm:min-h-[380px] md:min-h-[480px] max-h-[650px] object-cover object-center"
+          />
 
-            {/* If user provided text, overlay it cleanly; if text was removed, show purely the custom designed banner */}
-            {Boolean(heroBanner.title?.trim() || heroBanner.tagline?.trim() || heroBanner.subtitle?.trim()) && (
-              <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent flex items-center">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                  <div className="max-w-xl lg:max-w-2xl text-left space-y-4 py-4">
-                    {heroBanner.tagline && (
-                      <div className="inline-flex items-center gap-2.5 text-xs sm:text-sm font-medium tracking-[0.2em] uppercase text-gray-300">
-                        <span>{heroBanner.tagline}</span>
-                      </div>
-                    )}
-                    {heroBanner.title && (
-                      <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-bold text-white tracking-tight leading-[1.1]">
-                        {heroBanner.title}
-                      </h1>
-                    )}
-                    {heroBanner.subtitle && (
-                      <p className="text-sm sm:text-base text-gray-300 max-w-lg font-light leading-relaxed">
-                        {heroBanner.subtitle}
-                      </p>
-                    )}
-                    {heroBanner.buttonText && (
-                      <div className="pt-2">
-                        <button
-                          onClick={() => scrollToSection("services")}
-                          className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-sm sm:text-base px-7 py-3 rounded-full flex items-center gap-2 shadow-lg shadow-[#dfa742]/25 transition-all duration-300 hover:scale-105 active:scale-95"
-                        >
-                          <span>{heroBanner.buttonText}</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          /* Default Split Hero Layout */
-          <div className="relative pt-8 sm:pt-14 pb-24 sm:pb-32">
-            {/* Soft Ambient Radial Lights */}
-            <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#dfa742]/10 rounded-full blur-3xl pointer-events-none" />
-
-            {/* Right Hero Image: Gentleman shaving scene seamlessly blended into dark background */}
-            <div className="absolute top-0 right-0 bottom-0 w-full sm:w-3/5 lg:w-[54%] pointer-events-none overflow-hidden select-none">
-              <img
-                src={getFullImageUrl(heroBanner.image) || "/salon/hero-man-transparent.png"}
-                alt="Trend Salon Gentleman Grooming"
-                className="w-full h-full object-cover object-right sm:object-center filter brightness-95"
-              />
-              {/* Mobile Dark Gradient Overlay to ensure crisp readability */}
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e11] via-[#0d0e11]/85 to-transparent sm:hidden" />
-              {/* Subtle bottom fade to curve */}
-              <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#0d0e11] to-transparent" />
-            </div>
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-              <div className="max-w-xl lg:max-w-2xl text-left space-y-5 sm:space-y-6 py-4 sm:py-8">
-                {/* Tagline */}
-                {heroBanner.tagline && (
-                  <div className="inline-flex items-center gap-2.5 text-xs sm:text-sm font-medium tracking-[0.2em] uppercase text-gray-300">
-                    <span>{heroBanner.tagline}</span>
-                  </div>
-                )}
-
-                {/* Main Headline */}
-                {heroBanner.title && (
-                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold text-white tracking-tight leading-[1.1]">
-                    {heroBanner.title.includes(" ") ? (
-                      <>
-                        {heroBanner.title.split(" ").slice(0, -1).join(" ")}{" "}
-                        <span className="italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-[#dfa742] via-[#f7e7a9] to-[#c59d5f]">
-                          {heroBanner.title.split(" ").slice(-1)[0]}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-[#dfa742]">{heroBanner.title}</span>
-                    )}
-                  </h1>
-                )}
-
-                {/* Subheadline */}
-                {heroBanner.subtitle && (
-                  <p className="text-base sm:text-lg text-gray-300 max-w-lg font-light leading-relaxed">
-                    {heroBanner.subtitle}
-                  </p>
-                )}
-
-                {/* Two CTA Buttons matching Mockup */}
-                <div className="flex flex-wrap items-center gap-4 pt-3">
-                  <button
-                    onClick={() => scrollToSection("services")}
-                    className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-sm sm:text-base px-7 py-3 rounded-full flex items-center gap-2 shadow-lg shadow-[#dfa742]/25 transition-all duration-300 hover:scale-105 active:scale-95"
-                  >
-                    <span>{heroBanner.buttonText || "Book Now"}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-
-                  <button
-                    onClick={() => scrollToSection("products")}
-                    className="border border-white/30 hover:border-white/70 bg-black/40 hover:bg-black/60 text-white font-medium text-sm sm:text-base px-6 py-3 rounded-full flex items-center gap-2 backdrop-blur-sm transition-all duration-300 hover:scale-105 active:scale-95"
-                  >
-                    <ShoppingCart className="w-4 h-4 text-[#dfa742]" />
-                    <span>Shop Products</span>
-                  </button>
+          {/* If user provided text, overlay it cleanly; if text was removed, show purely the custom designed banner */}
+          {Boolean(heroBanner.title?.trim() || heroBanner.tagline?.trim() || heroBanner.subtitle?.trim()) && (
+            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent flex items-center">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                <div className="max-w-xl lg:max-w-2xl text-left space-y-4 py-4">
+                  {heroBanner.tagline && (
+                    <div className="inline-flex items-center gap-2.5 text-xs sm:text-sm font-medium tracking-[0.2em] uppercase text-gray-300">
+                      <span>{heroBanner.tagline}</span>
+                    </div>
+                  )}
+                  {heroBanner.title && (
+                    <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-bold text-white tracking-tight leading-[1.1]">
+                      {heroBanner.title}
+                    </h1>
+                  )}
+                  {heroBanner.subtitle && (
+                    <p className="text-sm sm:text-base text-gray-300 max-w-lg font-light leading-relaxed">
+                      {heroBanner.subtitle}
+                    </p>
+                  )}
+                  {heroBanner.buttonText && (
+                    <div className="pt-2">
+                      <button
+                        onClick={() => scrollToSection("services")}
+                        className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-sm sm:text-base px-7 py-3 rounded-full flex items-center gap-2 shadow-lg shadow-[#dfa742]/25 transition-all duration-300 hover:scale-105 active:scale-95"
+                      >
+                        <span>{heroBanner.buttonText}</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* -------------------------------------------------------------
             Curved Transition Divider to White Section with Gold Ribbon

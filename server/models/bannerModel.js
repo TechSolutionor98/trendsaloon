@@ -35,6 +35,8 @@ const bannerSchema = mongoose.Schema(
         "home-hero",
         "home-offers",
         "services-hero",
+        "products-hero",
+        "contact-hero",
         "services",
         "category",
         "promotional",

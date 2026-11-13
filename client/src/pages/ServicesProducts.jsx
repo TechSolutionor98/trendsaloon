@@ -9,7 +9,7 @@ import { useLanguage } from "../context/LanguageContext"
 import { useToast } from "../context/ToastContext"
 import TrendHeader from "../components/TrendHeader"
 import TrendFooter from "../components/TrendFooter"
-import { fetchSalonCatalog } from "../services/salonService"
+import { fetchSalonCatalog, getCachedSalonBanners, fetchSalonBanners } from "../services/salonService"
 import { ArrowRight, Check, ChevronRight } from "lucide-react"
 import { getFullImageUrl } from "../utils/imageUtils"
 
@@ -23,11 +23,7 @@ export default function ServicesProducts() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [addedItemIds, setAddedItemIds] = useState({})
-  const [servicesBanner, setServicesBanner] = useState({
-    title: "Our Services & Products",
-    subtitle: "Professional Care. Premium Quality.",
-    image: "/salon/services-man.png",
-  })
+  const [servicesBanner, setServicesBanner] = useState(() => getCachedSalonBanners().services)
 
   // Load catalog dynamically from backend API / MongoDB
   useEffect(() => {
@@ -44,13 +40,9 @@ export default function ServicesProducts() {
     loadCatalog()
 
     async function loadBanner() {
-      try {
-        const res = await axios.get(`${config.API_URL}/api/banners/salon-banners?_t=${Date.now()}`)
-        if (isMounted && res.data?.services) {
-          setServicesBanner((prev) => ({ ...prev, ...res.data.services }))
-        }
-      } catch (err) {
-        // Fallback default
+      const data = await fetchSalonBanners()
+      if (isMounted && data?.services) {
+        setServicesBanner((prev) => ({ ...prev, ...data.services }))
       }
     }
     loadBanner()
@@ -92,147 +84,44 @@ export default function ServicesProducts() {
       {/* 1. Header Navigation */}
       <TrendHeader active="services" />
 
-      {/* 2. Hero Banner (Matching Exact Mockup with Dynamic Admin Controls) */}
+      {/* 2. Hero Banner */}
       <section className="relative bg-[#0d0e11] text-white overflow-hidden">
-        {Boolean(servicesBanner.image && servicesBanner.image !== "/salon/services-man.png") ? (
-          /* Full-Width Custom Designed Banner */
-          <div className="relative w-full overflow-hidden select-none">
-            <img
-              src={getFullImageUrl(servicesBanner.image)}
-              alt={servicesBanner.title || "Our Services & Products"}
-              className="w-full h-auto min-h-[200px] sm:min-h-[280px] md:min-h-[340px] max-h-[460px] object-cover object-center"
-            />
+        <div className="relative w-full overflow-hidden select-none">
+          <img
+            src={getFullImageUrl(servicesBanner.image)}
+            alt={servicesBanner.title || "Our Services & Products"}
+            className="w-full h-auto min-h-[180px] sm:min-h-[260px] md:min-h-[320px] max-h-[460px] object-cover object-center"
+          />
 
-            {/* If user provided text, overlay cleanly; if empty, show pure banner */}
-            {Boolean(servicesBanner.title?.trim() || servicesBanner.subtitle?.trim()) && (
-              <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent flex items-center">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                  <div className="max-w-xl text-left space-y-2.5 py-4">
-                    {/* Salon Emblem/Logo */}
-                    <div className="flex items-center gap-2 pb-0.5">
-                      <div className="w-8 h-8 rounded-full bg-[#dfa742]/15 border border-[#dfa742]/40 flex items-center justify-center shadow-sm">
-                        <svg
-                          className="w-4 h-4 text-[#dfa742]"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <circle cx="6" cy="6" r="3" />
-                          <circle cx="6" cy="18" r="3" />
-                          <line x1="20" y1="4" x2="8.12" y2="15.88" />
-                          <line x1="14.47" y1="14.48" x2="20" y2="20" />
-                          <line x1="8.12" y1="8.12" x2="12" y2="12" />
-                        </svg>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-serif font-black text-xs tracking-widest text-[#dfa742] uppercase leading-none drop-shadow-sm">
-                          TREND
-                        </span>
-                        <span className="text-[7px] tracking-[0.25em] text-[#e0cfab] uppercase font-medium">
-                          GENTS SALOON
-                        </span>
-                      </div>
-                    </div>
+          {Boolean(servicesBanner.title?.trim() || servicesBanner.subtitle?.trim()) && (
+            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent flex items-center">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                <div className="max-w-xl text-left space-y-2.5 py-4">
+                  {servicesBanner.title && (
+                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
+                      {servicesBanner.title}
+                    </h1>
+                  )}
 
-                    {servicesBanner.title && (
-                      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
-                        {servicesBanner.title}
-                      </h1>
-                    )}
+                  {servicesBanner.subtitle && (
+                    <p className="text-gray-200 text-sm sm:text-base font-light tracking-wide">
+                      {servicesBanner.subtitle}
+                    </p>
+                  )}
 
-                    {servicesBanner.subtitle && (
-                      <p className="text-gray-200 text-sm sm:text-base font-light tracking-wide">
-                        {servicesBanner.subtitle}
-                      </p>
-                    )}
-
-                    {/* Breadcrumbs */}
-                    <nav className="flex items-center gap-2 text-xs text-gray-400 pt-1" aria-label="Breadcrumb">
-                      <Link to={getLocalizedPath("/")} className="hover:text-[#dfa742] transition-colors">
-                        Home
-                      </Link>
-                      <ChevronRight className="w-3.5 h-3.5 text-gray-500" />
-                      <span className="text-gray-200 font-medium">Services & Products</span>
-                    </nav>
-                  </div>
+                  {/* Breadcrumbs */}
+                  <nav className="flex items-center gap-2 text-xs text-gray-400 pt-1" aria-label="Breadcrumb">
+                    <Link to={getLocalizedPath("/")} className="hover:text-[#dfa742] transition-colors">
+                      Home
+                    </Link>
+                    <ChevronRight className="w-3.5 h-3.5 text-gray-500" />
+                    <span className="text-gray-200 font-medium">Services & Products</span>
+                  </nav>
                 </div>
               </div>
-            )}
-          </div>
-        ) : (
-          /* Default Split Layout */
-          <div className="relative py-10 sm:py-14">
-            {/* Soft Ambient Radial Lights */}
-            <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#dfa742]/10 rounded-full blur-3xl pointer-events-none" />
-
-            {/* Right Hero Image: Gentleman grooming scene seamlessly blended into dark background */}
-            <div className="absolute top-0 right-0 bottom-0 w-full sm:w-3/5 lg:w-[52%] pointer-events-none overflow-hidden select-none">
-              <img
-                src={getFullImageUrl(servicesBanner.image) || "/salon/services-man.png"}
-                alt="Trend Salon Services & Products"
-                className="w-full h-full object-cover object-right sm:object-center filter brightness-100"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e11] via-[#0d0e11]/60 to-transparent sm:via-[#0d0e11]/25" />
             </div>
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-              <div className="max-w-xl space-y-2.5">
-                {/* Salon Emblem/Logo above title matching exact mockup */}
-                <div className="flex items-center gap-2 pb-0.5">
-                  <div className="w-8 h-8 rounded-full bg-[#dfa742]/15 border border-[#dfa742]/40 flex items-center justify-center shadow-sm">
-                    <svg
-                      className="w-4 h-4 text-[#dfa742]"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="6" cy="6" r="3" />
-                      <circle cx="6" cy="18" r="3" />
-                      <line x1="20" y1="4" x2="8.12" y2="15.88" />
-                      <line x1="14.47" y1="14.48" x2="20" y2="20" />
-                      <line x1="8.12" y1="8.12" x2="12" y2="12" />
-                    </svg>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-serif font-black text-xs tracking-widest text-[#dfa742] uppercase leading-none drop-shadow-sm">
-                      TREND
-                    </span>
-                    <span className="text-[7px] tracking-[0.25em] text-[#e0cfab] uppercase font-medium">
-                      GENTS SALOON
-                    </span>
-                  </div>
-                </div>
-
-                {Boolean(servicesBanner.title?.trim()) && (
-                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
-                    {servicesBanner.title}
-                  </h1>
-                )}
-
-                {Boolean(servicesBanner.subtitle?.trim()) && (
-                  <p className="text-gray-200 text-sm sm:text-base font-light tracking-wide">
-                    {servicesBanner.subtitle}
-                  </p>
-                )}
-
-                {/* Breadcrumbs */}
-                <nav className="flex items-center gap-2 text-xs text-gray-400 pt-1" aria-label="Breadcrumb">
-                  <Link to={getLocalizedPath("/")} className="hover:text-[#dfa742] transition-colors">
-                    Home
-                  </Link>
-                  <ChevronRight className="w-3.5 h-3.5 text-gray-500" />
-                  <span className="text-gray-200 font-medium">Services & Products</span>
-                </nav>
-              </div>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </section>
 
       {/* 3. Main Content Area (Two Columns Layout) */}
@@ -331,9 +220,9 @@ export default function ServicesProducts() {
                 Our Products
               </h2>
 
-              {/* Vertical Products List */}
+              {/* Vertical Products List (Limited to top 5 so height matches 2 rows of services) */}
               <div className="space-y-4">
-                {products.map((product) => {
+                {products.slice(0, 5).map((product) => {
                   const isAdded = addedItemIds[product._id]
 
                   return (
@@ -378,7 +267,11 @@ export default function ServicesProducts() {
               </div>
 
               {/* Featured Promo Card inside Right Column */}
-              <div className="mt-6 bg-[#111113] rounded-2xl p-4 text-white relative overflow-hidden flex items-center justify-between border border-white/10 group">
+              <div
+                onClick={() => navigate(getLocalizedPath("/products"))}
+                className="mt-6 bg-[#111113] rounded-2xl p-4 text-white relative overflow-hidden flex items-center justify-between border border-white/10 group cursor-pointer hover:border-[#dfa742]/40 transition-colors"
+                title="View all salon products"
+              >
                 {/* Left Text & CTA */}
                 <div className="z-10 space-y-2 max-w-[55%]">
                   <h4 className="text-sm sm:text-base font-bold text-white leading-snug">
@@ -389,8 +282,12 @@ export default function ServicesProducts() {
                     </span>
                   </h4>
                   <button
-                    onClick={() => navigate(getLocalizedPath("/shop"))}
-                    className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-[11px] sm:text-xs px-3.5 py-1.5 rounded-full inline-flex items-center gap-1 shadow-md transition-all duration-200 hover:scale-105"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      navigate(getLocalizedPath("/products"))
+                    }}
+                    className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-[11px] sm:text-xs px-3.5 py-1.5 rounded-full inline-flex items-center gap-1 shadow-md transition-all duration-200 hover:scale-105 active:scale-95"
                   >
                     <span>Shop All Products</span>
                     <ArrowRight className="w-3 h-3" />
