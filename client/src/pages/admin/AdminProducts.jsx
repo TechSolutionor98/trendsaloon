@@ -18,15 +18,12 @@ import { exportProductsToExcel } from "../../utils/exportToExcel"
 const ALL_COLUMNS = [
   { id: 'select', label: 'Select', default: true, alwaysVisible: true },
   { id: 'product', label: 'Item (Product / Service)', default: true },
-  { id: 'brand', label: 'Brand', default: true },
   { id: 'parentCategory', label: 'Parent Category', default: false },
   { id: 'level1', label: 'Level 1', default: false },
   { id: 'level2', label: 'Level 2', default: false },
   { id: 'level3', label: 'Level 3', default: false },
   { id: 'level4', label: 'Level 4', default: false },
   { id: 'price', label: 'Price', default: true },
-  { id: 'stock', label: 'Stock / Qty', default: true },
-  { id: 'sku', label: 'SKU', default: true },
   { id: 'action', label: 'Action', default: true, alwaysVisible: true },
 ]
 
@@ -143,10 +140,10 @@ const AdminProducts = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed) && !parsed.includes('stock')) {
-          parsed.push('stock')
+        if (Array.isArray(parsed)) {
+          const filtered = parsed.filter(c => !['brand', 'stock', 'sku'].includes(c))
+          return filtered.length > 0 ? filtered : ALL_COLUMNS.filter(c => c.default).map(c => c.id)
         }
-        return parsed
       } catch {
         return ALL_COLUMNS.filter(c => c.default).map(c => c.id)
       }
@@ -363,10 +360,7 @@ const AdminProducts = () => {
 
   // Check if column is visible (hide multi-level ecommerce category columns that don't apply to salon)
   const isColumnVisible = (columnId) => {
-    if (['parentCategory', 'level1', 'level2', 'level3', 'level4'].includes(columnId)) {
-      return false
-    }
-    if (isServicesSection && columnId === 'brand') {
+    if (['brand', 'stock', 'sku', 'parentCategory', 'level1', 'level2', 'level3', 'level4'].includes(columnId)) {
       return false
     }
     return visibleColumns.includes(columnId)
@@ -1926,14 +1920,6 @@ const AdminProducts = () => {
                             {isServicesSection ? "Service" : "Product"}
                           </th>
                           )}
-                          {isColumnVisible('brand') && (
-                          <th
-                            scope="col"
-                            className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            Brand
-                          </th>
-                          )}
                           {isColumnVisible('parentCategory') && (
                           <th
                             scope="col"
@@ -1982,22 +1968,6 @@ const AdminProducts = () => {
                            Base Price
                           </th>
                           )}
-                          {isColumnVisible('stock') && (
-                          <th
-                            scope="col"
-                            className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            Stock / Qty
-                          </th>
-                          )}
-                          {isColumnVisible('sku') && (
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            SKU
-                          </th>
-                          )}
                           {isColumnVisible('action') && (
                           <th
                             scope="col"
@@ -2043,14 +2013,7 @@ const AdminProducts = () => {
                                       <div className="text-sm font-medium text-white">{product.name}</div>
                                       {product.slug && <div className="text-xs text-gray-400">/{product.slug}</div>}
                                     </div>
-
-
                                   </div>
-                                </td>
-                                )}
-                                {isColumnVisible('brand') && (
-                                <td className="px-4 py-4 whitespace-nowrap">
-                                  <div className="text-sm text-gray-300">{product.brand?.name || 'N/A'}</div>
                                 </td>
                                 )}
                                 {isColumnVisible('parentCategory') && (
@@ -2096,60 +2059,6 @@ const AdminProducts = () => {
                                       {formatPrice(product.oldPrice)}
                                     </div>
                                   )}
-                                </td>
-                                )}
-                                {isColumnVisible('stock') && (
-                                <td className="px-3 py-4 whitespace-nowrap text-center">
-                                  {product.parentCategory?.name?.toLowerCase().includes("service") || product.category?.name?.toLowerCase().includes("service") ? (
-                                    <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-blue-50 text-blue-700">
-                                      Service
-                                    </span>
-                                  ) : (
-                                    <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${
-                                      (Number(product.countInStock) || 0) > 10
-                                        ? 'bg-green-100 text-green-800'
-                                        : (Number(product.countInStock) || 0) > 0
-                                        ? 'bg-amber-100 text-amber-800'
-                                        : 'bg-red-100 text-red-800'
-                                    }`}>
-                                      {product.countInStock !== undefined && product.countInStock !== null
-                                        ? `${product.countInStock} Left`
-                                        : (product.stockStatus || 'In Stock')}
-                                    </span>
-                                  )}
-                                </td>
-                                )}
-                                {isColumnVisible('sku') && (
-                                <td className="px-1 py-4 whitespace-nowrap">
-                                  <div className="flex flex-col items-start gap-1">
-                                    {product.sku ? (
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          navigator.clipboard.writeText(product.sku)
-                                          setCopiedSkuId(product._id)
-                                          setTimeout(() => setCopiedSkuId(null), 1500)
-                                        }}
-                                        className="inline-flex items-center gap-1 text-[9px] font-bold text-gray-500 hover:text-lime-600 transition-colors uppercase bg-gray-100 hover:bg-lime-50 border border-gray-200 hover:border-lime-200 px-1 py-0.5 rounded shadow-xs"
-                                        title="Copy SKU to clipboard"
-                                      >
-                                        {copiedSkuId === product._id ? (
-                                          <>
-                                            <Check size={9} className="text-green-600" />
-                                            <span className="text-green-600">Copied!</span>
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Copy size={9} />
-                                            <span>Copy</span>
-                                          </>
-                                        )}
-                                      </button>
-                                    ) : null}
-                                    <div className="text-xs text-gray-900 truncate font-mono" title={product.sku || 'N/A'}>
-                                      {(product.sku || 'N/A').substring(0, 10)}{(product.sku || 'N/A').length > 10 ? '...' : ''}
-                                    </div>
-                                  </div>
                                 </td>
                                 )}
                                 {isColumnVisible('action') && (
