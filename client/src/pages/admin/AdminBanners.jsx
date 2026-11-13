@@ -242,18 +242,18 @@ export default function AdminBanners() {
   const current = getCurrentBannerData()
 
   return (
-    <div className="flex min-h-screen bg-gray-50 text-gray-900 font-sans">
+    <div className="flex min-h-screen bg-[#0d0e11] text-gray-100 font-sans">
       <AdminSidebar />
 
       <main className="flex-1 ml-64 p-6 sm:p-10 max-w-7xl">
         {/* Page Header */}
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight flex items-center gap-2">
               <ImageIcon className="w-7 h-7 text-[#dfa742]" />
               <span>Main Pages Banner Manager</span>
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-400 mt-1">
               Upload custom graphical banners for all salon website pages. All banners render full-width edge-to-edge.
             </p>
           </div>
@@ -262,7 +262,7 @@ export default function AdminBanners() {
             <button
               onClick={fetchBanners}
               disabled={loading}
-              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-gray-300 bg-[#14161d] border border-[#2b2f3a] rounded-lg hover:bg-[#1a1d24] hover:text-white transition-colors shadow-sm"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
               <span>Refresh</span>
@@ -271,13 +271,13 @@ export default function AdminBanners() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex border-b border-gray-200 mb-8 space-x-2 overflow-x-auto pb-1">
+        <div className="flex border-b border-[#22252d] mb-8 space-x-2 overflow-x-auto pb-1">
           <button
             onClick={() => setActiveTab("home")}
             className={`py-3 px-4 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
               activeTab === "home"
-                ? "border-[#dfa742] text-[#b38743] bg-white shadow-sm"
-                : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/50"
+                ? "border-[#dfa742] text-[#dfa742] bg-[#14161d] shadow-sm"
+                : "border-transparent text-gray-400 hover:text-white hover:bg-[#14161d]/50"
             }`}
           >
             <Sparkles className="w-4 h-4 text-[#dfa742]" />
@@ -288,8 +288,8 @@ export default function AdminBanners() {
             onClick={() => setActiveTab("offers")}
             className={`py-3 px-4 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
               activeTab === "offers"
-                ? "border-[#dfa742] text-[#b38743] bg-white shadow-sm"
-                : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/50"
+                ? "border-[#dfa742] text-[#dfa742] bg-[#14161d] shadow-sm"
+                : "border-transparent text-gray-400 hover:text-white hover:bg-[#14161d]/50"
             }`}
           >
             <Sparkles className="w-4 h-4 text-[#dfa742]" />
@@ -300,8 +300,8 @@ export default function AdminBanners() {
             onClick={() => setActiveTab("services")}
             className={`py-3 px-4 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
               activeTab === "services"
-                ? "border-[#dfa742] text-[#b38743] bg-white shadow-sm"
-                : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/50"
+                ? "border-[#dfa742] text-[#dfa742] bg-[#14161d] shadow-sm"
+                : "border-transparent text-gray-400 hover:text-white hover:bg-[#14161d]/50"
             }`}
           >
             <Scissors className="w-4 h-4 text-[#dfa742]" />
@@ -312,8 +312,8 @@ export default function AdminBanners() {
             onClick={() => setActiveTab("products")}
             className={`py-3 px-4 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
               activeTab === "products"
-                ? "border-[#dfa742] text-[#b38743] bg-white shadow-sm"
-                : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/50"
+                ? "border-[#dfa742] text-[#dfa742] bg-[#14161d] shadow-sm"
+                : "border-transparent text-gray-400 hover:text-white hover:bg-[#14161d]/50"
             }`}
           >
             <ShoppingBag className="w-4 h-4 text-[#dfa742]" />
@@ -324,8 +324,8 @@ export default function AdminBanners() {
             onClick={() => setActiveTab("contact")}
             className={`py-3 px-4 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
               activeTab === "contact"
-                ? "border-[#dfa742] text-[#b38743] bg-white shadow-sm"
-                : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/50"
+                ? "border-[#dfa742] text-[#dfa742] bg-[#14161d] shadow-sm"
+                : "border-transparent text-gray-400 hover:text-white hover:bg-[#14161d]/50"
             }`}
           >
             <Phone className="w-4 h-4 text-[#dfa742]" />
@@ -365,19 +365,19 @@ export default function AdminBanners() {
             </div>
 
             {/* Banner Upload & Editing Card (No extra text fields) */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200 shadow-sm space-y-6">
-              <div className="border-b border-gray-100 pb-4">
-                <h3 className="text-lg font-bold text-gray-900 tracking-tight">
+            <div className="bg-[#14161d] rounded-2xl p-6 sm:p-8 border border-[#262933] shadow-xl space-y-6">
+              <div className="border-b border-[#262933] pb-4">
+                <h3 className="text-lg font-bold text-white tracking-tight">
                   {current.title}
                 </h3>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-gray-400 mt-0.5">
                   {current.description}
                 </p>
               </div>
 
               {/* Graphic Banner Image URL & Upload */}
               <div className="space-y-3">
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-300">
                   Banner Graphic Image (Artwork)
                 </label>
 
@@ -387,7 +387,7 @@ export default function AdminBanners() {
                     value={current.data.image}
                     onChange={(e) => current.setter({ image: e.target.value })}
                     placeholder="Upload image or enter file path (/uploads/...)"
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm bg-white"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-[#2b2f3a] focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm bg-[#1a1d24] text-white placeholder-gray-500"
                   />
 
                   <div className="flex gap-2">
@@ -406,7 +406,7 @@ export default function AdminBanners() {
                       <button
                         type="button"
                         onClick={() => current.setter({ image: "" })}
-                        className="px-3.5 py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-medium inline-flex items-center gap-1 transition-colors"
+                        className="px-3.5 py-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-medium inline-flex items-center gap-1 transition-colors"
                         title="Remove banner"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -419,7 +419,7 @@ export default function AdminBanners() {
                 <div className="flex items-center justify-between text-[11px] text-gray-500 pt-1">
                   <span>{current.aspectHint}</span>
                   {current.data.image && (
-                    <span className="text-emerald-600 font-medium inline-flex items-center gap-1">
+                    <span className="text-emerald-400 font-medium inline-flex items-center gap-1">
                       <CheckCircle className="w-3 h-3" />
                       Image Selected
                     </span>
@@ -428,7 +428,7 @@ export default function AdminBanners() {
               </div>
 
               {/* Submit CTA */}
-              <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-[#262933] flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => handleSave(activeTab)}

@@ -234,15 +234,15 @@ const AdminProducts = () => {
     const normalizedStatus = normalizeProductStatus(product)
 
     const statusClasses = {
-      "In Stock": "bg-green-50 hover:bg-green-100",
-      "Out of Stock": "bg-red-50 hover:bg-red-100",
-      PreOrder: "bg-blue-50 hover:bg-blue-100",
+      "In Stock": "hover:bg-[#1a1d26]",
+      "Out of Stock": "hover:bg-[#1a1d26] opacity-80",
+      PreOrder: "hover:bg-[#1a1d26]",
     }
 
     return [
       "transition-colors",
-      statusClasses[normalizedStatus] || "bg-white hover:bg-gray-50",
-      isEdited ? "ring-2 ring-lime-500 animate-pulse" : "",
+      statusClasses[normalizedStatus] || "hover:bg-[#1a1d26]",
+      isEdited ? "ring-2 ring-[#dfa742] animate-pulse" : "",
     ].filter(Boolean).join(" ")
   }
 
@@ -1415,7 +1415,7 @@ const AdminProducts = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-[#0d0e11] text-gray-100">
       <AdminSidebar />
 
       {/* Duplicate Confirmation Dialog */}
