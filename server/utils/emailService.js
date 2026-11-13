@@ -459,141 +459,180 @@ const getEmailTemplate = (type, data) => {
         <head>
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-          <title>Email Verification</title>
+          <title>Email Verification - Trend Gents Saloon</title>
           <style>
             body {
-              background-color: #e8f7ee;
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              background-color: #0b0c0e;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
               margin: 0;
               padding: 0;
+              -webkit-font-smoothing: antialiased;
+            }
+            .wrapper {
+              width: 100%;
+              background-color: #0b0c0e;
+              padding: 40px 15px;
             }
             .container {
-              max-width: 600px;
-              margin: 32px auto;
-              background-color: #ffffff;
-              border-radius: 16px;
+              max-width: 580px;
+              margin: 0 auto;
+              background-color: #12141a;
+              border-radius: 20px;
               overflow: hidden;
-              box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-              border: 1px solid #e0e0e0;
+              box-shadow: 0 12px 40px rgba(0,0,0,0.65);
+              border: 1px solid #262933;
             }
             .header {
-              background-color: #fff;
-              padding: 32px 0 16px 0;
+              background-color: #161820;
+              padding: 36px 20px 28px 20px;
               text-align: center;
-              border-bottom: 1px solid #e0e0e0;
+              border-bottom: 1px solid #262933;
             }
-            .header a {
+            .logo-link {
+              text-decoration: none;
               display: inline-block;
             }
-            .header img {
-              max-height: 60px;
+            .logo-img {
+              height: 76px;
+              width: auto;
+              max-width: 100%;
+              object-fit: contain;
+              margin: 0 auto;
+              display: block;
+            }
+            .brand-title {
+              margin-top: 12px;
+              font-family: 'Playfair Display', Georgia, serif;
+              font-size: 20px;
+              font-weight: 900;
+              letter-spacing: 4px;
+              color: #ffffff;
+              text-transform: uppercase;
+              line-height: 1;
+            }
+            .brand-subtitle {
+              font-size: 10px;
+              letter-spacing: 5px;
+              color: #dfa742;
+              font-weight: bold;
+              text-transform: uppercase;
+              margin-top: 5px;
             }
             .content {
-              padding: 40px 30px 32px 30px;
+              padding: 40px 32px 32px 32px;
               text-align: center;
+              color: #e5e7eb;
             }
             .content h2 {
-              color: #222;
-              font-size: 1.5rem;
-              margin-bottom: 0.5em;
+              color: #ffffff;
+              font-family: 'Playfair Display', Georgia, serif;
+              font-size: 26px;
+              font-weight: 700;
+              letter-spacing: 1px;
+              margin: 0 0 16px 0;
             }
             .content p {
-              color: #444;
-              font-size: 1.1rem;
-              margin: 0.5em 0 1.5em 0;
+              color: #9ca3af;
+              font-size: 15px;
+              line-height: 1.6;
+              margin: 0 0 20px 0;
             }
-            .code-box {
-              background: #f4f4f4;
-              border-radius: 10px;
-              margin: 32px auto 24px auto;
-              padding: 24px 0;
-              font-size: 2.2rem;
-              font-weight: bold;
-              color: #1abc7b;
-              letter-spacing: 10px;
+            .code-card {
+              background: #181a22;
+              border: 1.5px solid #dfa742;
+              border-radius: 14px;
+              margin: 28px auto 20px auto;
+              padding: 20px 10px;
               max-width: 320px;
+              box-shadow: 0 6px 24px rgba(223, 167, 66, 0.18);
             }
-            .copy-btn {
-              display: inline-block;
-              background: #1abc7b;
-              color: #fff;
+            .code-text {
+              font-size: 34px;
+              font-weight: 800;
+              color: #dfa742;
+              letter-spacing: 12px;
+              font-family: 'Courier New', Courier, monospace;
+              padding-left: 12px;
+              display: block;
+            }
+            .code-instruction {
+              margin: 16px 0 0 0;
+              color: #dfa742;
+              font-size: 13px;
               font-weight: 600;
-              padding: 16px 40px;
-              border-radius: 8px;
-              text-decoration: none;
-              font-size: 1.1rem;
-              margin: 24px 0 0 0;
-              transition: background 0.2s;
-              cursor: pointer;
+              letter-spacing: 0.5px;
             }
-            .copy-btn:hover {
-              background: #159c65;
+            .code-expiry {
+              margin-top: 28px !important;
+              color: #6b7280 !important;
+              font-size: 12px !important;
+              line-height: 1.5 !important;
             }
             .footer {
-              background-color: #e8f7ee;
-              padding: 32px 20px 20px 20px;
+              background-color: #0d0e11;
+              border-top: 1px solid #22252d;
+              padding: 28px 20px 24px 20px;
               text-align: center;
+              font-size: 12px;
+              color: #6b7280;
+            }
+            .footer p {
+              margin: 0 0 6px 0;
+            }
+            .footer .brand-note {
+              color: #9ca3af;
+              font-weight: 600;
               font-size: 13px;
-              color: #888;
             }
-            .footer .socials {
-              margin: 18px 0 10px 0;
-            }
-            .footer .socials a {
-              display: inline-block;
-              margin: 0 10px;
-              text-decoration: none;
-            }
-            .footer .socials img {
-              width: 32px;
-              height: 32px;
-              vertical-align: middle;
-              border-radius: 50%;
-              background: #fff;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-              transition: box-shadow 0.2s;
-            }
-            .footer .socials img:hover {
-              box-shadow: 0 4px 16px rgba(26,188,123,0.15);
+            .footer .disclaimer {
+              color: #4b5563;
+              font-size: 11px;
+              margin-top: 12px;
+              line-height: 1.4;
             }
             @media (max-width: 600px) {
-              .container { border-radius: 0; margin: 0; }
-              .content { padding: 24px 8px 24px 8px; }
-              .footer { padding: 24px 4px 12px 4px; }
+              .wrapper { padding: 10px 0; }
+              .container { border-radius: 0; border: none; }
+              .content { padding: 28px 16px; }
+              .code-card { max-width: 280px; padding: 16px 5px; }
+              .code-text { font-size: 28px; letter-spacing: 8px; }
             }
           </style>
         </head>
         <body>
-          <div class="container">
-            <div class="header">
-              <a href="${SITE_URL}/" target="_blank">
-                <img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753105567/admin-logo_ruxcjj.png" alt="Graba2z Logo" />
-              </a>
-            </div>
-            <div class="content">
-              <h2>Email Verification</h2>
-              <p>Hi <b>${data.name || "User"}</b>,<br />
-              Thank you for registering with Graba2z. Please verify your email address by entering the verification code below:</p>
-              <div class="code-box">${data.code || "000000"}</div>
-              <p style="margin: 16px 0 0 0; color: #1abc7b; font-weight: bold;">
-                Copy the code above and paste it on the website to verify your email.
-              </p>
-              <p style="margin-top: 2em; color: #888; font-size: 1em;">This code will expire in 10 minutes.<br />If you didn't create an account with us, please ignore this email.</p>
-            </div>
-            <div class="footer">
-              <div class="socials">
-                <a href="https://www.facebook.com/grabatozae/" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107123/WhatsApp_Image_2025-07-21_at_7.10.18_AM_1_axvzvv.jpg" alt="Facebook" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://www.instagram.com/grabatoz/" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107124/WhatsApp_Image_2025-07-21_at_7.10.18_AM_xgjv5f.jpg" alt="Instagram" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://x.com/GrabAtoz" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107545/WhatsApp_Image_2025-07-21_at_7.10.18_AM_2_cwzjg6.png" alt="X" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
-                <a href="https://www.linkedin.com/company/grabatozae" target="_blank"><img src="https://res.cloudinary.com/dyfhsu5v6/image/upload/v1753107123/WhatsApp_Image_2025-07-21_at_7.10.18_AM_3_ll6y2i.jpg" alt="LinkedIn" style="width:32px;height:32px;margin:0 10px;vertical-align:middle;background:transparent;border-radius:8px;box-shadow:none;" /></a>
+          <div class="wrapper">
+            <div class="container">
+              <div class="header">
+                <a href="${SITE_URL}/" target="_blank" class="logo-link">
+                  <img src="${TREND_SALOON_LOGO_URL}" alt="Trend Gents Saloon Logo" class="logo-img" />
+                  <div class="brand-title">TREND</div>
+                  <div class="brand-subtitle">GENTS SALOON</div>
+                </a>
               </div>
-              <p>This email was sent by: support@grabatoz.ae</p>
-              <br/>
-              <p>Kindly Do Not Reply to this Email</p>
-              <br/>
-              <div style="margin-top: 10px; color: #888;">
-                &copy; 2025 Graba2z. All rights reserved.<br />
-                <span style="font-size:12px;">If you did not enter this email address when signing up for Graba2z, disregard this message.</span>
+              <div class="content">
+                <h2>Email Verification</h2>
+                <p>
+                  Hi <b style="color: #ffffff;">${data.name || "Valued Client"}</b>,<br />
+                  Thank you for registering with <b style="color: #dfa742;">Trend Gents Saloon</b>. Please verify your email address by entering the verification code below:
+                </p>
+                <div class="code-card">
+                  <span class="code-text">${data.code || "000000"}</span>
+                </div>
+                <p class="code-instruction">
+                  Enter this 6-digit code on the website to activate your account.
+                </p>
+                <p class="code-expiry">
+                  This code will expire in 10 minutes.<br />
+                  If you didn't create an account with us, please ignore this email.
+                </p>
+              </div>
+              <div class="footer">
+                <p class="brand-note">Trend Gents Saloon &bull; Luxury Grooming &amp; Style</p>
+                <p style="color: #6b7280;">Kindly do not reply directly to this automated email.</p>
+                <p class="disclaimer">
+                  &copy; ${new Date().getFullYear()} Trend Gents Saloon. All rights reserved.<br />
+                  If you did not enter this email address when signing up for Trend Gents Saloon, please disregard this message.
+                </p>
               </div>
             </div>
           </div>
@@ -1969,7 +2008,7 @@ function recordEmail(entry) {
 export const sendVerificationEmail = async (email, name, code) => {
   try {
     const html = getEmailTemplate("emailVerification", { name, code })
-    await sendEmail(email, "Verify Your Email - Graba2z", html, "support")
+    await sendEmail(email, "Verify Your Email - Trend Saloon", html, "support")
     return { success: true }
   } catch (error) {
     console.error("Failed to send verification email:", error)
@@ -2007,7 +2046,7 @@ export const sendOrderPlacedEmail = async (order) => {
         customerEmail,
       })
 
-      const customerSubject = `Order Confirmation #${orderNumber} - Graba2z`
+      const customerSubject = `Order Confirmation #${orderNumber} - Trend Saloon`
       await sendEmail(customerEmail, customerSubject, customerHtml, "order")
       recipientsSent.push(customerEmail)
     }
@@ -2070,7 +2109,7 @@ export const sendQuotationCreatedEmail = async (quotation) => {
         customerEmail,
       })
 
-      const customerSubject = `Quotation #${quotationNumber} - Graba2z`
+      const customerSubject = `Quotation #${quotationNumber} - Trend Saloon`
       await sendEmail(customerEmail, customerSubject, customerHtml, "order")
       recipientsSent.push(customerEmail)
     }
@@ -2181,7 +2220,7 @@ export const sendOrderStatusUpdateEmail = async (order) => {
       returned: "Order Returned",
     }
 
-    const subject = `${statusMessages[normalizedStatus] || "Order Update"} #${orderNumber} - Graba2z`
+    const subject = `${statusMessages[normalizedStatus] || "Order Update"} #${orderNumber} - Trend Saloon`
     for (const recipient of recipients) {
       await sendEmail(recipient, subject, sanitizedHtml, "order")
     }
@@ -2198,7 +2237,7 @@ export const sendOrderStatusUpdateEmail = async (order) => {
 export const sendReviewVerificationEmail = async (email, name, code, productName, rating, comment) => {
   try {
     const html = getEmailTemplate("reviewVerification", { name, code, productName, rating, comment })
-    await sendEmail(email, "Verify Your Product Review - Graba2z", html, "support")
+    await sendEmail(email, "Verify Your Product Review - Trend Saloon", html, "support")
     return { success: true }
   } catch (error) {
     console.error("Failed to send review verification email:", error)
@@ -2213,7 +2252,7 @@ export const sendAccountDeletionEmail = async (email, name, code) => {
     const html = getEmailTemplate("accountDeletion", { name, code })
     console.log("[sendAccountDeletionEmail] Template generated, length:", html.length)
     console.log("[sendAccountDeletionEmail] Calling sendEmail with support sender")
-    const result = await sendEmail(email, "Account Deletion Verification - Graba2z", html, "support")
+    const result = await sendEmail(email, "Account Deletion Verification - Trend Saloon", html, "support")
     console.log("[sendAccountDeletionEmail] Email sent successfully:", result)
     return { success: true }
   } catch (error) {
@@ -2230,29 +2269,44 @@ export const sendTrackingUpdateEmail = sendOrderStatusUpdateEmail
 
 export const sendNewsletterConfirmation = async (email, preferences) => {
   const html = `
-    <div>
-      <h2>Thank you for subscribing to our newsletter!</h2>
-      <p>Your preferences: <b>${(preferences || []).join(", ")}</b></p>
-      <p>You will now receive updates according to your selected preferences.</p>
-      <p style="color: #888; font-size: 13px; margin-top: 24px;">This is an automated message. Please do not reply.</p>
+    <div style="background-color: #0b0c0e; padding: 40px 15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <div style="max-width: 580px; margin: auto; background: #12141a; border-radius: 20px; border: 1px solid #262933; padding: 32px; color: #d1d5db; text-align: center;">
+        <img src="${TREND_SALOON_LOGO_URL}" alt="Trend Gents Saloon Logo" style="height: 64px; width: auto; margin: 0 auto 16px auto; display: block;" />
+        <h2 style="color: #ffffff; font-family: 'Playfair Display', Georgia, serif;">Thank you for subscribing!</h2>
+        <p style="color: #9ca3af; margin: 16px 0;">You will now receive updates, styling tips and exclusive salon offers from Trend Gents Saloon.</p>
+        <p style="color: #6b7280; font-size: 11px; margin-top: 24px;">&copy; ${new Date().getFullYear()} Trend Gents Saloon. All rights reserved.</p>
+      </div>
     </div>
   `
-  await sendEmail(email, "Newsletter Subscription Confirmed - Graba2z", html, "support")
+  await sendEmail(email, "Newsletter Subscription Confirmed - Trend Saloon", html, "support")
 }
 
 export const sendResetPasswordEmail = async (email, name, resetLink) => {
   try {
     const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #eee; padding: 32px;">
-        <h2 style="color: #2c3e50;">Reset Your Password</h2>
-        <p>Hi ${name || "User"},</p>
-        <p>We received a request to reset your password. Click the button below to set a new password. This link is valid for 60 minutes.</p>
-        <a href="${resetLink}" style="display: inline-block; margin: 24px 0; padding: 12px 24px; background: #84cc16; color: #fff; border-radius: 4px; text-decoration: none; font-weight: bold;">Reset Password</a>
-        <p>If you did not request this, you can safely ignore this email.</p>
-        <p style="color: #888; font-size: 12px; margin-top: 32px;">&copy; ${new Date().getFullYear()} Graba2z</p>
+      <div style="background-color: #0b0c0e; padding: 40px 15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <div style="max-width: 580px; margin: auto; background: #12141a; border-radius: 20px; border: 1px solid #262933; box-shadow: 0 10px 40px rgba(0,0,0,0.65); overflow: hidden;">
+          <div style="background: #161820; padding: 32px 20px; text-align: center; border-bottom: 1px solid #262933;">
+            <img src="${TREND_SALOON_LOGO_URL}" alt="Trend Gents Saloon Logo" style="height: 70px; width: auto; object-fit: contain; margin: 0 auto; display: block;" />
+            <div style="margin-top: 10px; font-family: 'Playfair Display', Georgia, serif; font-size: 18px; font-weight: 900; letter-spacing: 4px; color: #ffffff; text-transform: uppercase;">TREND</div>
+            <div style="font-size: 10px; letter-spacing: 4px; color: #dfa742; font-weight: bold; text-transform: uppercase; margin-top: 4px;">GENTS SALOON</div>
+          </div>
+          <div style="padding: 36px 30px; text-align: center; color: #d1d5db;">
+            <h2 style="color: #ffffff; font-family: 'Playfair Display', Georgia, serif; font-size: 24px; font-weight: bold; margin-top: 0;">Reset Your Password</h2>
+            <p style="color: #9ca3af; font-size: 15px; line-height: 1.6;">Hi <b style="color: #ffffff;">${name || "Valued Client"}</b>,</p>
+            <p style="color: #9ca3af; font-size: 14px; line-height: 1.6;">We received a request to reset your password. Click the button below to set a new password. This link is valid for 60 minutes.</p>
+            <div style="margin: 30px 0;">
+              <a href="${resetLink}" style="display: inline-block; padding: 14px 36px; background: #dfa742; color: #000000; font-size: 14px; font-weight: bold; border-radius: 9999px; text-decoration: none; text-transform: uppercase; letter-spacing: 1px;">Reset Password</a>
+            </div>
+            <p style="color: #6b7280; font-size: 12px;">If you did not request this, you can safely ignore this email.</p>
+          </div>
+          <div style="background: #0d0e11; border-top: 1px solid #22252d; padding: 20px; text-align: center; color: #4b5563; font-size: 11px;">
+            &copy; ${new Date().getFullYear()} Trend Gents Saloon. All rights reserved.
+          </div>
+        </div>
       </div>
     `
-    await sendEmail(email, "Reset Your Password - Graba2z", html, "support")
+    await sendEmail(email, "Reset Your Password - Trend Saloon", html, "support")
     return { success: true }
   } catch (error) {
     console.error("Failed to send reset password email:", error)
@@ -2265,7 +2319,7 @@ export const sendGuestAccountCreatedEmail = async (email, name, password) => {
   try {
     console.log(`[sendGuestAccountCreatedEmail] Sending account credentials to ${email}`)
     const html = getEmailTemplate("guestAccountCreated", { name, email, password })
-    await sendEmail(email, "Your Graba2z Account Has Been Created - Graba2z", html, "support")
+    await sendEmail(email, "Your Trend Saloon Account Has Been Created - Trend Saloon", html, "support")
     console.log(`[sendGuestAccountCreatedEmail] Email sent successfully to ${email}`)
     return { success: true }
   } catch (error) {
