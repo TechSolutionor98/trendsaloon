@@ -211,7 +211,7 @@ router.put(
         {
           title: typeof services.title === "string" ? services.title : "",
           subtitle: typeof services.subtitle === "string" ? services.subtitle : "",
-          image: services.image || "/salon/services-hero.jpg",
+          image: typeof services.image === "string" ? services.image : "/salon/services-man.png",
           position: "services-hero",
           isActive: true,
           createdBy: req.user._id,
@@ -226,7 +226,7 @@ router.put(
         {
           title: typeof products.title === "string" ? products.title : "",
           subtitle: typeof products.subtitle === "string" ? products.subtitle : "",
-          image: products.image || "/salon/services-hero.jpg",
+          image: typeof products.image === "string" ? products.image : "/salon/services-man.png",
           position: "products-hero",
           isActive: true,
           createdBy: req.user._id,

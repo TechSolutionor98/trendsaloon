@@ -218,3 +218,57 @@ export const fetchSalonCatalog = async () => {
   }
 }
 
+// Cached banners storage helper for instant 0ms banner loading without any static flash
+const BANNER_STORAGE_KEY = "trend_salon_banners_v1"
+
+export const getCachedSalonBanners = () => {
+  try {
+    const raw = localStorage.getItem(BANNER_STORAGE_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed && typeof parsed === "object") return parsed
+    }
+  } catch {}
+  return {
+    home: {
+      image: "/uploads/others/1st__1_-1794578064135-265383882.png",
+      title: "",
+      subtitle: "",
+      tagline: "",
+      buttonText: "",
+    },
+    offers: {
+      image: "/uploads/others/3rd_jpg-1794582252013-625192313.jpeg",
+      title: "",
+      subtitle: "",
+      buttonText: "",
+      link: "",
+    },
+    services: {
+      image: "/uploads/others/2nd-1794582305379-234332284.png",
+      title: "",
+      subtitle: "",
+    },
+    products: {
+      image: "/uploads/others/2nd-1794582320874-530457510.png",
+      title: "",
+      subtitle: "",
+    },
+  }
+}
+
+export const fetchSalonBanners = async () => {
+  try {
+    const res = await axios.get(`${config.API_URL}/api/banners/salon-banners?_t=${Date.now()}`)
+    if (res.data) {
+      try {
+        localStorage.setItem(BANNER_STORAGE_KEY, JSON.stringify(res.data))
+      } catch {}
+      return res.data
+    }
+  } catch (err) {
+    console.warn("Could not fetch salon banners:", err.message)
+  }
+  return getCachedSalonBanners()
+}
+

@@ -769,52 +769,64 @@ export default function AdminBanners() {
         {activeTab === "products" && (
           <div className="space-y-8">
             {/* Live Preview Card */}
-            <div className="relative bg-[#0d0e11] rounded-2xl overflow-hidden p-8 sm:p-12 text-white border border-gray-800 shadow-2xl">
+            <div className="relative bg-[#0d0e11] rounded-2xl overflow-hidden border border-gray-800 shadow-2xl min-h-[220px]">
               <div className="absolute top-3 left-3 bg-[#dfa742] text-black text-[10px] font-bold px-2 py-0.5 rounded-full z-20 flex items-center gap-1 shadow">
                 <Eye className="w-3 h-3" />
                 <span>Live Preview</span>
               </div>
 
-              {/* Background ambient glow */}
-              <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#dfa742]/10 rounded-full blur-3xl pointer-events-none" />
-
-              {/* Right Hero Image */}
-              <div className="absolute top-0 right-0 bottom-0 w-3/5 pointer-events-none overflow-hidden select-none">
-                <img
-                  src={getFullImageUrl(productsBanner.image) || "/salon/services-man.png"}
-                  alt="Products Banner Preview"
-                  className="w-full h-full object-cover object-right filter brightness-100"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e11] via-[#0d0e11]/60 to-transparent sm:via-[#0d0e11]/20" />
-              </div>
-
-              {/* Foreground Typography */}
-              <div className="relative z-10 max-w-lg space-y-2 py-4">
-                {/* Salon Emblem/Logo above title */}
-                <div className="flex items-center gap-2 pb-0.5">
-                  <div className="w-8 h-8 rounded-full bg-[#dfa742]/15 border border-[#dfa742]/40 flex items-center justify-center shadow-sm">
-                    <ShoppingBag className="w-4 h-4 text-[#dfa742]" />
+              {Boolean(productsBanner.image && productsBanner.image !== "/salon/services-man.png") ? (
+                /* Full-Width Custom Designed Banner Preview */
+                <div className="relative w-full">
+                  <img
+                    src={getFullImageUrl(productsBanner.image)}
+                    alt="Products Banner Preview"
+                    className="w-full h-auto max-h-[340px] object-cover object-center"
+                  />
+                  {Boolean(productsBanner.title?.trim() || productsBanner.subtitle?.trim()) && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex items-center p-6 sm:p-10">
+                      <div className="max-w-lg space-y-2">
+                        {productsBanner.title && (
+                          <h2 className="text-2xl sm:text-4xl font-serif font-bold text-[#dfa742] tracking-tight">
+                            {productsBanner.title}
+                          </h2>
+                        )}
+                        {productsBanner.subtitle && (
+                          <p className="text-xs sm:text-sm text-gray-200 font-light tracking-wide">
+                            {productsBanner.subtitle}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Default Split Preview */
+                <div className="p-8 sm:p-12 relative text-white">
+                  <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#dfa742]/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="absolute top-0 right-0 bottom-0 w-3/5 pointer-events-none overflow-hidden select-none">
+                    <img
+                      src={getFullImageUrl(productsBanner.image) || "/salon/services-man.png"}
+                      alt="Products Banner Preview"
+                      className="w-full h-full object-cover object-right filter brightness-100"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e11] via-[#0d0e11]/60 to-transparent sm:via-[#0d0e11]/20" />
                   </div>
-                  <div className="flex flex-col">
-                    <span className="font-serif font-black text-xs tracking-widest text-[#dfa742] uppercase leading-none drop-shadow-sm">
-                      TREND
-                    </span>
-                    <span className="text-[7px] tracking-[0.25em] text-[#e0cfab] uppercase font-medium">
-                      GENTS SALOON
-                    </span>
+
+                  <div className="relative z-10 max-w-lg space-y-2 py-4">
+                    {productsBanner.title && (
+                      <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#dfa742] tracking-tight">
+                        {productsBanner.title}
+                      </h2>
+                    )}
+                    {productsBanner.subtitle && (
+                      <p className="text-sm sm:text-base text-gray-200 font-light tracking-wide">
+                        {productsBanner.subtitle}
+                      </p>
+                    )}
                   </div>
                 </div>
-
-                <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#dfa742] tracking-tight">
-                  {productsBanner.title || "Our Products"}
-                </h2>
-                <p className="text-sm sm:text-base text-gray-200 font-light tracking-wide">
-                  {productsBanner.subtitle || "Premium Grooming & Care Products for the Modern Gentleman."}
-                </p>
-                <div className="text-xs text-gray-400 pt-1">
-                  <span>Home</span> &gt; <span className="text-gray-200">Our Products</span>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Editing Form */}
