@@ -60,7 +60,7 @@ function shouldPreserveKey(key) {
  */
 export async function checkCacheVersion() {
   try {
-    const { data } = await axios.get(`${config.API_URL}/api/cache/version`)
+    const { data } = await axios.get(`${config.API_URL}/api/cache/version`, { timeout: 4000 })
     const serverVersion = data.version
 
     const localVersion = localStorage.getItem(CACHE_VERSION_KEY)
@@ -124,7 +124,7 @@ export async function checkCacheVersion() {
 
     return false
   } catch (error) {
-    console.error("Error checking cache version:", error)
+    console.warn("Cache version check skipped:", error.message)
     return false
   }
 }

@@ -4,8 +4,25 @@ const resolveApiUrl = () => {
 
   if (envUrl && /^https?:\/\//i.test(envUrl)) return envUrl.replace(/\/$/, "")
 
-  // Local fallback for development, live fallback for production.
-  if (import.meta.env?.DEV) return "http://localhost:5000"
+  // Check forced local API env flags
+  if (
+    import.meta.env?.VITE_FORCE_LOCAL_API === "true" ||
+    import.meta.env?.VITE_FORCE_LOCAL_API === true
+  ) {
+    const localUrl = (import.meta.env?.VITE_LOCAL_API_URL || "http://localhost:5000").trim()
+    return localUrl.replace(/\/$/, "")
+  }
+
+  // Local fallback for development, or when running on localhost / 127.0.0.1
+  if (
+    import.meta.env?.DEV ||
+    (typeof window !== "undefined" &&
+      (window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1" ||
+        window.location.hostname.startsWith("192.168.")))
+  ) {
+    return "http://localhost:5000"
+  }
 
   return "https://api.grabatoz.ae"
 }
