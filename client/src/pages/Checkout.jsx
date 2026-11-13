@@ -2610,125 +2610,58 @@ const Checkout = () => {
               open={isSectionOpen(3)}
               onToggle={() => toggleSection(3)}
             >
-                  {/* Offers & rewards — coupon, referral reward and Grabian Points sit above
-                      the payment options; the totals they change show in the Order Summary. */}
-                  <div className="mb-4 border-b border-gray-100 pb-4">
-                    {/* Gift card / promo code (Amazon-style) — kept to half width. */}
-                    <div className="md:w-1/2">
-                      <div className="flex items-center gap-2">
-                        <Plus size={18} className="shrink-0 text-gray-400" />
-                        <label className="text-sm font-bold text-gray-900">
-                          <TranslatedText>Enter coupon code</TranslatedText>
-                        </label>
-                      </div>
-                      {blockCoupon ? (
-                        <p className="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-500">
-                          {pointsApplied ? (
-                            <TranslatedText>Remove your Grabian Points to use a coupon.</TranslatedText>
-                          ) : (
-                            <TranslatedText>Remove your referral discount to use a coupon.</TranslatedText>
-                          )}
-                        </p>
-                      ) : (
-                        <>
-                          <div className="mt-2 flex items-center gap-2">
-                            <input
-                              type="text"
-                              className="flex-1 rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm focus:border-[#dfa742] focus:outline-none focus:ring-2 focus:ring-[#dfa742]/20"
-                              placeholder="Enter code"
-                              value={coupon ? coupon.code : couponInput}
-                              onChange={(e) => setCouponInput(e.target.value)}
-                              disabled={!!coupon}
-                            />
-                            {!coupon ? (
-                              <button
-                                type="button"
-                                className="rounded-full border border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 disabled:opacity-50"
-                                onClick={handleApplyCoupon}
-                                disabled={couponLoading || !couponInput}
-                              >
-                                {couponLoading ? <TranslatedText>Applying...</TranslatedText> : <TranslatedText>Apply</TranslatedText>}
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                className="rounded-full border border-red-300 px-6 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50"
-                                onClick={() => {
-                                  setCoupon(null)
-                                  setCouponDiscount(0)
-                                  setCouponInput("")
-                                  setCouponError("")
-                                }}
-                              >
-                                <TranslatedText>Remove</TranslatedText>
-                              </button>
+                  {/* Offers & rewards — coupon section hidden as requested; loyalty / referral shown only if enabled */}
+                  {((loyaltyEnabled && !blockPoints) || (referralEnabled && !blockReferral)) && (
+                    <div className="mb-4 border-b border-gray-100 pb-4">
+                      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                        {loyaltyEnabled && !blockPoints && (
+                          <button
+                            type="button"
+                            onClick={() => setShowPointsModal(true)}
+                            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#b38743] hover:text-[#dfa742] hover:underline"
+                          >
+                            <GrabCoin size={16} />
+                            <TranslatedText>Use Grabian Points</TranslatedText>
+                            {loyaltyPointsToRedeem > 0 && (
+                              <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
+                                − {formatPrice(appliedLoyaltyDiscount)}
+                              </span>
                             )}
-                          </div>
-                          {couponError && <div className="mt-1 text-xs text-red-500">{couponError}</div>}
-                        </>
-                      )}
-                    </div>
+                          </button>
+                        )}
+                        {/* Referral discount — hidden while points are applied. */}
+                        {referralEnabled && !blockReferral && (
+                          <button
+                            type="button"
+                            onClick={() => setShowReferralModal(true)}
+                            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#b38743] hover:text-[#dfa742] hover:underline"
+                          >
+                            <Gift size={16} />
+                            <TranslatedText>Use Referral Discount</TranslatedText>
+                            {referralRewardId && appliedReferralDiscount > 0 && (
+                              <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
+                                − {formatPrice(appliedReferralDiscount)}
+                              </span>
+                            )}
+                          </button>
+                        )}
+                      </div>
 
-                    {/* Quick links: only ONE discount at a time — coupon, Grabian Points or
-                        referral. Each link is hidden/disabled while another is applied. */}
-                    <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
-                      {!blockCoupon && (
-                        <button
-                          type="button"
-                          onClick={handleOpenCouponsModal}
-                          className="inline-flex items-center gap-1.5 text-sm font-bold text-[#b38743] hover:text-[#dfa742] hover:underline"
-                        >
-                          <Ticket size={16} />
-                          <TranslatedText>Available Coupons</TranslatedText>
-                        </button>
-                      )}
-                      {loyaltyEnabled && !blockPoints && (
-                        <button
-                          type="button"
-                          onClick={() => setShowPointsModal(true)}
-                          className="inline-flex items-center gap-1.5 text-sm font-bold text-[#b38743] hover:text-[#dfa742] hover:underline"
-                        >
-                          <GrabCoin size={16} />
-                          <TranslatedText>Use Grabian Points</TranslatedText>
-                          {loyaltyPointsToRedeem > 0 && (
-                            <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
-                              − {formatPrice(appliedLoyaltyDiscount)}
-                            </span>
-                          )}
-                        </button>
-                      )}
-                      {/* Referral discount — hidden while a coupon or points are applied. */}
+                      {/* Sync + apply referral rewards. Mounted whenever a referral discount is
+                          allowed so a basket change keeps the value correct; the link opens it. */}
                       {referralEnabled && !blockReferral && (
-                        <button
-                          type="button"
-                          onClick={() => setShowReferralModal(true)}
-                          className="inline-flex items-center gap-1.5 text-sm font-bold text-[#b38743] hover:text-[#dfa742] hover:underline"
-                        >
-                          <Gift size={16} />
-                          <TranslatedText>Use Referral Discount</TranslatedText>
-                          {referralRewardId && appliedReferralDiscount > 0 && (
-                            <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
-                              − {formatPrice(appliedReferralDiscount)}
-                            </span>
-                          )}
-                        </button>
+                        <ReferralRewardModal
+                          open={showReferralModal}
+                          onClose={() => setShowReferralModal(false)}
+                          eligibleAmountAed={referralEligibleAmount}
+                          selectedRewardId={referralRewardId}
+                          onApply={applyReferralReward}
+                          onClear={clearReferralReward}
+                          formatPrice={formatPrice}
+                        />
                       )}
                     </div>
-
-                    {/* Sync + apply referral rewards. Mounted whenever a referral discount is
-                        allowed so a basket change keeps the value correct; the link opens it. */}
-                    {referralEnabled && !blockReferral && (
-                      <ReferralRewardModal
-                        open={showReferralModal}
-                        onClose={() => setShowReferralModal(false)}
-                        eligibleAmountAed={referralEligibleAmount}
-                        selectedRewardId={referralRewardId}
-                        onApply={applyReferralReward}
-                        onClear={clearReferralReward}
-                        formatPrice={formatPrice}
-                      />
-                    )}
-                  </div>
+                  )}
 
                   <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white">
                     {PAYMENT_METHODS.filter(method => allowedPaymentMethods.includes(method.id)).map((method) => {
