@@ -152,12 +152,15 @@ const formatPaymentMethod = (actualPaymentMethod, paymentMethod) => {
  * so adding a mailbox is one entry here plus five lines in .env, with nothing
  * else to change.
  */
+export const TREND_SALOON_LOGO_URL = "https://res.cloudinary.com/uymp6wpq/image/upload/v1794586966/trendsaloon/trend_saloon_logo.png"
+export const BRAND_NAME = "Trend Gents Saloon"
+
 export const SENDER_MAILBOXES = [
-  { key: "support", prefix: "SUPPORT", label: "Graba2z Support" },
-  { key: "order", prefix: "ORDER", label: "Graba2z Orders" },
-  { key: "sales", prefix: "SALES", label: "Graba2z Sales" },
-  { key: "info", prefix: "INFO", label: "Graba2z Info" },
-  { key: "marketing", prefix: "MARKETING", label: "Graba2z Marketing" },
+  { key: "support", prefix: "SUPPORT", label: "Trend Saloon Support" },
+  { key: "order", prefix: "ORDER", label: "Trend Saloon Bookings & Orders" },
+  { key: "sales", prefix: "SALES", label: "Trend Saloon Sales" },
+  { key: "info", prefix: "INFO", label: "Trend Saloon Info" },
+  { key: "marketing", prefix: "MARKETING", label: "Trend Saloon" },
 ]
 
 const envFor = (prefix) => ({
@@ -211,7 +214,7 @@ const getMailConfig = (type) => {
   if (!entry || !mailboxConfigured(entry.key)) {
     return {
       transporter: supportTransporter,
-      from: `Graba2z Support <${process.env.SUPPORT_EMAIL_USER}>`,
+      from: `Trend Saloon Support <${process.env.SUPPORT_EMAIL_USER}>`,
     }
   }
 
