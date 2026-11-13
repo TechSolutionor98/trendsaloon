@@ -18,20 +18,30 @@ import {
   ShieldCheck,
 } from "lucide-react"
 
-export function TrendLogo({ className = "h-11 sm:h-13" }) {
+export function TrendLogo() {
   const navigate = useNavigate()
   const { getLocalizedPath } = useLanguage()
 
   return (
     <div
       onClick={() => navigate(getLocalizedPath("/"))}
-      className="flex items-center gap-2.5 select-none group cursor-pointer"
+      className="flex items-center gap-3 select-none group cursor-pointer"
     >
-      <img
-        src="/white-logo.png"
-        alt="Trend Gents Saloon"
-        className={`${className} w-auto object-contain transition-transform duration-300 group-hover:scale-105 filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]`}
-      />
+      <div className="relative flex-shrink-0">
+        <img
+          src="/white-logo.png"
+          alt="Trend Gents Saloon Logo"
+          className="h-12 sm:h-14 w-12 sm:w-14 object-contain transition-transform duration-300 group-hover:scale-105 filter drop-shadow-[0_2px_10px_rgba(223,167,66,0.35)]"
+        />
+      </div>
+      <div className="flex flex-col justify-center text-left">
+        <span className="font-serif font-black tracking-[0.22em] text-white text-base sm:text-lg uppercase leading-none group-hover:text-[#dfa742] transition-colors drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+          TREND
+        </span>
+        <span className="text-[9px] sm:text-[10px] tracking-[0.32em] text-[#dfa742] uppercase font-bold mt-1 leading-none drop-shadow-sm">
+          SALOON
+        </span>
+      </div>
     </div>
   )
 }

@@ -66,22 +66,12 @@ const SuperAdminLogin = () => {
       <div className="w-full max-w-md relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#dfa742] to-[#c99335] rounded-3xl mb-4 shadow-xl shadow-[#dfa742]/20 border border-[#dfa742]/40">
-            <svg
-              className="w-10 h-10 text-slate-950"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="6" cy="6" r="3" />
-              <circle cx="6" cy="18" r="3" />
-              <line x1="20" y1="4" x2="8.12" y2="15.88" />
-              <line x1="14.47" y1="14.48" x2="20" y2="20" />
-              <line x1="8.12" y1="8.12" x2="12" y2="12" />
-            </svg>
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-[#14161d] rounded-2xl mb-4 shadow-2xl shadow-black/60 border border-[#262933] p-2 group hover:border-[#dfa742]/50 transition-colors">
+            <img
+              src="/white-logo.png"
+              alt="Trend Saloon Super Admin"
+              className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(223,167,66,0.3)] transition-transform duration-300 group-hover:scale-105"
+            />
           </div>
           <h1 className="text-3xl font-serif font-bold text-white tracking-wide mb-2">
             Trend <span className="text-[#dfa742]">Super Admin</span>
