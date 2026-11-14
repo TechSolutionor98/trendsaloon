@@ -9,7 +9,7 @@ import { useLanguage } from "../context/LanguageContext"
 import { useToast } from "../context/ToastContext"
 import TrendHeader from "../components/TrendHeader"
 import TrendFooter from "../components/TrendFooter"
-import { fetchSalonCatalog, getCachedSalonBanners, fetchSalonBanners } from "../services/salonService"
+import { fetchSalonCatalog, getCachedSalonBanners, fetchSalonBanners, DEFAULT_SALON_BANNERS } from "../services/salonService"
 import { ArrowRight, Check, ChevronRight, Loader2, Sparkles } from "lucide-react"
 import { getFullImageUrl } from "../utils/imageUtils"
 
@@ -25,7 +25,7 @@ export default function ServicesProducts() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [addedItemIds, setAddedItemIds] = useState({})
-  const [servicesBanner, setServicesBanner] = useState(() => getCachedSalonBanners()?.services || { image: "" })
+  const [servicesBanner, setServicesBanner] = useState(() => getCachedSalonBanners()?.services || DEFAULT_SALON_BANNERS.services)
 
   // 20 items at a time state for Services & Products
   const [visibleServicesCount, setVisibleServicesCount] = useState(BATCH_SIZE)

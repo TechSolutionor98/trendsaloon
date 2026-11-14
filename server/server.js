@@ -232,6 +232,23 @@ app.get('/uploads/*', async (req, res, next) => {
   }
 })
 
+// Auto-serve WebP if available and client accepts webp
+app.use('/uploads', (req, res, next) => {
+  if (req.method === 'GET' && req.headers.accept && req.headers.accept.includes('image/webp')) {
+    const ext = path.extname(req.path).toLowerCase()
+    if (ext === '.png' || ext === '.jpg' || ext === '.jpeg') {
+      const webpRelPath = req.path.replace(/\.(png|jpe?g)$/i, '.webp')
+      const fullWebpPath = path.join(uploadsPath, webpRelPath)
+      if (fs.existsSync(fullWebpPath)) {
+        res.setHeader('Content-Type', 'image/webp')
+        res.setHeader('Cache-Control', 'public, max-age=2592000, immutable')
+        return res.sendFile(fullWebpPath)
+      }
+    }
+  }
+  next()
+})
+
 // Serve static files from uploads directory with efficient browser caching
 app.use('/uploads', express.static(uploadsPath, {
   maxAge: '30d',

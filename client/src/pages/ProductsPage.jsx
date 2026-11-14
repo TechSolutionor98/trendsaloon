@@ -9,7 +9,7 @@ import { useLanguage } from "../context/LanguageContext"
 import { useToast } from "../context/ToastContext"
 import TrendHeader from "../components/TrendHeader"
 import TrendFooter from "../components/TrendFooter"
-import { fetchSalonCatalog, getCachedSalonBanners, fetchSalonBanners } from "../services/salonService"
+import { fetchSalonCatalog, getCachedSalonBanners, fetchSalonBanners, DEFAULT_SALON_BANNERS } from "../services/salonService"
 import {
   ArrowRight,
   Check,
@@ -35,7 +35,7 @@ export default function ProductsPage() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [addedItemIds, setAddedItemIds] = useState({})
-  const [productsBanner, setProductsBanner] = useState(() => getCachedSalonBanners()?.products || { image: "" })
+  const [productsBanner, setProductsBanner] = useState(() => getCachedSalonBanners()?.products || DEFAULT_SALON_BANNERS.products)
 
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState("")

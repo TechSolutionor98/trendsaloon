@@ -291,7 +291,7 @@ const BANNER_STORAGE_KEY = "trend_salon_banners_v1"
 
 export const DEFAULT_SALON_BANNERS = {
   home: {
-    image: "/uploads/others/1st__1_-1794578064135-265383882.png",
+    image: "/uploads/others/1st__2_-1794658282338-316370876.webp",
     mobileImage: "",
     title: "",
     subtitle: "",
@@ -299,7 +299,7 @@ export const DEFAULT_SALON_BANNERS = {
     buttonText: "",
   },
   offers: {
-    image: "/uploads/others/3rd_jpg-1794582252013-625192313.jpeg",
+    image: "/uploads/others/3rd_jpg-1794636441997-872671690.webp",
     mobileImage: "",
     title: "",
     subtitle: "",
@@ -307,19 +307,19 @@ export const DEFAULT_SALON_BANNERS = {
     link: "",
   },
   services: {
-    image: "/uploads/others/2nd-1794582305379-234332284.png",
+    image: "/uploads/others/2nd__1_-1794658316138-26359007.webp",
     mobileImage: "",
     title: "",
     subtitle: "",
   },
   products: {
-    image: "/uploads/others/2nd-1794582320874-530457510.png",
+    image: "/uploads/others/2nd__1_-1794658329621-864934152.webp",
     mobileImage: "",
     title: "",
     subtitle: "",
   },
   contact: {
-    image: "",
+    image: "/uploads/others/4th-1794658338553-794105657.webp",
     mobileImage: "",
   },
 }

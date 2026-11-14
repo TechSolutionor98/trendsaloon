@@ -9,7 +9,7 @@ import { useToast } from "../context/ToastContext"
 import TrendHeader from "../components/TrendHeader"
 import TrendFooter from "../components/TrendFooter"
 import { getFullImageUrl } from "../utils/imageUtils"
-import { getCachedSalonBanners, fetchSalonBanners } from "../services/salonService"
+import { getCachedSalonBanners, fetchSalonBanners, DEFAULT_SALON_BANNERS } from "../services/salonService"
 import {
   MapPin,
   Phone,
@@ -32,7 +32,7 @@ export default function ContactUs() {
   const { getLocalizedPath } = useLanguage()
   const { showToast } = useToast()
 
-  const [contactBanner, setContactBanner] = useState(() => getCachedSalonBanners()?.contact || { image: "" })
+  const [contactBanner, setContactBanner] = useState(() => getCachedSalonBanners()?.contact || DEFAULT_SALON_BANNERS.contact)
 
   useEffect(() => {
     fetchSalonBanners().then((banners) => {

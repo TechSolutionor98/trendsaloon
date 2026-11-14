@@ -64,6 +64,7 @@ const sanitizeTargetCountries = (targetCountries) => {
 // @access  Public
 router.get(
   "/salon-banners",
+  cacheMiddleware("banners"),
   asyncHandler(async (req, res) => {
     try {
       const homeBanner = await Banner.findOne({ position: "home-hero", isActive: true })
