@@ -29,6 +29,7 @@ import {
 import axios from "axios"
 import config from "../../config/config"
 import { getFullImageUrl } from "../../utils/imageUtils"
+import { isSeoUnlockTokenValid, getSeoUnlockTokenIfValid } from "../../utils/seoUnlock"
 
 // Fallback IDs from MongoDB in case API lookup takes a moment
 const FALLBACK_CATEGORY_SERVICES = "6af44188bd65d79055f298c4"
@@ -282,19 +283,30 @@ const AddProduct = () => {
         showStockOut: false,
         refundable: formData.refundable,
         tags: tagsArray,
-        seoTitle: formData.seoTitle?.trim() || "",
-        seoDescription: formData.seoDescription?.trim() || "",
-        seoKeywords: formData.seoKeywords?.trim() || "",
         targetCountries: ["ALL"],
         countryStock: [{ country: "AE", countInStock: isNaN(stockQty) ? 999 : stockQty }],
       }
 
-      await axios.post(`${config.API_URL}/api/products`, payload, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      // Only attach SEO fields if they are non-empty AND SEO is unlocked
+      const seoToken = getSeoUnlockTokenIfValid()
+      const isSeoUnlocked = Boolean(seoToken)
+
+      if (isSeoUnlocked) {
+        if (formData.seoTitle?.trim()) payload.seoTitle = formData.seoTitle.trim()
+        if (formData.seoDescription?.trim()) payload.seoDescription = formData.seoDescription.trim()
+        if (formData.seoKeywords?.trim()) payload.seoKeywords = formData.seoKeywords.trim()
+      }
+
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      }
+
+      if (seoToken) {
+        headers["x-seo-unlock-token"] = seoToken
+      }
+
+      await axios.post(`${config.API_URL}/api/products`, payload, { headers })
 
       showToast(isService ? "Service added successfully!" : "Product added successfully!", "success")
       navigate(isService ? "/admin/products?type=services" : "/admin/products?type=products")
@@ -809,9 +821,16 @@ const AddProduct = () => {
 
                   {/* ADVANCE SECTION 6: SEO Settings */}
                   <div className="bg-[#0d0e11] p-5 rounded-xl border border-[#22252d] space-y-4">
-                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#dfa742]">
-                      <Globe className="w-3.5 h-3.5" />
-                      <span>SEO Metadata Settings</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#dfa742]">
+                        <Globe className="w-3.5 h-3.5" />
+                        <span>SEO Metadata Settings</span>
+                      </div>
+                      {!isSeoUnlockTokenValid() && (
+                        <span className="text-[10px] font-semibold text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-full border border-amber-400/20">
+                          🔒 Optional (Unlock via "Unlock Potential" in sidebar)
+                        </span>
+                      )}
                     </div>
 
                     <div>

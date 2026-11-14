@@ -26,14 +26,24 @@ const isBodyFieldPresent = (body, field) => {
   const source = body || {}
   if (!field) return false
 
+  let val = undefined
   if (String(field).includes(".")) {
-    return getNestedValue(source, field) !== undefined
+    val = getNestedValue(source, field)
+  } else if (Object.prototype.hasOwnProperty.call(source, field)) {
+    val = source[field]
+  } else {
+    const normalized = String(field).toLowerCase()
+    const foundKey = Object.keys(source).find((key) => String(key).toLowerCase() === normalized)
+    if (foundKey) val = source[foundKey]
   }
 
-  if (Object.prototype.hasOwnProperty.call(source, field)) return true
+  // If value is missing, empty string, empty array or empty object, it is NOT considered present
+  if (val === undefined || val === null) return false
+  if (typeof val === "string" && val.trim() === "") return false
+  if (Array.isArray(val) && val.length === 0) return false
+  if (typeof val === "object" && Object.keys(val).length === 0) return false
 
-  const normalized = String(field).toLowerCase()
-  return Object.keys(source).some((key) => String(key).toLowerCase() === normalized)
+  return true
 }
 
 const getTokenFromRequest = (req) => {
