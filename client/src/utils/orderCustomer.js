@@ -20,25 +20,36 @@ export const orderCustomerEmail = (order = {}) =>
 export const orderCustomerPhone = (order = {}) =>
   order?.shippingAddress?.phone || order?.pickupDetails?.phone || order?.user?.phone || ""
 
-export const isPickupOrder = (order = {}) => order?.deliveryType === "pickup"
+export const isPickupOrder = (order = {}) => order?.deliveryType === "pickup" || !!order?.pickupDetails
 
 /** The branch an order is collected from, or "" for a delivery. */
-export const orderPickupBranch = (order = {}) =>
-  isPickupOrder(order) ? order?.pickupDetails?.location || "" : ""
+export const orderPickupBranch = (order = {}) => {
+  if (!isPickupOrder(order)) return ""
+  const loc = order?.pickupDetails?.location || ""
+  if (!loc || loc.toLowerCase().includes("crown excel") || loc.toLowerCase().includes("grabatoz")) {
+    return "Trend Saloon (Al Yasmeen - Ajman)"
+  }
+  return loc
+}
 
 // The branch an order is collected from, with the catalogue filling any gaps.
-//
-// Until the order schema was taught to keep them, `storeAddress` and
-// `storePhone` were dropped on save -- so older collection orders show only a
-// storeId. Falling back to the store list means those orders still print a real
-// branch address instead of "N/A", with no data migration.
 export const orderPickupStore = (order = {}) => {
   const stored = order?.pickupDetails || {}
   const store = findStore(stored.storeId)
 
+  let name = stored.location || store?.name || "Trend Saloon"
+  let address = stored.storeAddress || store?.address || "Al Yasmeen - Ajman, United Arab Emirates"
+  let phone = stored.storePhone || store?.phone || "+971 559 740 849"
+
+  if (!name || name.toLowerCase().includes("crown excel") || name.toLowerCase().includes("grabatoz")) {
+    name = "Trend Saloon"
+    address = "Al Yasmeen - Ajman, United Arab Emirates"
+    phone = "+971 559 740 849"
+  }
+
   return {
-    name: stored.location || store?.name || "",
-    address: stored.storeAddress || store?.address || "",
-    phone: stored.storePhone || store?.phone || "",
+    name,
+    address,
+    phone,
   }
 }

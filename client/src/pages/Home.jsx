@@ -553,8 +553,12 @@ export default function Home() {
                   {/* Product Image Frame */}
                   <div className="w-full aspect-[4/3] flex items-center justify-center mb-3 overflow-hidden rounded-xl bg-gray-50/50 p-2">
                     <img
-                      src={product.image}
+                      src={product.image || "/salon/hair-care.jpg"}
                       alt={product.name}
+                      onError={(e) => {
+                        e.currentTarget.onerror = null
+                        e.currentTarget.src = "/salon/hair-care.jpg"
+                      }}
                       className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                     />

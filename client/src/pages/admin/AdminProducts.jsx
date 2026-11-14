@@ -18,12 +18,14 @@ import { exportProductsToExcel } from "../../utils/exportToExcel"
 const ALL_COLUMNS = [
   { id: 'select', label: 'Select', default: true, alwaysVisible: true },
   { id: 'product', label: 'Item (Product / Service)', default: true },
-  { id: 'parentCategory', label: 'Parent Category', default: false },
-  { id: 'level1', label: 'Level 1', default: false },
-  { id: 'level2', label: 'Level 2', default: false },
-  { id: 'level3', label: 'Level 3', default: false },
-  { id: 'level4', label: 'Level 4', default: false },
-  { id: 'price', label: 'Price', default: true },
+  { id: 'brand', label: 'Brand', default: true },
+  { id: 'parentCategory', label: 'Parent Category', default: true },
+  { id: 'level1', label: 'Level 1', default: true },
+  { id: 'level2', label: 'Level 2', default: true },
+  { id: 'level3', label: 'Level 3', default: true },
+  { id: 'level4', label: 'Level 4', default: true },
+  { id: 'price', label: 'Base Price', default: true },
+  { id: 'sku', label: 'SKU', default: true },
   { id: 'action', label: 'Action', default: true, alwaysVisible: true },
 ]
 
@@ -140,9 +142,8 @@ const AdminProducts = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed)) {
-          const filtered = parsed.filter(c => !['brand', 'stock', 'sku'].includes(c))
-          return filtered.length > 0 ? filtered : ALL_COLUMNS.filter(c => c.default).map(c => c.id)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed
         }
       } catch {
         return ALL_COLUMNS.filter(c => c.default).map(c => c.id)
@@ -358,9 +359,9 @@ const AdminProducts = () => {
     })
   }
 
-  // Check if column is visible (hide multi-level ecommerce category columns that don't apply to salon)
+  // Check if column is visible
   const isColumnVisible = (columnId) => {
-    if (['brand', 'stock', 'sku', 'parentCategory', 'level1', 'level2', 'level3', 'level4'].includes(columnId)) {
+    if (isServicesSection && columnId === 'brand') {
       return false
     }
     return visibleColumns.includes(columnId)
@@ -1440,7 +1441,7 @@ const AdminProducts = () => {
       />
 
       {/* Import Dialog */}
-      {/* {showImportDialog && (
+      {showImportDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold mb-4">Import Products from Excel</h2>
@@ -1576,7 +1577,7 @@ const AdminProducts = () => {
             </div>
           </div>
         </div>
-      )} */}
+      )}
 
       <div className="flex-1 ml-64 overflow-hidden">
         <div className="p-8">
@@ -1612,6 +1613,27 @@ const AdminProducts = () => {
             </div>
 
             <div className="flex items-center gap-3">
+              {!isServicesSection && (
+                <>
+                  <button
+                    onClick={() => setShowImportDialog(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-[#2b2f3a] bg-[#1a1d24] text-gray-200 hover:border-[#dfa742] hover:text-[#dfa742] transition-colors"
+                    title="Import Products from Excel"
+                  >
+                    <Upload className="w-4 h-4" />
+                    <span>Import Excel</span>
+                  </button>
+                  <button
+                    onClick={() => handleExport('all')}
+                    disabled={exporting}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-[#2b2f3a] bg-[#1a1d24] text-gray-200 hover:border-[#dfa742] hover:text-[#dfa742] transition-colors"
+                    title="Export All Products to Excel"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>{exporting ? "Exporting..." : "Export Excel"}</span>
+                  </button>
+                </>
+              )}
               <button
                 onClick={() => navigate(isServicesSection ? "/admin/products/add?type=service" : "/admin/products/add?type=product")}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-[#dfa742]/20 transition-all duration-200 hover:scale-105 active:scale-95 bg-[#dfa742] hover:bg-[#caa638] text-black"
@@ -1830,7 +1852,7 @@ const AdminProducts = () => {
                         {showColumnDropdown && (
                           <div className="absolute left-0 mt-2 w-56 bg-[#1a1d24] rounded-xl shadow-2xl border border-[#2b2f3a] z-50 max-h-96 overflow-y-auto">
                             <div className="py-1">
-                              {ALL_COLUMNS.filter(c => !['parentCategory', 'level1', 'level2', 'level3', 'level4'].includes(c.id)).map((column) => (
+                              {ALL_COLUMNS.filter(c => !(isServicesSection && c.id === 'brand')).map((column) => (
                                 <button
                                   key={column.id}
                                   onClick={() => toggleColumn(column.id)}
@@ -1920,6 +1942,14 @@ const AdminProducts = () => {
                             {isServicesSection ? "Service" : "Product"}
                           </th>
                           )}
+                          {isColumnVisible('brand') && (
+                          <th
+                            scope="col"
+                            className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Brand
+                          </th>
+                          )}
                           {isColumnVisible('parentCategory') && (
                           <th
                             scope="col"
@@ -1966,6 +1996,14 @@ const AdminProducts = () => {
                             className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
                            Base Price
+                          </th>
+                          )}
+                          {isColumnVisible('sku') && (
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            SKU
                           </th>
                           )}
                           {isColumnVisible('action') && (
@@ -2016,6 +2054,11 @@ const AdminProducts = () => {
                                   </div>
                                 </td>
                                 )}
+                                {isColumnVisible('brand') && (
+                                <td className="px-4 py-4 whitespace-nowrap">
+                                  <div className="text-sm text-gray-200">{product.brand?.name || 'N/A'}</div>
+                                </td>
+                                )}
                                 {isColumnVisible('parentCategory') && (
                                 <td className="px-1 py-4 whitespace-nowrap w-24">
                                   <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-50 text-blue-800 truncate max-w-full" title={getParentCategoryName(product)}>
@@ -2059,6 +2102,39 @@ const AdminProducts = () => {
                                       {formatPrice(product.oldPrice)}
                                     </div>
                                   )}
+                                </td>
+                                )}
+                                {isColumnVisible('sku') && (
+                                <td className="px-1 py-4 whitespace-nowrap">
+                                  <div className="flex flex-col items-start gap-1">
+                                    {product.sku ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(product.sku)
+                                          setCopiedSkuId(product._id)
+                                          setTimeout(() => setCopiedSkuId(null), 1500)
+                                        }}
+                                        className="inline-flex items-center gap-1 text-[9px] font-bold text-gray-300 hover:text-[#dfa742] transition-colors uppercase bg-[#1a1d24] hover:bg-[#222530] border border-[#2b2f3a] px-1 py-0.5 rounded shadow-xs"
+                                        title="Copy SKU to clipboard"
+                                      >
+                                        {copiedSkuId === product._id ? (
+                                          <>
+                                            <Check size={9} className="text-green-500" />
+                                            <span className="text-green-500">Copied!</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Copy size={9} />
+                                            <span>Copy</span>
+                                          </>
+                                        )}
+                                      </button>
+                                    ) : null}
+                                    <div className="text-xs text-gray-300 truncate font-mono" title={product.sku || 'N/A'}>
+                                      {(product.sku || 'N/A').substring(0, 10)}{(product.sku || 'N/A').length > 10 ? '...' : ''}
+                                    </div>
+                                  </div>
                                 </td>
                                 )}
                                 {isColumnVisible('action') && (

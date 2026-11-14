@@ -13,6 +13,7 @@ import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 import { useReactToPrint } from "react-to-print"
 import { getOrderCurrencySymbol, getOrderCountryName } from "../utils/paymentUtils"
+import { orderPickupStore } from "../utils/orderCustomer"
 import config from "../config/config"
 import { pushPurchase } from "../utils/gtmTracking"
 import InvoiceComponent from "../components/admin/InvoiceComponent"
@@ -118,7 +119,7 @@ const UserOrders = () => {
     const orderId = params.get("orderId")
 
     if (success === "true" && orderId) {
-      setSuccessMessage(`Order #${orderId.slice(-6)} has been placed successfully!`)
+      setSuccessMessage(`Order #${orderId.slice(-6)} has been placed successfully! (Collect from store if selected)`)
 
       // Also reports the purchase to GTM -- a gateway that sends the customer
       // back here (Tabby) has no other place to fire it.
@@ -415,6 +416,21 @@ const UserOrders = () => {
                           {getOrderCountryName(order)}
                         </p>
                       </div>
+                      <div className="hidden sm:block w-px h-10 bg-gray-200"></div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-500 mb-1">Fulfillment</p>
+                        {order.deliveryType === "pickup" || order.pickupDetails ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300">
+                            <ShoppingBag className="h-3.5 w-3.5 text-amber-600" />
+                            Collect From Store
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                            <Truck className="h-3.5 w-3.5 text-gray-500" />
+                            Home Delivery
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div
                       className={`px-3.5 py-1.5 rounded-lg border flex items-center gap-2 font-semibold text-sm ${getStatusColor(order.status)}`}
@@ -495,6 +511,11 @@ const UserOrders = () => {
                               >
                                 + {nonProtectionItems.length - 1} more item(s)
                               </button>
+                            )}
+                            {(order.deliveryType === "pickup" || order.pickupDetails) && (
+                              <div className="mt-2 text-xs font-semibold text-amber-800 bg-amber-50/80 border border-amber-200/60 rounded-md px-2.5 py-1 inline-flex items-center gap-1.5 self-start">
+                                🏬 Collect From Store: {orderPickupStore(order).name}
+                              </div>
                             )}
                           </div>
                         </>
@@ -607,12 +628,12 @@ const UserOrders = () => {
                           </div>
 
                           <div className="bg-white border border-gray-100 rounded-xl px-4 py-3">
-                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-1.5">Delivery</p>
+                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-1.5">Fulfillment</p>
                             <p className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
                               {selectedOrder.deliveryType === "pickup" ? (
                                 <>
-                                  <ShoppingBag className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                                  Store pickup
+                                  <ShoppingBag className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                                  <span className="text-amber-800 font-bold">Collect From Store</span>
                                 </>
                               ) : (
                                 <>
@@ -639,12 +660,13 @@ const UserOrders = () => {
                           </div>
 
                           <div className="bg-white border border-gray-100 rounded-xl px-4 py-3">
-                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-1.5">Store</p>
+                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-1.5">
+                              {selectedOrder.deliveryType === "pickup" ? "Collection Store" : "Store / Country"}
+                            </p>
                             <p className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
-                              <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                              <span>
-                                {getOrderCountryName(selectedOrder)}
-                                <span className="font-normal text-gray-500"> · {getOrderCurrencySymbol(selectedOrder)}</span>
+                              <MapPin className="h-4 w-4 text-[#dfa742] flex-shrink-0" />
+                              <span className="truncate" title={selectedOrder.deliveryType === "pickup" ? orderPickupStore(selectedOrder).name : getOrderCountryName(selectedOrder)}>
+                                {selectedOrder.deliveryType === "pickup" ? orderPickupStore(selectedOrder).name : getOrderCountryName(selectedOrder)}
                               </span>
                             </p>
                           </div>
@@ -827,36 +849,58 @@ const UserOrders = () => {
                             {/* Where it goes: the delivery address, or the store the
                                 customer collects from. */}
                             {selectedOrder.deliveryType === "pickup" ? (
-                              <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-                                <h4 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
-                                  <ShoppingBag className="w-4 h-4 text-green-600" />
-                                  Pickup Details
-                                </h4>
-                                <div className="text-sm text-gray-600 space-y-1">
-                                  <p className="font-medium text-gray-900">{selectedOrder.pickupDetails?.location || "Store pickup"}</p>
-                                  {selectedOrder.pickupDetails?.storeAddress && <p>{selectedOrder.pickupDetails.storeAddress}</p>}
-                                  {selectedOrder.pickupDetails?.storePhone && (
-                                    <p className="flex items-center gap-2">
-                                      <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                      {selectedOrder.pickupDetails.storePhone}
+                              <div className="bg-amber-50/70 rounded-xl p-5 border border-amber-200 shadow-sm">
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="text-base font-bold text-amber-950 flex items-center gap-2">
+                                    <ShoppingBag className="w-5 h-5 text-amber-600" />
+                                    Collect From Store
+                                  </h4>
+                                  <span className="text-xs font-bold uppercase tracking-wider bg-amber-200 text-amber-900 px-2.5 py-0.5 rounded-full">
+                                    Store Collection
+                                  </span>
+                                </div>
+                                <div className="bg-white/90 rounded-lg p-3 border border-amber-200 mb-3 text-xs text-amber-900 font-medium flex items-center gap-2">
+                                  <MapPin className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                                  <span>Please collect your product order directly from our store branch listed below:</span>
+                                </div>
+                                <div className="text-sm text-gray-700 space-y-1.5">
+                                  <p className="font-bold text-gray-900 text-base">{orderPickupStore(selectedOrder).name}</p>
+                                  {orderPickupStore(selectedOrder).address && (
+                                    <p className="text-gray-600 text-xs leading-relaxed">{orderPickupStore(selectedOrder).address}</p>
+                                  )}
+                                  {orderPickupStore(selectedOrder).phone && (
+                                    <p className="flex items-center gap-2 text-xs font-semibold text-[#b38743] pt-1">
+                                      <Phone className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                                      {orderPickupStore(selectedOrder).phone}
                                     </p>
                                   )}
-                                  <p className="pt-3 text-xs font-medium uppercase tracking-wide text-gray-500">Collected by</p>
-                                  <p className="font-medium text-gray-900">
-                                    {selectedOrder.pickupDetails?.name || selectedOrder.shippingAddress?.name || user?.name}
-                                  </p>
-                                  {(selectedOrder.pickupDetails?.phone || selectedOrder.shippingAddress?.phone) && (
-                                    <p className="flex items-center gap-2">
-                                      <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                      {selectedOrder.pickupDetails?.phone || selectedOrder.shippingAddress?.phone}
+                                  <a
+                                    href="https://www.google.com/maps/dir/?api=1&destination=Al+Yasmeen+Ajman"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-[#b38743] hover:text-[#dfa742] hover:underline"
+                                  >
+                                    <MapPin className="w-3.5 h-3.5" />
+                                    <span>Get Directions on Google Maps</span>
+                                  </a>
+                                  <div className="pt-3 mt-2 border-t border-amber-200/60">
+                                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Collected by</p>
+                                    <p className="font-bold text-gray-900 mt-0.5">
+                                      {selectedOrder.pickupDetails?.name || selectedOrder.shippingAddress?.name || user?.name}
                                     </p>
-                                  )}
-                                  {(selectedOrder.pickupDetails?.email || selectedOrder.shippingAddress?.email || user?.email) && (
-                                    <p className="flex items-center gap-2">
-                                      <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                      {selectedOrder.pickupDetails?.email || selectedOrder.shippingAddress?.email || user?.email}
-                                    </p>
-                                  )}
+                                    {(selectedOrder.pickupDetails?.phone || selectedOrder.shippingAddress?.phone) && (
+                                      <p className="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                                        <Phone className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                        {selectedOrder.pickupDetails?.phone || selectedOrder.shippingAddress?.phone}
+                                      </p>
+                                    )}
+                                    {(selectedOrder.pickupDetails?.email || selectedOrder.shippingAddress?.email || user?.email) && (
+                                      <p className="flex items-center gap-2 text-xs text-gray-600 mt-0.5">
+                                        <Mail className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                        {selectedOrder.pickupDetails?.email || selectedOrder.shippingAddress?.email || user?.email}
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             ) : (

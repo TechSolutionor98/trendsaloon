@@ -1900,7 +1900,7 @@ const Checkout = () => {
                     onChange={() => setDeliveryType("pickup")}
                     className="accent-[#dfa742] mr-2"
                   />
-                  <span className="font-semibold text-sm"><TranslatedText>Pickup From Store</TranslatedText></span>
+                  <span className="font-semibold text-sm"><TranslatedText>Collect From Store</TranslatedText></span>
                 </label>
               </div>
   )
@@ -2248,15 +2248,21 @@ const Checkout = () => {
                         </div>
                       </div>
                     ) : (
-                      <div className="bg-gray-50 p-3 rounded-lg">
-                        <div className="font-medium"><TranslatedText>Store Pickup</TranslatedText></div>
-                        <div className="text-sm text-gray-600 mt-1">
+                      <div className="bg-amber-50/70 border border-amber-200/80 p-3.5 rounded-xl">
+                        <div className="font-bold text-amber-950 flex items-center gap-1.5">
+                          <MapPin className="w-4 h-4 text-amber-600" />
+                          <TranslatedText>Collect From Store</TranslatedText>
+                        </div>
+                        <p className="text-xs text-amber-800 mt-1 mb-2 font-medium">
+                          Please note: You will collect this order directly from the store branch below:
+                        </p>
+                        <div className="text-sm text-gray-700 bg-white/90 p-2.5 rounded-lg border border-amber-100">
                           <div><TranslatedText>Phone:</TranslatedText> {withDialCode(pickupDetails.phone)}</div>
                           {selectedStore && (
                             <>
-                              <div className="font-medium mt-2">{selectedStore.name}</div>
-                              <div>{selectedStore.address}</div>
-                              <div>{selectedStore.phone}</div>
+                              <div className="font-bold text-gray-900 mt-2">{selectedStore.name}</div>
+                              <div className="text-xs text-gray-600 mt-0.5">{selectedStore.address}</div>
+                              <div className="text-xs text-[#b38743] font-bold mt-1">📞 {selectedStore.phone}</div>
                             </>
                           )}
                         </div>
@@ -2345,7 +2351,7 @@ const Checkout = () => {
       <div className="flex items-stretch gap-2" role="radiogroup" aria-label="Delivery method">
         {[
           { type: "home", label: "Home Delivery" },
-          { type: "pickup", label: "Pickup From Store" },
+          { type: "pickup", label: "Collect From Store" },
         ].map(({ type, label }) => (
           <button
             key={type}
@@ -2462,7 +2468,7 @@ const Checkout = () => {
           className={`inline-flex cursor-pointer items-center gap-1.5 font-semibold ${deliveryType === "pickup" ? "text-gray-900" : "text-gray-500"}`}
         >
           {deliveryRadioDot(deliveryType === "pickup")}
-          <TranslatedText>Pickup From Store</TranslatedText>
+          <TranslatedText>Collect From Store</TranslatedText>
         </span>
       </span>
     </>

@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useLanguage } from "../context/LanguageContext";
 import axios from "axios";
-import { CheckCircle, Clock, Package, Truck, AlertTriangle } from "lucide-react";
+import { CheckCircle, Clock, Package, Truck, AlertTriangle, MapPin } from "lucide-react";
 import { getFullImageUrl } from "../utils/imageUtils";
+import { orderPickupStore } from "../utils/orderCustomer";
 import config from "../config/config";
 
 const GuestOrder = () => {
@@ -209,6 +210,55 @@ const GuestOrder = () => {
                   ))}
                 </ul>
               </div>
+            )}
+
+            {/* Collect from Store or Delivery Details */}
+            {order.deliveryType === "pickup" || order.pickupDetails ? (
+              <div className="mt-6 bg-amber-50/70 border border-amber-200 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-bold text-amber-950 flex items-center gap-2">
+                    <Package className="w-4 h-4 text-amber-600" />
+                    <span>🏬 Collect From Store</span>
+                  </h4>
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">
+                    Store Collection
+                  </span>
+                </div>
+                <p className="text-xs text-amber-900 font-medium mb-3">
+                  ⚠️ Please collect your product order directly from our store branch listed below:
+                </p>
+                <div className="bg-white rounded-lg p-3 border border-amber-200/80 text-sm">
+                  <div className="font-bold text-gray-900">{orderPickupStore(order).name}</div>
+                  {orderPickupStore(order).address && (
+                    <div className="text-xs text-gray-600 mt-1">{orderPickupStore(order).address}</div>
+                  )}
+                  {orderPickupStore(order).phone && (
+                    <div className="text-xs text-[#b38743] font-bold mt-1.5 flex items-center gap-1.5">
+                      📞 <span>{orderPickupStore(order).phone}</span>
+                    </div>
+                  )}
+                  <a
+                    href="https://www.google.com/maps/dir/?api=1&destination=Al+Yasmeen+Ajman"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-[#b38743] hover:text-[#dfa742] hover:underline"
+                  >
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>Get Directions on Google Maps</span>
+                  </a>
+                </div>
+              </div>
+            ) : (
+              order.shippingAddress && (
+                <div className="mt-6 bg-gray-50 border border-gray-200 rounded-xl p-4">
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 flex items-center gap-1.5">
+                    <Truck className="w-4 h-4 text-gray-400" />
+                    <span>Home Delivery Address</span>
+                  </div>
+                  <div className="text-sm text-gray-900 font-medium">{order.shippingAddress.name}</div>
+                  <div className="text-xs text-gray-600 mt-0.5">{order.shippingAddress.address}, {order.shippingAddress.city}</div>
+                </div>
+              )
             )}
           </div>
 

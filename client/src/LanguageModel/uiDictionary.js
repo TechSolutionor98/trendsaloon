@@ -447,6 +447,7 @@ export const uiDictionary = {
   
   // Checkout Page - Delivery
   "Home Delivery": "التوصيل للمنزل",
+  "Collect From Store": "الاستلام من المتجر",
   "Pickup From Store": "الاستلام من المتجر",
   "Store Pickup": "الاستلام من المتجر",
   "Contact Details": "تفاصيل الاتصال",

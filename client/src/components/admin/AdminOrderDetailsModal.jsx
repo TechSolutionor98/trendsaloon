@@ -622,9 +622,11 @@ const AdminOrderDetailsModal = ({ isOpen, order: initialOrder, onClose, onUpdate
                       <p><span className="text-gray-400">Email:</span> {orderCustomerEmail(order) || "N/A"}</p>
                       <p><span className="text-gray-400">Phone:</span> {orderCustomerPhone(order) || "N/A"}</p>
                       <div className="mt-3 rounded-xl bg-[#181a22] p-3 border border-[#262933]">
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-[#dfa742]">Collecting from</p>
-                        <p className="mt-1 font-semibold text-white">{orderPickupStore(order).name || "N/A"}</p>
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-[#dfa742]">🏬 Collect From Store</p>
+                        <p className="mt-0.5 text-xs text-gray-400">Customer will collect items from this store branch:</p>
+                        <p className="mt-1 font-semibold text-white">{orderPickupStore(order).name}</p>
                         {orderPickupStore(order).address && <p className="mt-0.5 text-xs text-gray-400">{orderPickupStore(order).address}</p>}
+                        {orderPickupStore(order).phone && <p className="mt-1 text-xs text-[#dfa742] font-semibold">📞 {orderPickupStore(order).phone}</p>}
                       </div>
                     </>
                   ) : (

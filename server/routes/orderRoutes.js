@@ -461,21 +461,27 @@ router.post(
         candidates = await DeliveryCharge.find({ isActive: true }).sort({ createdAt: -1 }).lean()
       }
 
-      const preferredId =
-        typeof deliveryChargeId === "string" && /^[a-fA-F0-9]{24}$/.test(deliveryChargeId) ? deliveryChargeId : null
+      if (candidates.length > 0) {
+        const preferredId =
+          typeof deliveryChargeId === "string" && /^[a-fA-F0-9]{24}$/.test(deliveryChargeId) ? deliveryChargeId : null
 
-      const resolved = selectDeliveryMethod(candidates, calculatedItemsPrice, preferredId)
+        const resolved = selectDeliveryMethod(candidates, calculatedItemsPrice, preferredId)
 
-      // The basket is too small for every method that exists. The storefront blocks this
-      // too, but it is refused here as well so a direct API call cannot slip past a
-      // minimum the shop has set.
-      if (!resolved.available) {
-        res.status(400)
-        throw new Error(describeDeliveryBlock(resolved))
+        // The basket is too small for every method that exists. The storefront blocks this
+        // too, but it is refused here as well so a direct API call cannot slip past a
+        // minimum the shop has set.
+        if (!resolved.available) {
+          res.status(400)
+          throw new Error(describeDeliveryBlock(resolved))
+        }
+
+        normalizedShippingPrice = resolved.charge
+        selectedAdminDeliveryCharge = resolved.method
+      } else {
+        // When no delivery charges are configured in admin, allow home delivery with 0 charge
+        normalizedShippingPrice = 0
+        selectedAdminDeliveryCharge = null
       }
-
-      normalizedShippingPrice = resolved.charge
-      selectedAdminDeliveryCharge = resolved.method
     }
 
     // Read from the database like the item prices and delivery band above, not

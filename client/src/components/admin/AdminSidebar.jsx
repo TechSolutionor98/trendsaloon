@@ -39,6 +39,7 @@ import {
   Award,
   Gift,
   Boxes,
+  CreditCard,
   BellRing,
   MessageCircle,
   Scissors,
@@ -280,6 +281,10 @@ const AdminSidebar = () => {
       items: [
         { title: "All Products", path: "/admin/products?type=products", icon: Package },
         { title: "Add Product", path: "/admin/products/add?type=product", icon: Plus },
+        { title: "Add Bulk Products", path: "/admin/products/bulk-add", icon: Boxes },
+        { title: "Stock & Inventory", path: "/admin/inventory", icon: Boxes },
+        { title: "Product Payment Method", path: "/admin/product-pm", icon: CreditCard },
+        { title: "Country Payment Methods", path: "/admin/country-pm", icon: Globe },
       ],
     },
     {
@@ -487,6 +492,16 @@ const AdminSidebar = () => {
             { title: "Add Size", path: "/admin/sizes/add" },
           ],
         },
+      ],
+    },
+    {
+      title: "Inventory",
+      icon: Boxes,
+      dropdown: "inventory",
+      permission: "products",
+      items: [
+        { title: "Store Stats", path: "/admin/inventory/store-stats" },
+        { title: "Create Labels", path: "/admin/inventory/create-labels" },
       ],
     },
     {

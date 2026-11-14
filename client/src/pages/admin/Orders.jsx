@@ -521,8 +521,8 @@ export default function Orders({ wholesale = false }) {
                           {orderCustomerEmail(order) || orderCustomerPhone(order) || "N/A"}
                         </div>
                         {orderPickupBranch(order) && (
-                          <div className="text-xs text-gray-400 mt-1 max-w-[200px] truncate" title={orderPickupBranch(order)}>
-                            🏬 {orderPickupBranch(order)}
+                          <div className="text-xs text-[#dfa742] font-semibold mt-1 max-w-[220px] truncate" title={`Collect From Store: ${orderPickupBranch(order)}`}>
+                            🏬 Collect From Store: {orderPickupBranch(order)}
                           </div>
                         )}
                         <span className="mt-1.5 inline-block px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#dfa742]/15 text-[#dfa742] border border-[#dfa742]/30 uppercase">

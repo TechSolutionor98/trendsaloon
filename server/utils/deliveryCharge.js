@@ -140,6 +140,18 @@ export function resolveDeliveryCharge(method, subtotal) {
  */
 export function selectDeliveryMethod(methods, subtotal, preferredId = null) {
   const list = Array.isArray(methods) ? methods : []
+  if (list.length === 0) {
+    return {
+      method: null,
+      available: true,
+      charge: 0,
+      isFree: true,
+      reason: null,
+      minRequired: null,
+      shortfall: 0,
+    }
+  }
+
   const resolved = list.map((method) => ({ method, ...resolveDeliveryCharge(method, subtotal) }))
 
   if (preferredId) {

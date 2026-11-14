@@ -123,31 +123,73 @@ export const SPECIAL_OFFER_COMBO = {
  */
 export const isServiceItem = (item) => {
   if (!item) return false
-  const catName = String(
-    item.category?.name ||
+
+  // 1. Check parentCategory and category names
+  const parentCatName = String(
     item.parentCategory?.name ||
     item.parentCategoryName ||
+    ""
+  ).toLowerCase().trim()
+
+  const catName = String(
+    item.category?.name ||
     item.category ||
     ""
-  ).toLowerCase()
-  const name = String(item.name || "").toLowerCase()
-  const tags = Array.isArray(item.tags) ? item.tags.map((t) => String(t).toLowerCase()) : []
+  ).toLowerCase().trim()
 
-  if (catName.includes("service") || tags.includes("service")) return true
-  if (
-    name.includes("haircut") ||
-    name.includes("beard") ||
-    name.includes("massage") ||
-    name.includes("bath") ||
-    name.includes("facial") ||
-    name.includes("manicure") ||
-    name.includes("pedicure") ||
-    name.includes("grooming") ||
-    name.includes("spa")
-  ) {
-    return true
-  }
-  return false
+  // Explicit Category assignment takes absolute priority:
+  if (parentCatName === "products" || catName === "products") return false
+  if (parentCatName === "services" || catName === "services") return true
+
+  if (parentCatName.includes("product") || catName.includes("product")) return false
+  if (parentCatName.includes("service") || catName.includes("service")) return true
+
+  // 2. Tags check
+  const tags = Array.isArray(item.tags) ? item.tags.map((t) => String(t).toLowerCase()) : []
+  if (tags.some((t) => t === "product" || t.includes("product"))) return false
+  if (tags.some((t) => t === "service" || t.includes("service"))) return true
+
+  // 3. Title-based product heuristics (items containing product terms are products)
+  const name = String(item.name || "").toLowerCase()
+  const isProductKeyword = [
+    "shampoo",
+    "conditioner",
+    "cream",
+    "wax",
+    "kit",
+    "gel",
+    "mask",
+    "protein",
+    "brush",
+    "razor",
+    "nipper",
+    "scrub",
+    "balm",
+    "tonic",
+    "spray",
+    "powder",
+    "pen",
+    "salt",
+    "bottle",
+    "serum",
+    "fiber",
+    "dryer",
+    "oil",
+  ].some((k) => name.includes(k))
+
+  if (isProductKeyword) return false
+
+  // 4. Fallback only for direct service names
+  const isDirectServiceTitle = [
+    "haircut",
+    "beard trim",
+    "moroccan bath",
+    "massage",
+    "hydra facial",
+    "manicure & pedicure",
+  ].some((t) => name.includes(t))
+
+  return isDirectServiceTitle
 }
 
 /**
@@ -155,8 +197,9 @@ export const isServiceItem = (item) => {
  */
 export const fetchSalonCatalog = async () => {
   try {
-    const res = await axios.get(`${config.API_URL}/api/products?limit=100&_t=${Date.now()}`, {
-      timeout: 5000,
+    // Fetch up to 2000 items so that all products added from Admin are loaded
+    const res = await axios.get(`${config.API_URL}/api/products?limit=2000&_t=${Date.now()}`, {
+      timeout: 10000,
     })
 
     const dbProducts = Array.isArray(res.data)
@@ -177,20 +220,28 @@ export const fetchSalonCatalog = async () => {
     const dynamicProducts = []
 
     dbProducts.forEach((item) => {
+      const isService = isServiceItem(item)
+      const rawImage = item.image || (Array.isArray(item.images) && item.images[0]?.url) || ""
+      const defaultPlaceholder = isService ? "/salon/hero-barber.jpg" : "/salon/hair-care.jpg"
+      const resolvedImage = getFullImageUrl(rawImage) || defaultPlaceholder
+
       const formatted = {
         _id: item._id,
         name: item.name,
         slug: item.slug || item._id,
+        sku: item.sku || "",
         subtitle: item.shortDescription || item.nameAr || "",
         price: Number(item.offerPrice || item.price || 0),
         originalPrice: item.offerPrice ? Number(item.price) : undefined,
-        image: getFullImageUrl(item.image) || "/salon/hero-barber.jpg",
-        images: Array.isArray(item.images) ? item.images : [{ url: item.image }],
-        category: item.category?.name || item.parentCategory?.name || (isServiceItem(item) ? "Services" : "Products"),
-        stockStatus: item.stockStatus || "In Stock",
+        image: resolvedImage,
+        images: Array.isArray(item.images) && item.images.length > 0 ? item.images : [{ url: resolvedImage }],
+        category: item.category?.name || item.parentCategory?.name || (isService ? "Services" : "Products"),
+        stockStatus: item.stockStatus || (item.countInStock > 0 ? "In Stock" : "Out of Stock"),
+        countInStock: item.countInStock,
+        createdAt: item.createdAt,
       }
 
-      if (isServiceItem(item)) {
+      if (isService) {
         dynamicServices.push(formatted)
       } else {
         dynamicProducts.push(formatted)
