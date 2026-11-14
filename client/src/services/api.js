@@ -26,17 +26,19 @@ const apiRequest = async (endpoint, options = {}) => {
     ...(options.headers || {}),
   }
   let body = options.body
-  // Stringify body if it's an object (for JSON requests)
-  if (body && typeof body !== "string" && headers["Content-Type"] === "application/json") {
+  // If sending FormData, omit Content-Type so browser sets boundary
+  if (body instanceof FormData) {
+    delete headers["Content-Type"]
+  } else if (body && typeof body !== "string" && headers["Content-Type"] === "application/json") {
     body = JSON.stringify(body)
   }
-  const config = {
+  const requestOptions = {
     ...options,
     headers,
     body,
   }
   try {
-    const response = await fetch(url, config)
+    const response = await fetch(url, requestOptions)
     const data = await response.json()
     if (!response.ok) {
       // The body travels with the error, not just its message. A failure can carry
