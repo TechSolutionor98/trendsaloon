@@ -32,7 +32,7 @@ export default function ContactUs() {
   const { getLocalizedPath } = useLanguage()
   const { showToast } = useToast()
 
-  const [contactBanner, setContactBanner] = useState(() => getCachedSalonBanners().contact || { image: "" })
+  const [contactBanner, setContactBanner] = useState(() => getCachedSalonBanners()?.contact || { image: "" })
 
   useEffect(() => {
     fetchSalonBanners().then((banners) => {

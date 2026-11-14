@@ -107,7 +107,6 @@ export default function Orders({ wholesale = false }) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [processingAction, setProcessingAction] = useState(false)
-  const [showPaymentDropdown, setShowPaymentDropdown] = useState({})
 
   // Bulk selection
   const [selectedOrders, setSelectedOrders] = useState([])
@@ -168,12 +167,6 @@ export default function Orders({ wholesale = false }) {
     const match = orders.find((o) => o._id === focusId)
     if (match) setSelectedOrder(match)
   }, [location.state?.orderId, orders])
-
-  useEffect(() => {
-    const closeDropdowns = () => setShowPaymentDropdown({})
-    document.addEventListener("click", closeDropdowns)
-    return () => document.removeEventListener("click", closeDropdowns)
-  }, [])
 
   const counts = useMemo(() => {
     const result = {}
@@ -244,7 +237,6 @@ export default function Orders({ wholesale = false }) {
       })
 
       replaceOrder(orderId, updateData)
-      setShowPaymentDropdown({})
       setError(null)
     } catch (e) {
       console.error("[orders] payment error:", e)
@@ -301,18 +293,18 @@ export default function Orders({ wholesale = false }) {
   const activeLabel = (TABS.find((t) => t.id === activeTab) || TABS[0]).label
 
   return (
-    <div className="min-h-screen bg-[#0d0e11] text-gray-100">
+    <div className="flex min-h-screen bg-[#0d0e11] text-gray-100">
       <AdminSidebar />
 
-      <div className="p-8 ml-64">
-        <div className="flex flex-wrap justify-between items-center gap-3 mb-5">
+      <div className="flex-1 min-w-0 ml-64 p-4 sm:p-6 lg:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-white font-serif tracking-wide">{wholesale ? "Wholesale Orders" : "Orders & Appointments"}</h1>
-            <p className="text-gray-400 text-sm mt-1">Every salon booking and product order in one place. Switch status with the tabs below.</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white font-serif tracking-wide">{wholesale ? "Wholesale Orders" : "Orders & Appointments"}</h1>
+            <p className="text-gray-400 text-xs sm:text-sm mt-1">Every salon booking and product order in one place. Switch status with the tabs below.</p>
           </div>
           <button
             onClick={fetchOrders}
-            className="flex items-center gap-2 bg-[#dfa742] hover:bg-[#caa638] text-black font-bold px-4 py-2 rounded-xl transition-all shadow-lg shadow-[#dfa742]/20 disabled:opacity-60 text-xs uppercase tracking-wider"
+            className="self-start sm:self-auto flex items-center gap-2 bg-[#dfa742] hover:bg-[#caa638] text-black font-bold px-4 py-2 rounded-xl transition-all shadow-lg shadow-[#dfa742]/20 disabled:opacity-60 text-xs uppercase tracking-wider"
             disabled={loading}
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
@@ -321,7 +313,7 @@ export default function Orders({ wholesale = false }) {
         </div>
 
         {/* Status tabs */}
-        <div className="mb-6 -mx-1 overflow-x-auto px-1 pb-1">
+        <div className="mb-6 -mx-1 overflow-x-auto px-1 pb-1 scrollbar-hide">
           <div className="inline-flex min-w-max items-center gap-1 rounded-2xl bg-[#14161d] p-1.5 shadow-xl border border-[#262933]">
             {TABS.map((tab) => {
               const isActive = tab.id === activeTab
@@ -409,18 +401,18 @@ export default function Orders({ wholesale = false }) {
           </div>
         )}
 
-        <div className="mb-6 flex flex-wrap justify-between items-center gap-3">
-          <div className="relative">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="relative w-full sm:max-w-md">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
               placeholder="Search by order ID, customer, email or phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2.5 w-full md:w-96 bg-[#14161d] border border-[#262933] rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:border-[#dfa742] transition-colors"
+              className="pl-10 pr-4 py-2.5 w-full bg-[#14161d] border border-[#262933] rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:border-[#dfa742] transition-colors"
             />
           </div>
-          <div className="text-xs font-medium text-gray-400">
+          <div className="text-xs font-medium text-gray-400 shrink-0">
             {activeLabel}: <span className="font-bold text-[#dfa742]">{filteredOrders.length}</span>
             {searchTerm.trim() && <span className="text-gray-500"> of {tabOrders.length}</span>}
           </div>
@@ -431,12 +423,18 @@ export default function Orders({ wholesale = false }) {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#dfa742]" />
           </div>
         ) : (
-          <div className="bg-[#14161d] rounded-2xl border border-[#262933] shadow-xl overflow-hidden" style={{ overflow: "visible" }}>
-            <div className="overflow-x-auto" style={{ overflow: "visible" }}>
-              <table className="min-w-full divide-y divide-[#22252d]">
-                <thead className="bg-[#181a22]">
+          <div className="bg-[#14161d] rounded-2xl border border-[#262933] shadow-xl overflow-hidden">
+            <div
+              className="overflow-x-auto"
+              style={{
+                scrollbarWidth: "thin",
+                scrollbarColor: "#2b2f3a #14161d",
+              }}
+            >
+              <table className="w-full text-left border-collapse min-w-[880px]">
+                <thead className="bg-[#181a22] border-b border-[#22252d]">
                   <tr>
-                    <th className="px-6 py-3.5 text-left">
+                    <th className="px-4 py-3.5 w-12 text-center">
                       <input
                         type="checkbox"
                         checked={allVisibleSelected}
@@ -445,15 +443,25 @@ export default function Orders({ wholesale = false }) {
                         aria-label="Select all orders in this tab"
                       />
                     </th>
-                    {["Order ID", "Customer", "Date", "Status", "Payment", "Total"].map((heading) => (
-                      <th
-                        key={heading}
-                        className="px-6 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                      >
-                        {heading}
-                      </th>
-                    ))}
-                    <th className="px-6 py-3.5 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap min-w-[140px]">
+                      Order ID
+                    </th>
+                    <th className="px-4 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap min-w-[180px]">
+                      Customer
+                    </th>
+                    <th className="px-4 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap min-w-[120px]">
+                      Date
+                    </th>
+                    <th className="px-4 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap min-w-[110px]">
+                      Status
+                    </th>
+                    <th className="px-4 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap min-w-[100px]">
+                      Payment
+                    </th>
+                    <th className="px-4 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap min-w-[100px]">
+                      Total
+                    </th>
+                    <th className="px-4 py-3.5 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap min-w-[110px] sticky right-0 bg-[#181a22] shadow-[-6px_0_10px_-2px_rgba(0,0,0,0.5)]">
                       Actions
                     </th>
                   </tr>
@@ -462,9 +470,9 @@ export default function Orders({ wholesale = false }) {
                   {filteredOrders.map((order) => (
                     <tr
                       key={order._id}
-                      className={`hover:bg-[#1a1d26] transition-colors ${selectedOrders.includes(order._id) ? "bg-[#dfa742]/10" : ""}`}
+                      className={`hover:bg-[#1a1d26] transition-colors group ${selectedOrders.includes(order._id) ? "bg-[#dfa742]/10" : ""}`}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 whitespace-nowrap text-center">
                         <input
                           type="checkbox"
                           checked={selectedOrders.includes(order._id)}
@@ -473,27 +481,29 @@ export default function Orders({ wholesale = false }) {
                           aria-label={`Select order ${order._id.slice(-6)}`}
                         />
                       </td>
-                      <td className="px-6 py-4 align-top">
-                        <div className="text-sm font-bold text-[#dfa742]">#{order._id.slice(-6)}</div>
+
+                      {/* ORDER ID & PRODUCT SUMMARY */}
+                      <td className="px-4 py-4 align-top">
+                        <div className="text-sm font-bold text-[#dfa742] font-mono">#{order._id.slice(-6)}</div>
                         {order.trackingId && (
-                          <div className="text-xs text-gray-500">{order.trackingId}</div>
+                          <div className="text-xs text-gray-500 font-mono mt-0.5">{order.trackingId}</div>
                         )}
                         {(() => {
                           const summary = orderSummaryItem(order)
                           if (!summary) return null
 
                           return (
-                            <div className="mt-1.5 max-w-[220px]">
+                            <div className="mt-1.5 max-w-[200px]">
                               <p className="line-clamp-2 text-xs leading-snug text-gray-300" title={summary.name}>
                                 {summary.name}
                               </p>
                               {summary.sku && (
-                                <p className="mt-0.5 font-mono text-[11px] leading-tight text-gray-500">
+                                <p className="mt-0.5 font-mono text-[11px] leading-tight text-gray-500 truncate" title={summary.sku}>
                                   {summary.sku}
                                 </p>
                               )}
                               {summary.extra > 0 && (
-                                <p className="mt-0.5 text-[11px] leading-tight text-[#dfa742]/80">
+                                <p className="mt-0.5 text-[11px] leading-tight text-[#dfa742]/80 font-medium">
                                   +{summary.extra} more item{summary.extra > 1 ? "s" : ""}
                                 </p>
                               )}
@@ -501,25 +511,36 @@ export default function Orders({ wholesale = false }) {
                           )
                         })()}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-white">{orderCustomerName(order) || "N/A"}</div>
-                        <div className="text-xs text-gray-400 mt-0.5">
+
+                      {/* CUSTOMER INFO */}
+                      <td className="px-4 py-4 align-top">
+                        <div className="text-sm font-medium text-white max-w-[200px] truncate" title={orderCustomerName(order)}>
+                          {orderCustomerName(order) || "N/A"}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-0.5 max-w-[200px] truncate" title={orderCustomerEmail(order) || orderCustomerPhone(order)}>
                           {orderCustomerEmail(order) || orderCustomerPhone(order) || "N/A"}
                         </div>
                         {orderPickupBranch(order) && (
-                          <div className="text-xs text-gray-400 mt-1">🏬 {orderPickupBranch(order)}</div>
+                          <div className="text-xs text-gray-400 mt-1 max-w-[200px] truncate" title={orderPickupBranch(order)}>
+                            🏬 {orderPickupBranch(order)}
+                          </div>
                         )}
                         <span className="mt-1.5 inline-block px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#dfa742]/15 text-[#dfa742] border border-[#dfa742]/30 uppercase">
                           📍 {getOrderCountryName(order)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+
+                      {/* DATE */}
+                      <td className="px-4 py-4 whitespace-nowrap align-top">
                         <div className="text-sm text-gray-200">{new Date(order.createdAt).toLocaleDateString()}</div>
                         <div className="text-xs text-gray-500 mt-0.5">{new Date(order.createdAt).toLocaleTimeString()}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+
+                      {/* STATUS DROPDOWN */}
+                      <td className="px-4 py-4 whitespace-nowrap align-top">
                         <div className="relative inline-block text-left">
                           <button
+                            type="button"
                             className={`px-3 py-1 inline-flex items-center text-xs leading-5 font-semibold rounded-full hover:opacity-80 transition-opacity ${statusChipClass(
                               order.status,
                             )}`}
@@ -535,20 +556,19 @@ export default function Orders({ wholesale = false }) {
                             aria-label={`Change status of order ${order._id.slice(-6)}`}
                           >
                             {ORDER_STATUS_OPTIONS.map((status) => (
-                              <option key={status} value={status}>
+                              <option key={status} value={status} className="bg-[#181a22] text-white">
                                 {status}
                               </option>
                             ))}
                           </select>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap" style={{ overflow: "visible" }}>
-                        <div style={{ position: "relative" }}>
+
+                      {/* PAYMENT DROPDOWN */}
+                      <td className="px-4 py-4 whitespace-nowrap align-top">
+                        <div className="relative inline-block text-left">
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setShowPaymentDropdown((prev) => ({ [order._id]: !prev[order._id] }))
-                            }}
+                            type="button"
                             className={`px-3 py-1 inline-flex items-center text-xs leading-5 font-semibold rounded-full cursor-pointer hover:opacity-80 transition-colors ${
                               order.isPaid ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-red-500/20 text-red-400 border border-red-500/30"
                             }`}
@@ -556,65 +576,53 @@ export default function Orders({ wholesale = false }) {
                             {order.isPaid ? "Paid" : "Unpaid"}
                             <ChevronDown size={12} className="ml-1" />
                           </button>
-
-                          {showPaymentDropdown[order._id] && (
-                            <div
-                              style={{
-                                position: "absolute",
-                                top: "100%",
-                                left: 0,
-                                marginTop: "4px",
-                                width: "128px",
-                                backgroundColor: "#181a22",
-                                border: "1px solid #2b2f3a",
-                                borderRadius: "8px",
-                                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5)",
-                                zIndex: 9999,
-                              }}
-                            >
-                              {PAYMENT_STATUS_OPTIONS.map((status) => (
-                                <button
-                                  key={status}
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleUpdatePaymentStatus(order._id, status === "Paid")
-                                  }}
-                                  className="block w-full text-left px-4 py-2 text-xs font-semibold text-gray-200 hover:bg-[#222530] hover:text-[#dfa742] transition-colors first:rounded-t-lg last:rounded-b-lg"
-                                  disabled={processingAction}
-                                >
-                                  {status}
-                                </button>
-                              ))}
-                            </div>
-                          )}
+                          <select
+                            value={order.isPaid ? "Paid" : "Unpaid"}
+                            onChange={(e) => handleUpdatePaymentStatus(order._id, e.target.value === "Paid")}
+                            disabled={processingAction}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            aria-label={`Change payment status of order ${order._id.slice(-6)}`}
+                          >
+                            {PAYMENT_STATUS_OPTIONS.map((status) => (
+                              <option key={status} value={status} className="bg-[#181a22] text-white">
+                                {status}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[#dfa742] font-bold">
+
+                      {/* TOTAL PRICE */}
+                      <td className="px-4 py-4 whitespace-nowrap align-top text-sm text-[#dfa742] font-bold">
                         {formatOrderPrice(order.totalPrice, order)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => setSelectedOrder(order)}
-                          className="text-[#dfa742] hover:text-[#caa638] mr-3 transition-colors"
-                          title="View order details"
-                        >
-                          <Eye size={18} />
-                        </button>
-                        <button
-                          onClick={() => navigate(`/admin/orders/create?id=${order._id}`)}
-                          className="text-gray-400 hover:text-white mr-3 transition-colors"
-                          title="Edit this order"
-                        >
-                          <PencilLine size={18} />
-                        </button>
-                        <button
-                          onClick={() => setSelectedOrder(order)}
-                          className="text-gray-400 hover:text-white transition-colors"
-                          disabled={processingAction}
-                          title="Message the customer"
-                        >
-                          <Mail size={18} />
-                        </button>
+
+                      {/* ACTIONS (STICKY RIGHT) */}
+                      <td className="px-4 py-4 whitespace-nowrap align-top text-right text-sm font-medium sticky right-0 bg-[#14161d] group-hover:bg-[#1a1d26] transition-colors shadow-[-6px_0_10px_-2px_rgba(0,0,0,0.5)]">
+                        <div className="flex items-center justify-end gap-1 sm:gap-2">
+                          <button
+                            onClick={() => setSelectedOrder(order)}
+                            className="p-1.5 rounded-lg text-[#dfa742] hover:bg-[#dfa742]/15 transition-colors"
+                            title="View order details"
+                          >
+                            <Eye size={17} />
+                          </button>
+                          <button
+                            onClick={() => navigate(`/admin/orders/create?id=${order._id}`)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                            title="Edit this order"
+                          >
+                            <PencilLine size={17} />
+                          </button>
+                          <button
+                            onClick={() => setSelectedOrder(order)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40"
+                            disabled={processingAction}
+                            title="Message the customer"
+                          >
+                            <Mail size={17} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -22,7 +22,7 @@ export default function ProductsPage() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [addedItemIds, setAddedItemIds] = useState({})
-  const [productsBanner, setProductsBanner] = useState(() => getCachedSalonBanners().products)
+  const [productsBanner, setProductsBanner] = useState(() => getCachedSalonBanners()?.products || { image: "" })
 
   // Load catalog dynamically from backend API / MongoDB
   useEffect(() => {
@@ -91,22 +91,22 @@ export default function ProductsPage() {
       <section className="relative bg-[#0d0e11] text-white overflow-hidden">
         <div className="relative w-full overflow-hidden select-none">
           <img
-            src={getFullImageUrl(productsBanner.image)}
-            alt={productsBanner.title || "Our Products"}
+            src={getFullImageUrl(productsBanner?.image || "")}
+            alt={productsBanner?.title || "Our Products"}
             className="w-full h-auto min-h-[180px] sm:min-h-[260px] md:min-h-[320px] max-h-[460px] object-cover object-center"
           />
 
-          {Boolean(productsBanner.title?.trim() || productsBanner.subtitle?.trim()) && (
+          {Boolean(productsBanner?.title?.trim() || productsBanner?.subtitle?.trim()) && (
             <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent flex items-center">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
                 <div className="max-w-xl text-left space-y-2.5 py-4">
-                  {productsBanner.title && (
+                  {productsBanner?.title && (
                     <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
                       {productsBanner.title}
                     </h1>
                   )}
 
-                  {productsBanner.subtitle && (
+                  {productsBanner?.subtitle && (
                     <p className="text-gray-200 text-sm sm:text-base font-light tracking-wide">
                       {productsBanner.subtitle}
                     </p>

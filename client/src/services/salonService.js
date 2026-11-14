@@ -221,53 +221,70 @@ export const fetchSalonCatalog = async () => {
 // Cached banners storage helper for instant 0ms banner loading without any static flash
 const BANNER_STORAGE_KEY = "trend_salon_banners_v1"
 
+export const DEFAULT_SALON_BANNERS = {
+  home: {
+    image: "/uploads/others/1st__1_-1794578064135-265383882.png",
+    title: "",
+    subtitle: "",
+    tagline: "",
+    buttonText: "",
+  },
+  offers: {
+    image: "/uploads/others/3rd_jpg-1794582252013-625192313.jpeg",
+    title: "",
+    subtitle: "",
+    buttonText: "",
+    link: "",
+  },
+  services: {
+    image: "/uploads/others/2nd-1794582305379-234332284.png",
+    title: "",
+    subtitle: "",
+  },
+  products: {
+    image: "/uploads/others/2nd-1794582320874-530457510.png",
+    title: "",
+    subtitle: "",
+  },
+  contact: {
+    image: "",
+  },
+}
+
 export const getCachedSalonBanners = () => {
   try {
     const raw = localStorage.getItem(BANNER_STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw)
-      if (parsed && typeof parsed === "object") return parsed
+      if (parsed && typeof parsed === "object") {
+        return {
+          home: { ...DEFAULT_SALON_BANNERS.home, ...(parsed.home || {}) },
+          offers: { ...DEFAULT_SALON_BANNERS.offers, ...(parsed.offers || {}) },
+          services: { ...DEFAULT_SALON_BANNERS.services, ...(parsed.services || {}) },
+          products: { ...DEFAULT_SALON_BANNERS.products, ...(parsed.products || {}) },
+          contact: { ...DEFAULT_SALON_BANNERS.contact, ...(parsed.contact || {}) },
+        }
+      }
     }
   } catch {}
-  return {
-    home: {
-      image: "/uploads/others/1st__1_-1794578064135-265383882.png",
-      title: "",
-      subtitle: "",
-      tagline: "",
-      buttonText: "",
-    },
-    offers: {
-      image: "/uploads/others/3rd_jpg-1794582252013-625192313.jpeg",
-      title: "",
-      subtitle: "",
-      buttonText: "",
-      link: "",
-    },
-    services: {
-      image: "/uploads/others/2nd-1794582305379-234332284.png",
-      title: "",
-      subtitle: "",
-    },
-    products: {
-      image: "/uploads/others/2nd-1794582320874-530457510.png",
-      title: "",
-      subtitle: "",
-    },
-    contact: {
-      image: "",
-    },
-  }
+  return DEFAULT_SALON_BANNERS
 }
 
 export const fetchSalonBanners = async () => {
   try {
     const res = await axios.get(`${config.API_URL}/api/banners/salon-banners?_t=${Date.now()}`)
-    if (res.data) {
+    if (res.data && typeof res.data === "object") {
+      const merged = {
+        home: { ...DEFAULT_SALON_BANNERS.home, ...(res.data.home || {}) },
+        offers: { ...DEFAULT_SALON_BANNERS.offers, ...(res.data.offers || {}) },
+        services: { ...DEFAULT_SALON_BANNERS.services, ...(res.data.services || {}) },
+        products: { ...DEFAULT_SALON_BANNERS.products, ...(res.data.products || {}) },
+        contact: { ...DEFAULT_SALON_BANNERS.contact, ...(res.data.contact || {}) },
+      }
       try {
-        localStorage.setItem(BANNER_STORAGE_KEY, JSON.stringify(res.data))
+        localStorage.setItem(BANNER_STORAGE_KEY, JSON.stringify(merged))
       } catch {}
-      return res.data
+      return merged
     }
   } catch (err) {
     console.warn("Could not fetch salon banners:", err.message)

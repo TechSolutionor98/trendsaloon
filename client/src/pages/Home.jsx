@@ -17,6 +17,7 @@ import {
   SPECIAL_OFFER_COMBO,
   getCachedSalonBanners,
   fetchSalonBanners,
+  DEFAULT_SALON_BANNERS,
 } from "../services/salonService"
 import {
   Scissors,
@@ -127,8 +128,8 @@ export default function Home() {
   // Homepage displays top 6 items; 'See More' navigates to full services/products page
   const visibleServices = services.slice(0, 6)
   const visibleProducts = products.slice(0, 5)
-  const [heroBanner, setHeroBanner] = useState(() => getCachedSalonBanners().home)
-  const [offersBanner, setOffersBanner] = useState(() => getCachedSalonBanners().offers)
+  const [heroBanner, setHeroBanner] = useState(() => getCachedSalonBanners()?.home || DEFAULT_SALON_BANNERS.home)
+  const [offersBanner, setOffersBanner] = useState(() => getCachedSalonBanners()?.offers || DEFAULT_SALON_BANNERS.offers)
 
   // Fetch dynamic products and services from database/Admin
   useEffect(() => {
@@ -148,8 +149,8 @@ export default function Home() {
     async function loadBanner() {
       const data = await fetchSalonBanners()
       if (isMounted && data) {
-        if (data.home) setHeroBanner((prev) => ({ ...prev, ...data.home }))
-        if (data.offers) setOffersBanner((prev) => ({ ...prev, ...data.offers }))
+        if (data.home) setHeroBanner((prev) => ({ ...(prev || DEFAULT_SALON_BANNERS.home), ...data.home }))
+        if (data.offers) setOffersBanner((prev) => ({ ...(prev || DEFAULT_SALON_BANNERS.offers), ...data.offers }))
       }
     }
     loadBanner()
@@ -207,32 +208,32 @@ export default function Home() {
       <section className="relative bg-[#0d0e11] text-white overflow-hidden">
         <div className="relative w-full overflow-hidden select-none">
           <img
-            src={getFullImageUrl(heroBanner.image)}
-            alt={heroBanner.title || "Trend Saloon"}
+            src={getFullImageUrl(heroBanner?.image || "")}
+            alt={heroBanner?.title || "Trend Saloon"}
             className="w-full h-auto min-h-[260px] sm:min-h-[380px] md:min-h-[480px] max-h-[650px] object-cover object-center"
           />
 
           {/* If user provided text, overlay it cleanly; if text was removed, show purely the custom designed banner */}
-          {Boolean(heroBanner.title?.trim() || heroBanner.tagline?.trim() || heroBanner.subtitle?.trim()) && (
+          {Boolean(heroBanner?.title?.trim() || heroBanner?.tagline?.trim() || heroBanner?.subtitle?.trim()) && (
             <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent flex items-center">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
                 <div className="max-w-xl lg:max-w-2xl text-left space-y-4 py-4">
-                  {heroBanner.tagline && (
+                  {heroBanner?.tagline && (
                     <div className="inline-flex items-center gap-2.5 text-xs sm:text-sm font-medium tracking-[0.2em] uppercase text-gray-300">
                       <span>{heroBanner.tagline}</span>
                     </div>
                   )}
-                  {heroBanner.title && (
+                  {heroBanner?.title && (
                     <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-bold text-white tracking-tight leading-[1.1]">
                       {heroBanner.title}
                     </h1>
                   )}
-                  {heroBanner.subtitle && (
+                  {heroBanner?.subtitle && (
                     <p className="text-sm sm:text-base text-gray-300 max-w-lg font-light leading-relaxed">
                       {heroBanner.subtitle}
                     </p>
                   )}
-                  {heroBanner.buttonText && (
+                  {heroBanner?.buttonText && (
                     <div className="pt-2">
                       <button
                         onClick={() => scrollToSection("services")}
@@ -335,12 +336,12 @@ export default function Home() {
                     AED {service.price}
                   </div>
 
-                  {/* User Request: Replace 'Book Now' with 'Add to Cart' */}
+                  {/* Action Button: Add to Cart (Highlighted Gold Button) */}
                   <button
                     onClick={(e) => handleAddToCart(service, e)}
-                    className={`mt-auto text-xs font-semibold px-3 py-1.5 rounded-full flex items-center justify-center gap-1 transition-all duration-200 ${isAdded
-                      ? "bg-green-600 text-white"
-                      : "text-gray-900 hover:text-[#b38743] hover:bg-amber-50 group-hover:text-[#dfa742]"
+                    className={`mt-auto w-full py-2 px-3 rounded-full text-xs font-bold shadow-md transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5 ${isAdded
+                      ? "bg-emerald-600 text-white shadow-emerald-600/30"
+                      : "bg-[#dfa742] hover:bg-[#caa638] text-black shadow-[#dfa742]/20 hover:shadow-lg hover:shadow-[#dfa742]/30"
                       }`}
                   >
                     {isAdded ? (
@@ -351,7 +352,7 @@ export default function Home() {
                     ) : (
                       <>
                         <span>Add to Cart</span>
-                        <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                        <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
                       </>
                     )}
                   </button>
@@ -380,35 +381,35 @@ export default function Home() {
           4. SPECIAL OFFERS SECTION (Square/Rectangular Dynamic Banner)
           ------------------------------------------------------------- */}
       <section id="offers" className="relative bg-[#0c0d10] text-white overflow-hidden my-6">
-        {Boolean(offersBanner.image) ? (
+        {Boolean(offersBanner?.image) ? (
           /* Custom Full-Width Square/Rectangular Banner Image */
           <div className="relative w-full overflow-hidden select-none">
             <img
-              src={getFullImageUrl(offersBanner.image)}
-              alt={offersBanner.title || "Special Offers"}
+              src={getFullImageUrl(offersBanner?.image || "")}
+              alt={offersBanner?.title || "Special Offers"}
               className="w-full h-auto min-h-[160px] sm:min-h-[240px] md:min-h-[300px] max-h-[500px] object-cover object-center"
             />
 
             {/* If user provided text, overlay cleanly; if text was left empty, show pure designed banner */}
-            {Boolean(offersBanner.title?.trim() || offersBanner.subtitle?.trim() || offersBanner.buttonText?.trim()) && (
+            {Boolean(offersBanner?.title?.trim() || offersBanner?.subtitle?.trim() || offersBanner?.buttonText?.trim()) && (
               <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent flex items-center">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
                   <div className="max-w-xl text-left space-y-3 py-4">
-                    {offersBanner.title && (
+                    {offersBanner?.title && (
                       <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
                         {offersBanner.title}
                       </h2>
                     )}
-                    {offersBanner.subtitle && (
+                    {offersBanner?.subtitle && (
                       <p className="text-white text-base sm:text-lg font-light tracking-wide">
                         {offersBanner.subtitle}
                       </p>
                     )}
-                    {offersBanner.buttonText && (
+                    {offersBanner?.buttonText && (
                       <div className="pt-2">
                         <button
                           onClick={() => {
-                            if (offersBanner.link) {
+                            if (offersBanner?.link) {
                               navigate(getLocalizedPath(offersBanner.link))
                             } else {
                               setOffersModalOpen(true)
@@ -460,15 +461,15 @@ export default function Home() {
                 {/* Left Content */}
                 <div className="text-center lg:text-left space-y-3">
                   <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#dfa742] tracking-tight">
-                    {offersBanner.title || "Special Offers"}
+                    {offersBanner?.title || "Special Offers"}
                   </h2>
                   <p className="text-white text-base sm:text-lg font-light tracking-wide">
-                    {offersBanner.subtitle || "Look Better. Pay Less."}
+                    {offersBanner?.subtitle || "Look Better. Pay Less."}
                   </p>
                   <div className="pt-3">
                     <button
                       onClick={() => {
-                        if (offersBanner.link) {
+                        if (offersBanner?.link) {
                           navigate(getLocalizedPath(offersBanner.link))
                         } else {
                           setOffersModalOpen(true)
@@ -476,7 +477,7 @@ export default function Home() {
                       }}
                       className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-xs sm:text-sm px-6 py-2.5 rounded-full inline-flex items-center gap-2 shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
                     >
-                      <span>{offersBanner.buttonText || "View All Offers"}</span>
+                      <span>{offersBanner?.buttonText || "View All Offers"}</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
