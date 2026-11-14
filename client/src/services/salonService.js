@@ -291,7 +291,7 @@ const BANNER_STORAGE_KEY = "trend_salon_banners_v1"
 
 export const DEFAULT_SALON_BANNERS = {
   home: {
-    image: "/uploads/others/1st__2_-1794658282338-316370876.webp",
+    image: "/uploads/others/1st__2_-1794658282338-316370876.png",
     mobileImage: "",
     title: "",
     subtitle: "",
@@ -299,7 +299,7 @@ export const DEFAULT_SALON_BANNERS = {
     buttonText: "",
   },
   offers: {
-    image: "/uploads/others/3rd_jpg-1794636441997-872671690.webp",
+    image: "/uploads/others/3rd_jpg-1794636441997-872671690.jpeg",
     mobileImage: "",
     title: "",
     subtitle: "",
@@ -307,19 +307,19 @@ export const DEFAULT_SALON_BANNERS = {
     link: "",
   },
   services: {
-    image: "/uploads/others/2nd__1_-1794658316138-26359007.webp",
+    image: "/uploads/others/2nd__1_-1794658316138-26359007.png",
     mobileImage: "",
     title: "",
     subtitle: "",
   },
   products: {
-    image: "/uploads/others/2nd__1_-1794658329621-864934152.webp",
+    image: "/uploads/others/2nd__1_-1794658329621-864934152.png",
     mobileImage: "",
     title: "",
     subtitle: "",
   },
   contact: {
-    image: "/uploads/others/4th-1794658338553-794105657.webp",
+    image: "/uploads/others/4th-1794658338553-794105657.png",
     mobileImage: "",
   },
 }
@@ -346,10 +346,6 @@ export const getCachedSalonBanners = () => {
 export const fetchSalonBanners = async () => {
   try {
     const res = await axios.get(`${config.API_URL}/api/banners/salon-banners?_t=${Date.now()}`, {
-      headers: {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        Pragma: "no-cache",
-      },
       timeout: 8000,
     })
     if (res.data && typeof res.data === "object") {

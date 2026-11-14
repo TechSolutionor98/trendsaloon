@@ -156,7 +156,7 @@ const corsOptions = {
     return callback(null, true); // Allow all safe web clients rather than failing silently
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-SEO-Unlock-Token', 'X-SEO-Settings-Unlock'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-SEO-Unlock-Token', 'X-SEO-Settings-Unlock', 'Cache-Control', 'Pragma', 'X-Requested-With'],
   exposedHeaders: ['WWW-Authenticate', 'Server-Authorization'],
   maxAge: 86400,
   credentials: true,
@@ -232,20 +232,58 @@ app.get('/uploads/*', async (req, res, next) => {
   }
 })
 
-// Auto-serve WebP if available and client accepts webp
-app.use('/uploads', (req, res, next) => {
-  if (req.method === 'GET' && req.headers.accept && req.headers.accept.includes('image/webp')) {
-    const ext = path.extname(req.path).toLowerCase()
-    if (ext === '.png' || ext === '.jpg' || ext === '.jpeg') {
-      const webpRelPath = req.path.replace(/\.(png|jpe?g)$/i, '.webp')
-      const fullWebpPath = path.join(uploadsPath, webpRelPath)
-      if (fs.existsSync(fullWebpPath)) {
-        res.setHeader('Content-Type', 'image/webp')
-        res.setHeader('Cache-Control', 'public, max-age=2592000, immutable')
-        return res.sendFile(fullWebpPath)
+// Smart image negotiation & on-the-fly WebP conversion/fallback
+app.use('/uploads', async (req, res, next) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return next()
+
+  const cleanPath = req.path.replace(/\\/g, '/').replace(/\/+/g, '/')
+  const ext = path.extname(cleanPath).toLowerCase()
+  const requestedFile = path.join(uploadsPath, cleanPath)
+
+  // 1. If requested file already exists, let express.static serve it normally
+  if (fs.existsSync(requestedFile)) {
+    return next()
+  }
+
+  // 2. If client requested .webp but it doesn't exist on disk, check for .png, .jpg, .jpeg
+  if (ext === '.webp') {
+    const candidateExts = ['.jpeg', '.jpg', '.png', '.JPEG', '.JPG', '.PNG']
+    const baseWithoutExt = requestedFile.slice(0, -ext.length)
+
+    for (const altExt of candidateExts) {
+      const candidatePath = baseWithoutExt + altExt
+      if (fs.existsSync(candidatePath)) {
+        try {
+          // Auto-convert to WebP on-the-fly and save on disk so next request is instant
+          await sharp(candidatePath)
+            .resize(1920, null, { withoutEnlargement: true })
+            .webp({ quality: 85 })
+            .toFile(requestedFile)
+
+          res.setHeader('Content-Type', 'image/webp')
+          res.setHeader('Cache-Control', 'public, max-age=2592000, immutable')
+          return res.sendFile(requestedFile)
+        } catch (sharpErr) {
+          console.warn('On-the-fly WebP conversion failed, falling back to original:', sharpErr.message)
+          const fallbackType = altExt.toLowerCase() === '.png' ? 'image/png' : 'image/jpeg'
+          res.setHeader('Content-Type', fallbackType)
+          res.setHeader('Cache-Control', 'public, max-age=2592000, immutable')
+          return res.sendFile(candidatePath)
+        }
       }
     }
   }
+
+  // 3. If client requested .png or .jpg/jpeg but it doesn't exist, check if .webp exists
+  if (ext === '.png' || ext === '.jpg' || ext === '.jpeg') {
+    const webpCandidate = requestedFile.slice(0, -ext.length) + '.webp'
+    if (fs.existsSync(webpCandidate)) {
+      res.setHeader('Content-Type', 'image/webp')
+      res.setHeader('Cache-Control', 'public, max-age=2592000, immutable')
+      return res.sendFile(webpCandidate)
+    }
+  }
+
   next()
 })
 
