@@ -190,6 +190,8 @@ export default function ProductsPage() {
           <img
             src={getFullImageUrl(productsBanner?.image || "") || "/salon/promo-products.jpg"}
             alt={productsBanner?.title || "Our Products"}
+            fetchpriority="high"
+            decoding="async"
             onError={(e) => {
               e.currentTarget.src = "/salon/promo-products.jpg"
             }}

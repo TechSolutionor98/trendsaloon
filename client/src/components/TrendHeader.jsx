@@ -31,6 +31,9 @@ export function TrendLogo() {
         <img
           src="/white-logo.png"
           alt="Trend Gents Saloon Logo"
+          width="56"
+          height="56"
+          decoding="async"
           className="h-12 sm:h-14 w-12 sm:w-14 object-contain transition-transform duration-300 group-hover:scale-105 filter drop-shadow-[0_2px_10px_rgba(223,167,66,0.35)]"
         />
       </div>

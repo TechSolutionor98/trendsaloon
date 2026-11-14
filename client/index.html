@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="google-site-verification" content="7L9SSyoDKttO_Mq86f7kYHZoCKnZ76rBW5tZZYyxg1Y" />
     <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="dns-prefetch" href="https://api.trendcosmetica.com" />
+    <link rel="preconnect" href="https://api.trendcosmetica.com" crossorigin />
     <link rel="dns-prefetch" href="https://api.grabatoz.ae" />
-    <link rel="preconnect" href="https://api.grabatoz.ae" />
+    <link rel="preconnect" href="https://api.grabatoz.ae" crossorigin />
     <title>Trend Saloon | Luxury Barber &amp; Wellness in Ajman</title>
     <meta name="description" content="Experience premium grooming, haircut, royal beard grooming, and Moroccan baths at Trend Saloon in Al Yasmeen, Ajman." />
 
@@ -56,22 +58,7 @@
   })()
 </script>
 
-<!-- Google Tag Manager -->
-<script>if(!window.__grabatozInternalPage){(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-NVQM623J');}</script>
-<!-- End Google Tag Manager -->
-
-
-
-
-
-
-    <!-- GA/Ads are handled via GTM container to avoid duplicate gtag bootstrap -->
-
-    <!-- Defer non-critical third-party scripts to reduce early network/caching penalties -->
+    <!-- Defer non-critical third-party scripts (GTM, Meta Pixel, Clarity, ClickCease) to protect Core Web Vitals (TBT/FCP/LCP) -->
     <script>
       ;(function () {
         var loaded = false
@@ -91,63 +78,84 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           if (window.__grabatozInternalPage) return
           loaded = true
 
-       
+          // 1. Google Tag Manager
+          try {
+            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer','GTM-NVQM623J');
+          } catch(e) {}
 
-          // ClickCease
-          appendScript("https://www.clickcease.com/monitor/stat.js", "clickcease-script")
-
-          // Microsoft Clarity
-          ;(function (c, l, a, r, i, t, y) {
-            c[a] =
-              c[a] ||
-              function () {
-                ;(c[a].q = c[a].q || []).push(arguments)
-              }
-            t = l.createElement(r)
-            t.async = 1
-            t.src = "https://www.clarity.ms/tag/" + i
-            y = l.getElementsByTagName(r)[0]
-            y.parentNode.insertBefore(t, y)
-          })(window, document, "clarity", "script", "sxs3x2ruvu")
-
-          // Google Customer Reviews Merchant Widget
-          var merchantScript = appendScript(
-            "https://www.gstatic.com/shopping/merchant/merchantwidget.js",
-            "merchantWidgetScript"
-          )
-          merchantScript.addEventListener("load", function () {
-            if (window.merchantwidget && typeof window.merchantwidget.start === "function") {
-              window.merchantwidget.start({
-                merchant_id: 5694261680,
-                position: "RIGHT_BOTTOM",
-                region: "AE",
-              })
+          // 2. Meta (Facebook) Pixel
+          try {
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            if (window.fbq) {
+              fbq('init', '1074503198288217');
+              fbq('track', 'PageView');
             }
-          })
+          } catch(e) {}
+
+          // 3. ClickCease
+          try {
+            appendScript("https://www.clickcease.com/monitor/stat.js", "clickcease-script")
+          } catch(e) {}
+
+          // 4. Microsoft Clarity
+          try {
+            ;(function (c, l, a, r, i, t, y) {
+              c[a] =
+                c[a] ||
+                function () {
+                  ;(c[a].q = c[a].q || []).push(arguments)
+                }
+              t = l.createElement(r)
+              t.async = 1
+              t.src = "https://www.clarity.ms/tag/" + i
+              y = l.getElementsByTagName(r)[0]
+              y.parentNode.insertBefore(t, y)
+            })(window, document, "clarity", "script", "sxs3x2ruvu")
+          } catch(e) {}
+
+          // 5. Google Customer Reviews Merchant Widget
+          try {
+            var merchantScript = appendScript(
+              "https://www.gstatic.com/shopping/merchant/merchantwidget.js",
+              "merchantWidgetScript"
+            )
+            merchantScript.addEventListener("load", function () {
+              if (window.merchantwidget && typeof window.merchantwidget.start === "function") {
+                window.merchantwidget.start({
+                  merchant_id: 5694261680,
+                  position: "RIGHT_BOTTOM",
+                  region: "AE",
+                })
+              }
+            })
+          } catch(e) {}
         }
 
-        // Load third-party trackers/widgets only after real user interaction.
+        // Load third-party trackers only after first user interaction or when idle
         ;["pointerdown", "keydown", "touchstart", "scroll"].forEach(function (eventName) {
           window.addEventListener(eventName, loadThirdParty, { once: true, passive: true })
         })
+
+        if ("requestIdleCallback" in window) {
+          requestIdleCallback(function () {
+            setTimeout(loadThirdParty, 3500)
+          })
+        } else {
+          setTimeout(loadThirdParty, 4000)
+        }
       })()
     </script>
-    <!-- Meta Pixel Code -->
-    <script>
-      if (!window.__grabatozInternalPage) {
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '1074503198288217');
-      fbq('track', 'PageView');
-      }
-    </script>
-    <!-- End Meta Pixel Code -->
   </head>
   <body>
 

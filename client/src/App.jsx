@@ -29,9 +29,10 @@ import { useLocation } from "react-router-dom"
 
 // Import pages
 import Home from "./pages/Home"
-import ServicesProducts from "./pages/ServicesProducts"
-import ProductsPage from "./pages/ProductsPage"
-import NotFound from "./pages/NotFound"
+
+const ServicesProducts = lazyWithRetry(() => import("./pages/ServicesProducts"))
+const ProductsPage = lazyWithRetry(() => import("./pages/ProductsPage"))
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"))
 
 const Shop = lazyWithRetry(() => import("./pages/Shop"))
 const ProductDetails = lazyWithRetry(() => import("./pages/ProductDetails"))

@@ -2,6 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import viteCompression from 'vite-plugin-compression'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -10,7 +11,7 @@ const asyncMainCssPlugin = () => ({
   enforce: 'post',
   transformIndexHtml(html) {
     return html.replace(
-      /<link rel="stylesheet"([^>]*href="\/assets\/index-[^"]+\.css"[^>]*)>/g,
+      /<link rel="stylesheet"([^>]*href="\/assets\/(?:main|index|app)[^"]+\.css"[^>]*)>/g,
       '<link rel="preload" as="style"$1 onload="this.onload=null;this.rel=\'stylesheet\'"><noscript><link rel="stylesheet"$1></noscript>',
     )
   },
@@ -18,7 +19,22 @@ const asyncMainCssPlugin = () => ({
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), asyncMainCssPlugin()],
+  plugins: [
+    react(),
+    asyncMainCssPlugin(),
+    // Generate pre-compressed Gzip files (.gz) for production
+    viteCompression({
+      algorithm: 'gzip',
+      ext: '.gz',
+      threshold: 1024,
+    }),
+    // Generate pre-compressed Brotli files (.br) for maximum compression
+    viteCompression({
+      algorithm: 'brotliCompress',
+      ext: '.br',
+      threshold: 1024,
+    }),
+  ],
   server: {
     port: 3000,
     proxy: {
@@ -54,17 +70,18 @@ export default defineConfig({
           'vendor-ui': ['lucide-react', 'react-icons'],
           'vendor-forms': ['react-hook-form', 'react-select'],
           'vendor-utils': ['axios'],
+          'vendor-tiptap': ['@tiptap/react', '@tiptap/starter-kit'],
         },
       },
     },
-    // Increase chunk size warning limit
+    // Chunk size warning limit
     chunkSizeWarningLimit: 1000,
     // Enable minification (using esbuild - faster and built-in)
     minify: 'esbuild',
     esbuild: {
       drop: ['console', 'debugger'], // Remove console.logs and debugger in production
     },
-    // Enable source maps for debugging (disable in production if needed)
+    // Disable sourcemaps in production
     sourcemap: false,
   },
   // Optimize dependencies

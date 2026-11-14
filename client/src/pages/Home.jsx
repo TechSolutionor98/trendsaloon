@@ -210,6 +210,8 @@ export default function Home() {
           <img
             src={getFullImageUrl(heroBanner?.image || "")}
             alt={heroBanner?.title || "Trend Saloon"}
+            fetchpriority="high"
+            decoding="async"
             className="w-full h-auto min-h-[260px] sm:min-h-[380px] md:min-h-[480px] max-h-[650px] object-cover object-center"
           />
 
@@ -387,6 +389,8 @@ export default function Home() {
             <img
               src={getFullImageUrl(offersBanner?.image || "")}
               alt={offersBanner?.title || "Special Offers"}
+              loading="lazy"
+              decoding="async"
               className="w-full h-auto min-h-[160px] sm:min-h-[240px] md:min-h-[300px] max-h-[500px] object-cover object-center"
             />
 

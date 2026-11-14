@@ -1,5 +1,6 @@
 import express from "express"
 import cors from "cors"
+import compression from "compression"
 import dotenv from "dotenv"
 import path from "path"
 import { fileURLToPath } from "url"
@@ -116,6 +117,9 @@ console.log('📦 Cache service initialized')
 
 const app = express()
 
+// Enable Gzip/Brotli response compression for all API routes and responses
+app.use(compression())
+
 // Trust proxy - required to get real IP address behind proxies (Vercel, Cloudflare, etc.)
 app.set('trust proxy', true)
 
@@ -228,8 +232,11 @@ app.get('/uploads/*', async (req, res, next) => {
   }
 })
 
-// Serve static files from uploads directory
-app.use('/uploads', express.static(uploadsPath));
+// Serve static files from uploads directory with efficient browser caching
+app.use('/uploads', express.static(uploadsPath, {
+  maxAge: '30d',
+  immutable: true,
+}));
 
 // Add logging for static file requests
 app.use('/uploads', (req, res, next) => {

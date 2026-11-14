@@ -33,8 +33,14 @@ export default function ServicesProducts() {
   const [isLoadingMoreProducts, setIsLoadingMoreProducts] = useState(false)
   const [isLoadingMoreServices, setIsLoadingMoreServices] = useState(false)
 
+  const productsScrollContainerRef = useRef(null)
   const loadMoreProductsRef = useRef(null)
   const loadMoreServicesRef = useRef(null)
+
+  // Refs and state for synchronizing sidebar height to exactly 2 rows of services cards
+  const servicesColumnRef = useRef(null)
+  const servicesGridRef = useRef(null)
+  const [sidebarHeight, setSidebarHeight] = useState(null)
 
   // Load catalog dynamically from backend API / MongoDB
   useEffect(() => {
@@ -72,9 +78,24 @@ export default function ServicesProducts() {
     return products.slice(0, visibleProductsCount)
   }, [products, visibleProductsCount])
 
-  // Scroll observer for Products column (loads 20 more as user scrolls down)
+  // Scroll handler for Products internal scroll container
+  const handleProductsScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget
+    if (scrollHeight - scrollTop - clientHeight < 160) {
+      if (visibleProductsCount < products.length && !isLoadingMoreProducts && !loading) {
+        setIsLoadingMoreProducts(true)
+        setTimeout(() => {
+          setVisibleProductsCount((prev) => Math.min(prev + BATCH_SIZE, products.length))
+          setIsLoadingMoreProducts(false)
+        }, 150)
+      }
+    }
+  }
+
+  // Scroll observer for Products column (sentinel trigger)
   useEffect(() => {
     const sentinel = loadMoreProductsRef.current
+    const container = productsScrollContainerRef.current
     if (!sentinel) return
 
     const observer = new IntersectionObserver(
@@ -90,10 +111,13 @@ export default function ServicesProducts() {
           setTimeout(() => {
             setVisibleProductsCount((prev) => Math.min(prev + BATCH_SIZE, products.length))
             setIsLoadingMoreProducts(false)
-          }, 200)
+          }, 150)
         }
       },
-      { rootMargin: "300px 0px" }
+      {
+        root: container || null,
+        rootMargin: "200px 0px",
+      }
     )
 
     observer.observe(sentinel)
@@ -127,6 +151,86 @@ export default function ServicesProducts() {
     observer.observe(sentinel)
     return () => observer.disconnect()
   }, [visibleServicesCount, services.length, isLoadingMoreServices, loading])
+
+  // Synchronize sidebar height to match exactly 2 rows (lines) of services on desktop
+  useEffect(() => {
+    const updateSidebarHeight = () => {
+      if (typeof window === "undefined" || window.innerWidth < 1024) {
+        setSidebarHeight(null)
+        return
+      }
+
+      const grid = servicesGridRef.current
+      const col = servicesColumnRef.current
+      if (!grid || !col) return
+
+      const cards = Array.from(grid.children).filter(
+        (el) => el.nodeType === 1 && !el.classList.contains("animate-pulse")
+      )
+
+      if (cards.length > 0) {
+        const colRect = col.getBoundingClientRect()
+        const card0Rect = cards[0].getBoundingClientRect()
+        let row2Card = null
+
+        // Find the card representing the end of Row 2
+        for (let i = 1; i < cards.length; i++) {
+          const rect = cards[i].getBoundingClientRect()
+          if (rect.top > card0Rect.top + 10) {
+            row2Card = cards[i]
+            for (let j = i + 1; j < cards.length; j++) {
+              const nextRect = cards[j].getBoundingClientRect()
+              if (Math.abs(nextRect.top - rect.top) < 10) {
+                row2Card = cards[j]
+              } else {
+                break
+              }
+            }
+            break
+          }
+        }
+
+        if (row2Card) {
+          const row2Rect = row2Card.getBoundingClientRect()
+          const exactHeight = Math.round(row2Rect.bottom - colRect.top)
+          if (exactHeight > 250) {
+            setSidebarHeight(exactHeight)
+            return
+          }
+        }
+
+        // Fallback: estimate 2 rows of service cards + gap + header offset
+        const singleCardH = card0Rect.height
+        const gridRect = grid.getBoundingClientRect()
+        const headerH = Math.max(0, gridRect.top - colRect.top)
+        const estimated = Math.round(headerH + singleCardH * 2 + 20)
+        if (estimated > 250) {
+          setSidebarHeight(estimated)
+          return
+        }
+      }
+    }
+
+    updateSidebarHeight()
+
+    let observer = null
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(() => {
+        updateSidebarHeight()
+      })
+      if (servicesColumnRef.current) observer.observe(servicesColumnRef.current)
+      if (servicesGridRef.current) observer.observe(servicesGridRef.current)
+    }
+
+    window.addEventListener("resize", updateSidebarHeight)
+    const timer = setTimeout(updateSidebarHeight, 400)
+
+    return () => {
+      if (observer) observer.disconnect()
+      window.removeEventListener("resize", updateSidebarHeight)
+      clearTimeout(timer)
+    }
+  }, [displayedServices.length, loading])
 
   // Handle adding service or product to cart
   const handleAddToCart = (item, e) => {
@@ -173,6 +277,8 @@ export default function ServicesProducts() {
           <img
             src={getFullImageUrl(servicesBanner?.image || "") || "/salon/services-banner-full.jpg"}
             alt={servicesBanner?.title || "Our Services & Products"}
+            fetchpriority="high"
+            decoding="async"
             onError={(e) => {
               e.currentTarget.src = "/salon/services-banner-full.jpg"
             }}
@@ -212,11 +318,11 @@ export default function ServicesProducts() {
 
       {/* 3. Main Content Area (Two Columns Layout) */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
           {/* =========================================================
               LEFT COLUMN: Our Services (~65-70% width)
               ========================================================= */}
-          <div className="lg:col-span-8 space-y-6">
+          <div ref={servicesColumnRef} className="lg:col-span-8 space-y-6">
             {/* Section Header */}
             <div className="flex items-center justify-between mb-4">
               <div className="inline-flex items-center gap-3">
@@ -236,7 +342,7 @@ export default function ServicesProducts() {
 
             {/* Services Grid */}
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
+              <div ref={servicesGridRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
                 {[1, 2, 3, 4, 5, 6].map((n) => (
                   <div key={n} className="bg-white rounded-2xl border border-gray-100 p-4 animate-pulse space-y-3">
                     <div className="w-full aspect-[4/3] bg-gray-200 rounded-xl" />
@@ -247,7 +353,7 @@ export default function ServicesProducts() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
+                <div ref={servicesGridRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
                   {displayedServices.map((service) => {
                     const isAdded = addedItemIds[service._id]
 
@@ -340,12 +446,18 @@ export default function ServicesProducts() {
           </div>
 
           {/* =========================================================
-              RIGHT COLUMN: Our Products (Starts with 20, loads more on scroll)
+              RIGHT COLUMN: Our Products
+              - Top: Sticky Header
+              - Middle: Independently Scrollable Products List
+              - Bottom: STICKY Black Promo Card (Pinned at bottom!)
               ========================================================= */}
-          <div className="lg:col-span-4 space-y-6">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5 sticky top-24 max-h-[85vh] overflow-y-auto">
-              {/* Products Heading with Counter */}
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
+          <div className="lg:col-span-4 w-full self-stretch lg:self-stretch">
+            <div
+              style={sidebarHeight ? { height: `${sidebarHeight}px` } : undefined}
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm sticky top-24 h-[560px] sm:h-[600px] lg:h-[720px] flex flex-col overflow-hidden"
+            >
+              {/* 1. Header with Live Counter (Sticky at Top) */}
+              <div className="p-4 sm:p-5 pb-3 border-b border-gray-100 flex-shrink-0 bg-white z-10 flex items-center justify-between">
                 <h2 className="text-base sm:text-lg font-bold text-gray-900">
                   Our Products
                 </h2>
@@ -354,8 +466,12 @@ export default function ServicesProducts() {
                 </span>
               </div>
 
-              {/* Products List (20 initially, loads +20 on scroll) */}
-              <div className="space-y-3">
+              {/* 2. Middle Scrollable Products Area (Scrolls inside!) */}
+              <div
+                ref={productsScrollContainerRef}
+                onScroll={handleProductsScroll}
+                className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 pt-3 space-y-3 overscroll-contain"
+              >
                 {displayedProducts.map((product) => {
                   const isAdded = addedItemIds[product._id]
 
@@ -402,62 +518,70 @@ export default function ServicesProducts() {
                     </div>
                   )
                 })}
-              </div>
 
-              {/* Scroll Sentinel for Products List */}
-              <div ref={loadMoreProductsRef} className="pt-4 pb-2 text-center">
-                {isLoadingMoreProducts && (
-                  <div className="inline-flex items-center gap-2 text-xs text-gray-500 py-1">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[#dfa742]" />
-                    <span>Loading more products...</span>
-                  </div>
-                )}
-                {!isLoadingMoreProducts && visibleProductsCount < products.length && (
-                  <button
-                    type="button"
-                    onClick={() => setVisibleProductsCount((prev) => Math.min(prev + BATCH_SIZE, products.length))}
-                    className="w-full py-2 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 text-xs font-bold text-gray-700 transition-all"
-                  >
-                    Load More Products ({products.length - visibleProductsCount} remaining)
-                  </button>
-                )}
-              </div>
-
-              {/* Featured Promo Card inside Right Column */}
-              <div
-                onClick={() => navigate(getLocalizedPath("/products"))}
-                className="mt-4 bg-[#111113] rounded-2xl p-4 text-white relative overflow-hidden flex items-center justify-between border border-white/10 group cursor-pointer hover:border-[#dfa742]/40 transition-colors"
-                title="View all salon products"
-              >
-                {/* Left Text & CTA */}
-                <div className="z-10 space-y-2 max-w-[60%]">
-                  <h4 className="text-xs sm:text-sm font-bold text-white leading-snug">
-                    Browse All {products.length} Products
-                    <br />
-                    <span className="text-gray-300 font-normal text-[11px] sm:text-xs">
-                      Exclusive salon formulas
-                    </span>
-                  </h4>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      navigate(getLocalizedPath("/products"))
-                    }}
-                    className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-[10px] sm:text-xs px-3 py-1.5 rounded-full inline-flex items-center gap-1 shadow-md transition-all duration-200 hover:scale-105 active:scale-95"
-                  >
-                    <span>Full Catalog</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
+                {/* Sentinel & Loader at the bottom of the scrollable list */}
+                <div ref={loadMoreProductsRef} className="pt-2 pb-2 text-center">
+                  {isLoadingMoreProducts && (
+                    <div className="inline-flex items-center gap-2 text-xs text-gray-500 py-1">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#dfa742]" />
+                      <span>Loading more products...</span>
+                    </div>
+                  )}
+                  {!isLoadingMoreProducts && visibleProductsCount < products.length && (
+                    <button
+                      type="button"
+                      onClick={() => setVisibleProductsCount((prev) => Math.min(prev + BATCH_SIZE, products.length))}
+                      className="w-full py-2 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 text-xs font-bold text-gray-700 transition-all"
+                    >
+                      Load More Products ({products.length - visibleProductsCount} remaining)
+                    </button>
+                  )}
+                  {visibleProductsCount >= products.length && products.length > BATCH_SIZE && (
+                    <p className="text-[11px] text-gray-400 py-1">
+                      All {products.length} products loaded
+                    </p>
+                  )}
                 </div>
+              </div>
 
-                {/* Right Image */}
-                <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center flex-shrink-0">
-                  <img
-                    src="/salon/promo-products.jpg"
-                    alt="Salon Grooming Products"
-                    className="w-full h-full object-contain rounded-xl filter drop-shadow-md group-hover:scale-105 transition-transform duration-500"
-                  />
+              {/* 3. STICKY BLACK PROMO CARD (Permanently pinned at the bottom!) */}
+              <div className="p-3 sm:p-4 bg-white border-t border-gray-100 flex-shrink-0 z-10">
+                <div
+                  onClick={() => navigate(getLocalizedPath("/products"))}
+                  className="bg-[#111113] rounded-2xl p-3.5 sm:p-4 text-white relative overflow-hidden flex items-center justify-between border border-white/10 group cursor-pointer hover:border-[#dfa742]/40 transition-colors shadow-md"
+                  title="View all salon products"
+                >
+                  {/* Left Text & CTA */}
+                  <div className="z-10 space-y-1.5 max-w-[62%]">
+                    <h4 className="text-xs sm:text-sm font-bold text-white leading-snug">
+                      Browse All {products.length} Products
+                    </h4>
+                    <p className="text-gray-300 font-normal text-[11px] leading-tight">
+                      Exclusive salon formulas
+                    </p>
+                    <div className="pt-1">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          navigate(getLocalizedPath("/products"))
+                        }}
+                        className="bg-[#dfa742] hover:bg-[#caa638] text-black font-semibold text-[10px] sm:text-xs px-3 py-1.5 rounded-full inline-flex items-center gap-1 shadow-md transition-all duration-200 hover:scale-105 active:scale-95"
+                      >
+                        <span>Full Catalog</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Right Image */}
+                  <div className="w-20 h-20 sm:w-22 sm:h-22 flex items-center justify-center flex-shrink-0">
+                    <img
+                      src="/salon/promo-products.jpg"
+                      alt="Salon Grooming Products"
+                      className="w-full h-full object-contain rounded-xl filter drop-shadow-md group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
