@@ -345,7 +345,13 @@ export const getCachedSalonBanners = () => {
 
 export const fetchSalonBanners = async () => {
   try {
-    const res = await axios.get(`${config.API_URL}/api/banners/salon-banners`)
+    const res = await axios.get(`${config.API_URL}/api/banners/salon-banners?_t=${Date.now()}`, {
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+      },
+      timeout: 8000,
+    })
     if (res.data && typeof res.data === "object") {
       const merged = {
         home: { ...DEFAULT_SALON_BANNERS.home, ...(res.data.home || {}) },

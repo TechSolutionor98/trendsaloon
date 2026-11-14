@@ -106,7 +106,7 @@ export default function ContactUs() {
       {/* 2. Hero Banner */}
       {Boolean(contactBanner?.image || contactBanner?.mobileImage) ? (
         <section className="w-full bg-[#0d0e11] overflow-hidden select-none">
-          <picture className="w-full block">
+          <picture key={`contact-${contactBanner?.image || ''}-${contactBanner?.mobileImage || ''}`} className="w-full block">
             {contactBanner?.mobileImage && (
               <source
                 media="(max-width: 767px)"

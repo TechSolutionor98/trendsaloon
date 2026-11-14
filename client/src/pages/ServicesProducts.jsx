@@ -274,7 +274,7 @@ export default function ServicesProducts() {
       {/* 2. Hero Banner */}
       <section className="relative bg-[#0d0e11] text-white overflow-hidden">
         <div className="relative w-full overflow-hidden select-none">
-          <picture className="w-full block">
+          <picture key={`services-${servicesBanner?.image || ''}-${servicesBanner?.mobileImage || ''}`} className="w-full block">
             {servicesBanner?.mobileImage && (
               <source
                 media="(max-width: 767px)"

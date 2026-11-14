@@ -187,7 +187,7 @@ export default function ProductsPage() {
       {/* 2. Hero Banner */}
       <section className="relative bg-[#0d0e11] text-white overflow-hidden">
         <div className="relative w-full overflow-hidden select-none">
-          <picture className="w-full block">
+          <picture key={`products-${productsBanner?.image || ''}-${productsBanner?.mobileImage || ''}`} className="w-full block">
             {productsBanner?.mobileImage && (
               <source
                 media="(max-width: 767px)"

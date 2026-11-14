@@ -25,6 +25,14 @@ const PUBLIC_CACHE = [
 export const publicCache = (req, res, next) => {
   if (req.method !== "GET") return next()
 
+  // Salon banners must always reflect instant admin changes without edge or browser caching delays
+  if (req.originalUrl && req.originalUrl.includes("/salon-banners")) {
+    res.set("Cache-Control", "no-cache, no-store, must-revalidate")
+    res.set("Pragma", "no-cache")
+    res.set("Expires", "0")
+    return next()
+  }
+
   // A signed-in request may carry details meant for that person only.
   if (req.headers.authorization || req.user) {
     res.set("Cache-Control", "private, no-store")

@@ -208,7 +208,7 @@ export default function Home() {
           ------------------------------------------------------------- */}
       <section className="relative bg-[#0d0e11] text-white overflow-hidden">
         <div className="relative w-full overflow-hidden select-none">
-          <picture className="w-full block">
+          <picture key={`hero-${heroBanner?.image || ''}-${heroBanner?.mobileImage || ''}`} className="w-full block">
             {heroBanner?.mobileImage && (
               <source
                 media="(max-width: 767px)"
@@ -400,7 +400,7 @@ export default function Home() {
         {Boolean(offersBanner?.image || offersBanner?.mobileImage) ? (
           /* Custom Full-Width Square/Rectangular Banner Image */
           <div className="relative w-full overflow-hidden select-none">
-            <picture className="w-full block">
+            <picture key={`offers-${offersBanner?.image || ''}-${offersBanner?.mobileImage || ''}`} className="w-full block">
               {offersBanner?.mobileImage && (
                 <source
                   media="(max-width: 767px)"

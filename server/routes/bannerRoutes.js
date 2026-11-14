@@ -64,8 +64,12 @@ const sanitizeTargetCountries = (targetCountries) => {
 // @access  Public
 router.get(
   "/salon-banners",
-  cacheMiddleware("banners"),
   asyncHandler(async (req, res) => {
+    // Salon banners must always reflect instant admin modifications without edge or proxy caching
+    res.set("Cache-Control", "no-cache, no-store, must-revalidate")
+    res.set("Pragma", "no-cache")
+    res.set("Expires", "0")
+
     try {
       const homeBanner = await Banner.findOne({ position: "home-hero", isActive: true })
       const offersBanner = await Banner.findOne({ position: "home-offers", isActive: true })
@@ -80,7 +84,7 @@ router.get(
               title: homeBanner.title !== undefined ? homeBanner.title : "",
               tagline: homeBanner.description !== undefined ? homeBanner.description : "",
               subtitle: homeBanner.subtitle !== undefined ? homeBanner.subtitle : "",
-              image: homeBanner.image || "/salon/hero-man-transparent.png",
+              image: homeBanner.image || "",
               mobileImage: homeBanner.mobileImage || "",
               buttonText: homeBanner.buttonText !== undefined ? homeBanner.buttonText : "",
             }
@@ -88,7 +92,7 @@ router.get(
               title: "Trend Salon",
               tagline: "Look Good • Feel Great",
               subtitle: "Premium Grooming & Wellness Services for the Modern Gentleman",
-              image: "/salon/hero-man-transparent.png",
+              image: "",
               mobileImage: "",
               buttonText: "Book Now",
             },
@@ -115,13 +119,13 @@ router.get(
               _id: servicesBanner._id,
               title: servicesBanner.title !== undefined ? servicesBanner.title : "",
               subtitle: servicesBanner.subtitle !== undefined ? servicesBanner.subtitle : "",
-              image: servicesBanner.image || "/salon/services-man.png",
+              image: servicesBanner.image || "",
               mobileImage: servicesBanner.mobileImage || "",
             }
           : {
               title: "Our Services & Products",
               subtitle: "Professional Care. Premium Quality.",
-              image: "/salon/services-man.png",
+              image: "",
               mobileImage: "",
             },
         products: productsBanner
@@ -129,13 +133,13 @@ router.get(
               _id: productsBanner._id,
               title: productsBanner.title !== undefined ? productsBanner.title : "",
               subtitle: productsBanner.subtitle !== undefined ? productsBanner.subtitle : "",
-              image: productsBanner.image || "/salon/services-man.png",
+              image: productsBanner.image || "",
               mobileImage: productsBanner.mobileImage || "",
             }
           : {
               title: "Our Products",
               subtitle: "Premium Grooming & Care Products for the Modern Gentleman.",
-              image: "/salon/services-man.png",
+              image: "",
               mobileImage: "",
             },
         contact: contactBanner
@@ -156,7 +160,7 @@ router.get(
           title: "Trend Salon",
           tagline: "Look Good • Feel Great",
           subtitle: "Premium Grooming & Wellness Services for the Modern Gentleman",
-          image: "/salon/hero-man-transparent.png",
+          image: "",
           mobileImage: "",
           buttonText: "Book Now",
         },
@@ -171,13 +175,13 @@ router.get(
         services: {
           title: "Our Services & Products",
           subtitle: "Professional Care. Premium Quality.",
-          image: "/salon/services-man.png",
+          image: "",
           mobileImage: "",
         },
         products: {
           title: "Our Products",
           subtitle: "Premium Grooming & Care Products for the Modern Gentleman.",
-          image: "/salon/services-man.png",
+          image: "",
           mobileImage: "",
         },
         contact: {
@@ -206,7 +210,7 @@ router.put(
           title: typeof home.title === "string" ? home.title : "",
           description: typeof home.tagline === "string" ? home.tagline : "",
           subtitle: typeof home.subtitle === "string" ? home.subtitle : "",
-          image: home.image || "/salon/hero-man-transparent.png",
+          image: typeof home.image === "string" ? home.image : "",
           mobileImage: typeof home.mobileImage === "string" ? home.mobileImage : "",
           buttonText: typeof home.buttonText === "string" ? home.buttonText : "",
           position: "home-hero",
@@ -241,7 +245,7 @@ router.put(
         {
           title: typeof services.title === "string" ? services.title : "",
           subtitle: typeof services.subtitle === "string" ? services.subtitle : "",
-          image: typeof services.image === "string" ? services.image : "/salon/services-man.png",
+          image: typeof services.image === "string" ? services.image : "",
           mobileImage: typeof services.mobileImage === "string" ? services.mobileImage : "",
           position: "services-hero",
           isActive: true,
@@ -257,7 +261,7 @@ router.put(
         {
           title: typeof products.title === "string" ? products.title : "",
           subtitle: typeof products.subtitle === "string" ? products.subtitle : "",
-          image: typeof products.image === "string" ? products.image : "/salon/services-man.png",
+          image: typeof products.image === "string" ? products.image : "",
           mobileImage: typeof products.mobileImage === "string" ? products.mobileImage : "",
           position: "products-hero",
           isActive: true,
@@ -281,7 +285,18 @@ router.put(
       )
     }
 
-    await invalidateCache("banners")
+    try {
+      await invalidateCache("banners")
+      const cacheServiceModule = await import("../services/cacheService.js")
+      const cacheService = cacheServiceModule.default
+      if (cacheService?.invalidatePattern) {
+        await cacheService.invalidatePattern("*banners*")
+        await cacheService.invalidatePattern("graba2z:*banners*")
+      }
+    } catch (cacheErr) {
+      console.warn("Banner cache invalidation notice:", cacheErr.message)
+    }
+
     res.json({ success: true, message: "Salon banners updated successfully" })
   }),
 )
