@@ -17,13 +17,31 @@ const convertToWebpIfNeeded = async (file) => {
 
   const ext = path.extname(file.filename || file.path || "").toLowerCase()
   const isWebp = file.mimetype === "image/webp" || ext === ".webp"
-  if (isWebp) return file
+
+  // Even if WebP, check if width > 1920 to resize huge banners
+  if (isWebp) {
+    try {
+      const meta = await sharp(file.path).metadata()
+      if (meta.width && meta.width > 1920) {
+        const tmpPath = `${file.path}.tmp`
+        await sharp(file.path).resize(1920, null, { withoutEnlargement: true }).webp({ quality: 85 }).toFile(tmpPath)
+        await fs.unlink(file.path).catch(() => {})
+        await fs.rename(tmpPath, file.path)
+      }
+    } catch (_) {}
+    return file
+  }
 
   const parsedPath = path.parse(file.path)
   const convertedPath = path.join(parsedPath.dir, `${parsedPath.name}.webp`)
 
   try {
-    await sharp(file.path).webp({ quality: 85 }).toFile(convertedPath)
+    let pipeline = sharp(file.path)
+    const meta = await pipeline.metadata()
+    if (meta.width && meta.width > 1920) {
+      pipeline = pipeline.resize(1920, null, { withoutEnlargement: true })
+    }
+    await pipeline.webp({ quality: 85 }).toFile(convertedPath)
     await fs.unlink(file.path).catch(() => {})
   } catch (error) {
     throw new Error(`Failed to convert "${file.originalname || file.filename}" to WebP: ${error.message}`)
@@ -39,8 +57,9 @@ const convertToWebpIfNeeded = async (file) => {
 
   return {
     ...file,
+    filename: `${parsedPath.name}.webp`,
     path: convertedPath,
-    filename: path.basename(convertedPath),
+    destination: parsedPath.dir,
     mimetype: "image/webp",
     size: convertedSize,
   }
@@ -84,7 +103,7 @@ router.post(
   protect,
   admin,
   upload.single("image"),
-  (req, res) => {
+  async (req, res) => {
     try {
       console.log("📁 File upload attempt")
       console.log("📋 Request body keys:", Object.keys(req.body))
@@ -98,20 +117,24 @@ router.post(
         })
       }
 
-      // Generate URL path for the uploaded file
-      const fileUrl = '/uploads' + req.file.path.split("uploads")[1].replace(/\\/g, "/")
+      // Convert to WebP and resize if oversized for web performance
+      const processedFile = await convertToWebpIfNeeded(req.file)
+      const finalFile = processedFile || req.file
 
-      console.log("✅ File uploaded successfully:")
-      console.log("📍 File Path:", req.file.path)
+      // Generate URL path for the uploaded file
+      const fileUrl = '/uploads' + finalFile.path.split("uploads")[1].replace(/\\/g, "/")
+
+      console.log("✅ File uploaded & optimized successfully:")
+      console.log("📍 File Path:", finalFile.path)
       console.log("📍 URL:", fileUrl)
-      console.log("📝 Filename:", req.file.filename)
+      console.log("📝 Filename:", finalFile.filename)
 
       res.json({
         success: true,
         message: "Image uploaded successfully",
         url: fileUrl,
-        publicId: req.file.filename, // For backward compatibility
-        filename: req.file.filename,
+        publicId: finalFile.filename, // For backward compatibility
+        filename: finalFile.filename,
         path: fileUrl,
       })
     } catch (error) {
@@ -179,7 +202,7 @@ router.post(
   },
 )
 
-// @desc    Upload banner image (high-res, no transformation)
+// @desc    Upload banner image (optimized to WebP)
 // @route   POST /api/upload/banner
 // @access  Private/Admin
 router.post(
@@ -189,10 +212,12 @@ router.post(
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
-    const fileUrl = '/uploads' + req.file.path.split("uploads")[1].replace(/\\/g, "/");
+    const processedFile = await convertToWebpIfNeeded(req.file);
+    const finalFile = processedFile || req.file;
+    const fileUrl = '/uploads' + finalFile.path.split("uploads")[1].replace(/\\/g, "/");
     res.json({ 
       url: fileUrl,
-      filename: req.file.filename,
+      filename: finalFile.filename,
       path: fileUrl
     });
   })

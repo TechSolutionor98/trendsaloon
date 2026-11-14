@@ -80,6 +80,7 @@ router.get(
               tagline: homeBanner.description !== undefined ? homeBanner.description : "",
               subtitle: homeBanner.subtitle !== undefined ? homeBanner.subtitle : "",
               image: homeBanner.image || "/salon/hero-man-transparent.png",
+              mobileImage: homeBanner.mobileImage || "",
               buttonText: homeBanner.buttonText !== undefined ? homeBanner.buttonText : "",
             }
           : {
@@ -87,6 +88,7 @@ router.get(
               tagline: "Look Good • Feel Great",
               subtitle: "Premium Grooming & Wellness Services for the Modern Gentleman",
               image: "/salon/hero-man-transparent.png",
+              mobileImage: "",
               buttonText: "Book Now",
             },
         offers: offersBanner
@@ -95,6 +97,7 @@ router.get(
               title: offersBanner.title !== undefined ? offersBanner.title : "",
               subtitle: offersBanner.subtitle !== undefined ? offersBanner.subtitle : "",
               image: offersBanner.image || "",
+              mobileImage: offersBanner.mobileImage || "",
               buttonText: offersBanner.buttonText !== undefined ? offersBanner.buttonText : "",
               link: offersBanner.buttonLink || offersBanner.link || "",
             }
@@ -102,6 +105,7 @@ router.get(
               title: "Special Offers",
               subtitle: "Look Better. Pay Less.",
               image: "",
+              mobileImage: "",
               buttonText: "View All Offers",
               link: "",
             },
@@ -111,11 +115,13 @@ router.get(
               title: servicesBanner.title !== undefined ? servicesBanner.title : "",
               subtitle: servicesBanner.subtitle !== undefined ? servicesBanner.subtitle : "",
               image: servicesBanner.image || "/salon/services-man.png",
+              mobileImage: servicesBanner.mobileImage || "",
             }
           : {
               title: "Our Services & Products",
               subtitle: "Professional Care. Premium Quality.",
               image: "/salon/services-man.png",
+              mobileImage: "",
             },
         products: productsBanner
           ? {
@@ -123,19 +129,23 @@ router.get(
               title: productsBanner.title !== undefined ? productsBanner.title : "",
               subtitle: productsBanner.subtitle !== undefined ? productsBanner.subtitle : "",
               image: productsBanner.image || "/salon/services-man.png",
+              mobileImage: productsBanner.mobileImage || "",
             }
           : {
               title: "Our Products",
               subtitle: "Premium Grooming & Care Products for the Modern Gentleman.",
               image: "/salon/services-man.png",
+              mobileImage: "",
             },
         contact: contactBanner
           ? {
               _id: contactBanner._id,
               image: contactBanner.image || "",
+              mobileImage: contactBanner.mobileImage || "",
             }
           : {
               image: "",
+              mobileImage: "",
             },
       })
     } catch (err) {
@@ -146,12 +156,14 @@ router.get(
           tagline: "Look Good • Feel Great",
           subtitle: "Premium Grooming & Wellness Services for the Modern Gentleman",
           image: "/salon/hero-man-transparent.png",
+          mobileImage: "",
           buttonText: "Book Now",
         },
         offers: {
           title: "Special Offers",
           subtitle: "Look Better. Pay Less.",
           image: "",
+          mobileImage: "",
           buttonText: "View All Offers",
           link: "",
         },
@@ -159,11 +171,17 @@ router.get(
           title: "Our Services & Products",
           subtitle: "Professional Care. Premium Quality.",
           image: "/salon/services-man.png",
+          mobileImage: "",
         },
         products: {
           title: "Our Products",
           subtitle: "Premium Grooming & Care Products for the Modern Gentleman.",
           image: "/salon/services-man.png",
+          mobileImage: "",
+        },
+        contact: {
+          image: "",
+          mobileImage: "",
         },
       })
     }
@@ -188,6 +206,7 @@ router.put(
           description: typeof home.tagline === "string" ? home.tagline : "",
           subtitle: typeof home.subtitle === "string" ? home.subtitle : "",
           image: home.image || "/salon/hero-man-transparent.png",
+          mobileImage: typeof home.mobileImage === "string" ? home.mobileImage : "",
           buttonText: typeof home.buttonText === "string" ? home.buttonText : "",
           position: "home-hero",
           isActive: true,
@@ -204,6 +223,7 @@ router.put(
           title: typeof offers.title === "string" ? offers.title : "",
           subtitle: typeof offers.subtitle === "string" ? offers.subtitle : "",
           image: typeof offers.image === "string" ? offers.image : "",
+          mobileImage: typeof offers.mobileImage === "string" ? offers.mobileImage : "",
           buttonText: typeof offers.buttonText === "string" ? offers.buttonText : "",
           buttonLink: typeof offers.link === "string" ? offers.link : "",
           position: "home-offers",
@@ -221,6 +241,7 @@ router.put(
           title: typeof services.title === "string" ? services.title : "",
           subtitle: typeof services.subtitle === "string" ? services.subtitle : "",
           image: typeof services.image === "string" ? services.image : "/salon/services-man.png",
+          mobileImage: typeof services.mobileImage === "string" ? services.mobileImage : "",
           position: "services-hero",
           isActive: true,
           createdBy: req.user._id,
@@ -236,6 +257,7 @@ router.put(
           title: typeof products.title === "string" ? products.title : "",
           subtitle: typeof products.subtitle === "string" ? products.subtitle : "",
           image: typeof products.image === "string" ? products.image : "/salon/services-man.png",
+          mobileImage: typeof products.mobileImage === "string" ? products.mobileImage : "",
           position: "products-hero",
           isActive: true,
           createdBy: req.user._id,
@@ -249,6 +271,7 @@ router.put(
         { position: "contact-hero" },
         {
           image: typeof contact.image === "string" ? contact.image : "",
+          mobileImage: typeof contact.mobileImage === "string" ? contact.mobileImage : "",
           position: "contact-hero",
           isActive: true,
           createdBy: req.user._id,

@@ -274,16 +274,26 @@ export default function ServicesProducts() {
       {/* 2. Hero Banner */}
       <section className="relative bg-[#0d0e11] text-white overflow-hidden">
         <div className="relative w-full overflow-hidden select-none">
-          <img
-            src={getFullImageUrl(servicesBanner?.image || "") || "/salon/services-banner-full.jpg"}
-            alt={servicesBanner?.title || "Our Services & Products"}
-            fetchpriority="high"
-            decoding="async"
-            onError={(e) => {
-              e.currentTarget.src = "/salon/services-banner-full.jpg"
-            }}
-            className="w-full h-auto min-h-[180px] sm:min-h-[260px] md:min-h-[320px] max-h-[460px] object-cover object-center"
-          />
+          <picture className="w-full block">
+            {servicesBanner?.mobileImage && (
+              <source
+                media="(max-width: 767px)"
+                srcSet={getFullImageUrl(servicesBanner.mobileImage)}
+              />
+            )}
+            <img
+              src={getFullImageUrl(servicesBanner?.image || servicesBanner?.mobileImage || "") || "/salon/services-banner-full.jpg"}
+              alt={servicesBanner?.title || "Our Services & Products"}
+              fetchpriority="high"
+              decoding="async"
+              width="1920"
+              height="450"
+              onError={(e) => {
+                e.currentTarget.src = "/salon/services-banner-full.jpg"
+              }}
+              className="w-full h-auto min-h-[180px] sm:min-h-[260px] md:min-h-[320px] max-h-[460px] object-cover object-center"
+            />
+          </picture>
 
           {Boolean(servicesBanner?.title?.trim() || servicesBanner?.subtitle?.trim()) && (
             <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent flex items-center">

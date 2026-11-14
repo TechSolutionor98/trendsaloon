@@ -104,13 +104,24 @@ export default function ContactUs() {
       <TrendHeader active="contact" />
 
       {/* 2. Hero Banner */}
-      {contactBanner?.image ? (
+      {Boolean(contactBanner?.image || contactBanner?.mobileImage) ? (
         <section className="w-full bg-[#0d0e11] overflow-hidden select-none">
-          <img
-            src={getFullImageUrl(contactBanner.image)}
-            alt="Trend Salon Contact"
-            className="w-full h-auto min-h-[160px] sm:min-h-[220px] md:min-h-[280px] max-h-[460px] object-cover object-center block"
-          />
+          <picture className="w-full block">
+            {contactBanner?.mobileImage && (
+              <source
+                media="(max-width: 767px)"
+                srcSet={getFullImageUrl(contactBanner.mobileImage)}
+              />
+            )}
+            <img
+              src={getFullImageUrl(contactBanner?.image || contactBanner?.mobileImage || "")}
+              alt="Trend Salon Contact"
+              width="1920"
+              height="450"
+              decoding="async"
+              className="w-full h-auto min-h-[160px] sm:min-h-[220px] md:min-h-[280px] max-h-[460px] object-cover object-center block"
+            />
+          </picture>
         </section>
       ) : (
         <section className="relative bg-[#0d0e11] text-white overflow-hidden py-10 sm:py-14">

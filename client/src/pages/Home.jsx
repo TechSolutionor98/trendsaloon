@@ -12,6 +12,7 @@ import TrendFooter from "../components/TrendFooter"
 import { getFullImageUrl } from "../utils/imageUtils"
 import {
   fetchSalonCatalog,
+  getCachedSalonCatalog,
   DEFAULT_SERVICES,
   DEFAULT_PRODUCTS,
   SPECIAL_OFFER_COMBO,
@@ -119,9 +120,9 @@ export default function Home() {
   const { getLocalizedPath } = useLanguage()
   const { showToast } = useToast()
 
-  const [services, setServices] = useState(DEFAULT_SERVICES)
-  const [products, setProducts] = useState(DEFAULT_PRODUCTS)
-  const [loading, setLoading] = useState(true)
+  const [services, setServices] = useState(() => getCachedSalonCatalog().services)
+  const [products, setProducts] = useState(() => getCachedSalonCatalog().products)
+  const [loading, setLoading] = useState(false)
   const [addedItemIds, setAddedItemIds] = useState({})
   const [offersModalOpen, setOffersModalOpen] = useState(false)
 
@@ -207,13 +208,23 @@ export default function Home() {
           ------------------------------------------------------------- */}
       <section className="relative bg-[#0d0e11] text-white overflow-hidden">
         <div className="relative w-full overflow-hidden select-none">
-          <img
-            src={getFullImageUrl(heroBanner?.image || "")}
-            alt={heroBanner?.title || "Trend Saloon"}
-            fetchpriority="high"
-            decoding="async"
-            className="w-full h-auto min-h-[260px] sm:min-h-[380px] md:min-h-[480px] max-h-[650px] object-cover object-center"
-          />
+          <picture className="w-full block">
+            {heroBanner?.mobileImage && (
+              <source
+                media="(max-width: 767px)"
+                srcSet={getFullImageUrl(heroBanner.mobileImage)}
+              />
+            )}
+            <img
+              src={getFullImageUrl(heroBanner?.image || heroBanner?.mobileImage || "")}
+              alt={heroBanner?.title || "Trend Saloon"}
+              fetchpriority="high"
+              decoding="async"
+              width="1920"
+              height="650"
+              className="w-full h-auto min-h-[240px] sm:min-h-[380px] md:min-h-[480px] max-h-[650px] object-cover object-center"
+            />
+          </picture>
 
           {/* If user provided text, overlay it cleanly; if text was removed, show purely the custom designed banner */}
           {Boolean(heroBanner?.title?.trim() || heroBanner?.tagline?.trim() || heroBanner?.subtitle?.trim()) && (
@@ -318,6 +329,9 @@ export default function Home() {
                     <img
                       src={service.image}
                       alt={service.name}
+                      width="400"
+                      height="300"
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                     />
@@ -383,16 +397,26 @@ export default function Home() {
           4. SPECIAL OFFERS SECTION (Square/Rectangular Dynamic Banner)
           ------------------------------------------------------------- */}
       <section id="offers" className="relative bg-[#0c0d10] text-white overflow-hidden my-6">
-        {Boolean(offersBanner?.image) ? (
+        {Boolean(offersBanner?.image || offersBanner?.mobileImage) ? (
           /* Custom Full-Width Square/Rectangular Banner Image */
           <div className="relative w-full overflow-hidden select-none">
-            <img
-              src={getFullImageUrl(offersBanner?.image || "")}
-              alt={offersBanner?.title || "Special Offers"}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-auto min-h-[160px] sm:min-h-[240px] md:min-h-[300px] max-h-[500px] object-cover object-center"
-            />
+            <picture className="w-full block">
+              {offersBanner?.mobileImage && (
+                <source
+                  media="(max-width: 767px)"
+                  srcSet={getFullImageUrl(offersBanner.mobileImage)}
+                />
+              )}
+              <img
+                src={getFullImageUrl(offersBanner?.image || offersBanner?.mobileImage || "")}
+                alt={offersBanner?.title || "Special Offers"}
+                loading="lazy"
+                decoding="async"
+                width="1920"
+                height="450"
+                className="w-full h-auto min-h-[160px] sm:min-h-[240px] md:min-h-[300px] max-h-[500px] object-cover object-center"
+              />
+            </picture>
 
             {/* If user provided text, overlay cleanly; if text was left empty, show pure designed banner */}
             {Boolean(offersBanner?.title?.trim() || offersBanner?.subtitle?.trim() || offersBanner?.buttonText?.trim()) && (
@@ -559,6 +583,9 @@ export default function Home() {
                     <img
                       src={product.image || "/salon/hair-care.jpg"}
                       alt={product.name}
+                      width="400"
+                      height="300"
+                      decoding="async"
                       onError={(e) => {
                         e.currentTarget.onerror = null
                         e.currentTarget.src = "/salon/hair-care.jpg"

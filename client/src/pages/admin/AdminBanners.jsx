@@ -16,6 +16,9 @@ import {
   Eye,
   Trash2,
   CheckCircle,
+  Monitor,
+  Smartphone,
+  Info,
 } from "lucide-react"
 import config from "../../config/config"
 import { getFullImageUrl } from "../../utils/imageUtils"
@@ -23,16 +26,18 @@ import { getFullImageUrl } from "../../utils/imageUtils"
 export default function AdminBanners() {
   const { showToast } = useToast()
   const [activeTab, setActiveTab] = useState("home") // "home" | "offers" | "services" | "products" | "contact"
+  const [previewDevice, setPreviewDevice] = useState("desktop") // "desktop" | "mobile"
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [uploading, setUploading] = useState(false)
+  const [uploadingDesktop, setUploadingDesktop] = useState(false)
+  const [uploadingMobile, setUploadingMobile] = useState(false)
 
-  // Banner image states (Pure graphical banners)
-  const [homeBanner, setHomeBanner] = useState({ image: "" })
-  const [offersBanner, setOffersBanner] = useState({ image: "" })
-  const [servicesBanner, setServicesBanner] = useState({ image: "" })
-  const [productsBanner, setProductsBanner] = useState({ image: "" })
-  const [contactBanner, setContactBanner] = useState({ image: "" })
+  // Banner image states (Pure graphical banners with Desktop & Mobile options)
+  const [homeBanner, setHomeBanner] = useState({ image: "", mobileImage: "" })
+  const [offersBanner, setOffersBanner] = useState({ image: "", mobileImage: "" })
+  const [servicesBanner, setServicesBanner] = useState({ image: "", mobileImage: "" })
+  const [productsBanner, setProductsBanner] = useState({ image: "", mobileImage: "" })
+  const [contactBanner, setContactBanner] = useState({ image: "", mobileImage: "" })
 
   // Fetch current salon banners
   useEffect(() => {
@@ -44,11 +49,11 @@ export default function AdminBanners() {
       setLoading(true)
       const res = await axios.get(`${config.API_URL}/api/banners/salon-banners?_t=${Date.now()}`)
       if (res.data) {
-        if (res.data.home) setHomeBanner({ image: res.data.home.image || "" })
-        if (res.data.offers) setOffersBanner({ image: res.data.offers.image || "" })
-        if (res.data.services) setServicesBanner({ image: res.data.services.image || "" })
-        if (res.data.products) setProductsBanner({ image: res.data.products.image || "" })
-        if (res.data.contact) setContactBanner({ image: res.data.contact.image || "" })
+        if (res.data.home) setHomeBanner({ image: res.data.home.image || "", mobileImage: res.data.home.mobileImage || "" })
+        if (res.data.offers) setOffersBanner({ image: res.data.offers.image || "", mobileImage: res.data.offers.mobileImage || "" })
+        if (res.data.services) setServicesBanner({ image: res.data.services.image || "", mobileImage: res.data.services.mobileImage || "" })
+        if (res.data.products) setProductsBanner({ image: res.data.products.image || "", mobileImage: res.data.products.mobileImage || "" })
+        if (res.data.contact) setContactBanner({ image: res.data.contact.image || "", mobileImage: res.data.contact.mobileImage || "" })
       }
     } catch (err) {
       console.warn("Could not fetch banners:", err.message)
@@ -58,12 +63,16 @@ export default function AdminBanners() {
   }
 
   // Handle image upload via /api/upload/single
-  const handleImageUpload = async (e, bannerType) => {
+  const handleImageUpload = async (e, bannerType, device = "desktop") => {
     const file = e.target.files?.[0]
     if (!file) return
 
     try {
-      setUploading(true)
+      if (device === "mobile") {
+        setUploadingMobile(true)
+      } else {
+        setUploadingDesktop(true)
+      }
       const formData = new FormData()
       formData.append("image", file)
 
@@ -86,24 +95,32 @@ export default function AdminBanners() {
 
       if (res.data && res.data.url) {
         const uploadedUrl = res.data.url
-        if (bannerType === "home") {
-          setHomeBanner({ image: uploadedUrl })
-        } else if (bannerType === "offers") {
-          setOffersBanner({ image: uploadedUrl })
-        } else if (bannerType === "services") {
-          setServicesBanner({ image: uploadedUrl })
-        } else if (bannerType === "products") {
-          setProductsBanner({ image: uploadedUrl })
-        } else if (bannerType === "contact") {
-          setContactBanner({ image: uploadedUrl })
+        const field = device === "mobile" ? "mobileImage" : "image"
+
+        const updateState = (setter) => {
+          setter((prev) => ({ ...prev, [field]: uploadedUrl }))
         }
-        showToast("Image uploaded successfully! Click Save to apply changes.", "success")
+
+        if (bannerType === "home") updateState(setHomeBanner)
+        else if (bannerType === "offers") updateState(setOffersBanner)
+        else if (bannerType === "services") updateState(setServicesBanner)
+        else if (bannerType === "products") updateState(setProductsBanner)
+        else if (bannerType === "contact") updateState(setContactBanner)
+
+        showToast(
+          `${device === "mobile" ? "Mobile" : "Desktop"} banner uploaded successfully! Click Save to apply changes.`,
+          "success",
+        )
       }
     } catch (err) {
       console.error("Upload error:", err)
       showToast(err.response?.data?.message || "Failed to upload image", "error")
     } finally {
-      setUploading(false)
+      if (device === "mobile") {
+        setUploadingMobile(false)
+      } else {
+        setUploadingDesktop(false)
+      }
     }
   }
 
@@ -124,7 +141,8 @@ export default function AdminBanners() {
       const payload = {}
       if (bannerType === "home" || bannerType === "all") {
         payload.home = {
-          image: homeBanner.image,
+          image: homeBanner.image || "",
+          mobileImage: homeBanner.mobileImage || "",
           title: "",
           tagline: "",
           subtitle: "",
@@ -133,7 +151,8 @@ export default function AdminBanners() {
       }
       if (bannerType === "offers" || bannerType === "all") {
         payload.offers = {
-          image: offersBanner.image,
+          image: offersBanner.image || "",
+          mobileImage: offersBanner.mobileImage || "",
           title: "",
           subtitle: "",
           buttonText: "",
@@ -142,21 +161,24 @@ export default function AdminBanners() {
       }
       if (bannerType === "services" || bannerType === "all") {
         payload.services = {
-          image: servicesBanner.image,
+          image: servicesBanner.image || "",
+          mobileImage: servicesBanner.mobileImage || "",
           title: "",
           subtitle: "",
         }
       }
       if (bannerType === "products" || bannerType === "all") {
         payload.products = {
-          image: productsBanner.image,
+          image: productsBanner.image || "",
+          mobileImage: productsBanner.mobileImage || "",
           title: "",
           subtitle: "",
         }
       }
       if (bannerType === "contact" || bannerType === "all") {
         payload.contact = {
-          image: contactBanner.image,
+          image: contactBanner.image || "",
+          mobileImage: contactBanner.mobileImage || "",
         }
       }
 
@@ -177,7 +199,7 @@ export default function AdminBanners() {
         localStorage.setItem("trend_salon_banners_v1", JSON.stringify(cached))
       } catch {}
 
-      showToast("Banner updated successfully! Changes are live.", "success")
+      showToast("Banners updated successfully! Changes are live on both Desktop & Mobile.", "success")
     } catch (err) {
       console.error("Save error:", err)
       showToast(err.response?.data?.message || "Failed to update banner", "error")
@@ -196,7 +218,8 @@ export default function AdminBanners() {
           data: homeBanner,
           setter: setHomeBanner,
           saveLabel: "Save Homepage Hero Banner",
-          aspectHint: "Recommended size: 1920x650 or 1920x800. Edge-to-edge full width graphic.",
+          desktopAspectHint: "Recommended desktop size: 1920x650 or 1920x800. Edge-to-edge full width graphic.",
+          mobileAspectHint: "Recommended mobile size: 750x600, 800x800 or 800x600. Optimized for portrait mobile screens.",
         }
       case "offers":
         return {
@@ -205,7 +228,8 @@ export default function AdminBanners() {
           data: offersBanner,
           setter: setOffersBanner,
           saveLabel: "Save Special Offers Banner",
-          aspectHint: "Recommended size: 1920x450 or 1600x400. Clean rectangular graphic (no curved cuts).",
+          desktopAspectHint: "Recommended desktop size: 1920x450 or 1600x400. Clean rectangular graphic.",
+          mobileAspectHint: "Recommended mobile size: 750x500 or 800x600. Mobile-friendly promotional graphic.",
         }
       case "services":
         return {
@@ -214,7 +238,8 @@ export default function AdminBanners() {
           data: servicesBanner,
           setter: setServicesBanner,
           saveLabel: "Save Services Banner",
-          aspectHint: "Recommended size: 1920x450 or 1600x400. Full-width landscape graphic.",
+          desktopAspectHint: "Recommended desktop size: 1920x450 or 1600x400. Full-width landscape graphic.",
+          mobileAspectHint: "Recommended mobile size: 750x450 or 800x550. Mobile header graphic.",
         }
       case "products":
         return {
@@ -223,7 +248,8 @@ export default function AdminBanners() {
           data: productsBanner,
           setter: setProductsBanner,
           saveLabel: "Save Products Banner",
-          aspectHint: "Recommended size: 1920x450 or 1600x400. Full-width landscape graphic.",
+          desktopAspectHint: "Recommended desktop size: 1920x450 or 1600x400. Full-width landscape graphic.",
+          mobileAspectHint: "Recommended mobile size: 750x450 or 800x550. Mobile header graphic.",
         }
       case "contact":
         return {
@@ -232,7 +258,8 @@ export default function AdminBanners() {
           data: contactBanner,
           setter: setContactBanner,
           saveLabel: "Save Contact Us Banner",
-          aspectHint: "Recommended size: 1920x450 or 1600x400. Full-width landscape graphic.",
+          desktopAspectHint: "Recommended desktop size: 1920x450 or 1600x400. Full-width landscape graphic.",
+          mobileAspectHint: "Recommended mobile size: 750x450 or 800x550. Mobile header graphic.",
         }
       default:
         return null
@@ -254,7 +281,7 @@ export default function AdminBanners() {
               <span>Main Pages Banner Manager</span>
             </h1>
             <p className="text-sm text-gray-400 mt-1">
-              Upload custom graphical banners for all salon website pages. All banners render full-width edge-to-edge.
+              Upload custom desktop and mobile view banners for all website pages. Separate artwork can be set for mobile screens.
             </p>
           </div>
 
@@ -336,78 +363,189 @@ export default function AdminBanners() {
         {/* ACTIVE TAB CONTENT */}
         {current && (
           <div className="space-y-8 animate-fadeIn">
-            {/* Live Visual Preview */}
-            <div className="bg-[#0d0e11] text-white rounded-3xl overflow-hidden border border-[#dfa742]/30 shadow-2xl relative min-h-[220px]">
-              <div className="absolute top-4 right-4 z-20 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-[#dfa742] flex items-center gap-1.5 border border-[#dfa742]/30">
-                <Eye className="w-3.5 h-3.5" />
-                <span>Live Preview</span>
+            {/* Live Visual Preview Container */}
+            <div className="bg-[#0d0e11] text-white rounded-3xl overflow-hidden border border-[#dfa742]/30 shadow-2xl relative">
+              {/* Preview Device Switcher Header */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 px-6 border-b border-[#22252d] bg-[#14161d]/90 gap-3">
+                <div className="flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-[#dfa742]" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">Live Preview</span>
+                  <span className="text-xs text-gray-400">
+                    — Showing {previewDevice === "desktop" ? "Desktop Banner" : "Mobile View"}
+                  </span>
+                </div>
+
+                <div className="flex items-center bg-[#0d0e11] p-1 rounded-xl border border-[#2b2f3a] gap-1 self-end sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewDevice("desktop")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                      previewDevice === "desktop"
+                        ? "bg-[#dfa742] text-black shadow-md font-bold"
+                        : "text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    <Monitor className="w-3.5 h-3.5" />
+                    <span>Desktop Preview</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPreviewDevice("mobile")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                      previewDevice === "mobile"
+                        ? "bg-[#dfa742] text-black shadow-md font-bold"
+                        : "text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    <Smartphone className="w-3.5 h-3.5" />
+                    <span>Mobile Preview</span>
+                  </button>
+                </div>
               </div>
 
-              {Boolean(current.data.image) ? (
-                <div className="relative w-full">
-                  <img
-                    src={getFullImageUrl(current.data.image)}
-                    alt="Banner Preview"
-                    className="w-full h-auto max-h-[360px] object-cover object-center block"
-                  />
+              {/* Preview Rendering: Desktop Mode */}
+              {previewDevice === "desktop" ? (
+                <div className="relative min-h-[220px] bg-[#090a0d]">
+                  {Boolean(current.data.image) ? (
+                    <div className="relative w-full">
+                      <img
+                        src={getFullImageUrl(current.data.image)}
+                        alt="Desktop Banner Preview"
+                        className="w-full h-auto max-h-[360px] object-cover object-center block"
+                      />
+                    </div>
+                  ) : (
+                    <div className="p-12 text-center flex flex-col items-center justify-center min-h-[240px]">
+                      <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-3">
+                        <Monitor className="w-8 h-8 text-[#dfa742]/60" />
+                      </div>
+                      <h3 className="text-base font-semibold text-white">No Desktop Banner Uploaded</h3>
+                      <p className="text-xs text-gray-400 mt-1 max-w-sm">
+                        Upload your custom desktop banner graphic below. It will display on desktop monitors and tablets.
+                      </p>
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div className="p-12 text-center flex flex-col items-center justify-center min-h-[240px]">
-                  <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-3">
-                    <ImageIcon className="w-8 h-8 text-[#dfa742]/60" />
+                /* Preview Rendering: Mobile Mode (Framed inside Smartphone Mockup) */
+                <div className="p-6 sm:p-8 flex flex-col items-center justify-center bg-[#07080a] min-h-[260px]">
+                  <div className="w-full max-w-[340px] rounded-[32px] border-4 border-[#2b2f3a] bg-[#14161d] p-3 shadow-2xl overflow-hidden relative">
+                    {/* Phone speaker / camera notch bar */}
+                    <div className="w-24 h-3.5 bg-[#2b2f3a] rounded-full mx-auto mb-3 opacity-90 flex items-center justify-center">
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#14161d] ml-auto mr-2" />
+                    </div>
+
+                    {Boolean(current.data.mobileImage) ? (
+                      <div className="space-y-2">
+                        <img
+                          src={getFullImageUrl(current.data.mobileImage)}
+                          alt="Mobile Banner Preview"
+                          className="w-full h-auto max-h-[380px] object-cover rounded-xl block border border-white/10"
+                        />
+                        <div className="text-center text-[11px] text-emerald-400 font-semibold flex items-center justify-center gap-1 pt-1">
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          <span>Active Mobile Custom Banner</span>
+                        </div>
+                      </div>
+                    ) : Boolean(current.data.image) ? (
+                      <div className="space-y-2">
+                        <img
+                          src={getFullImageUrl(current.data.image)}
+                          alt="Desktop Fallback Preview"
+                          className="w-full h-auto max-h-[380px] object-cover rounded-xl block border border-white/10 opacity-90"
+                        />
+                        <div className="text-center text-[11px] text-amber-400 font-medium pt-1">
+                          <span>⚠️ Using Desktop Banner (No mobile-specific banner uploaded)</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-8 text-center min-h-[200px] flex flex-col items-center justify-center">
+                        <Smartphone className="w-8 h-8 text-[#dfa742]/50 mb-2" />
+                        <h4 className="text-sm font-semibold text-white">No Banner Uploaded</h4>
+                        <p className="text-xs text-gray-400 mt-1">Upload a mobile banner graphic below</p>
+                      </div>
+                    )}
                   </div>
-                  <h3 className="text-base font-semibold text-white">No Banner Uploaded Yet</h3>
-                  <p className="text-xs text-gray-400 mt-1 max-w-sm">
-                    Upload your custom designed banner graphic below. It will immediately show here and on your live website.
-                  </p>
                 </div>
               )}
             </div>
 
-            {/* Banner Upload & Editing Card (No extra text fields) */}
-            <div className="bg-[#14161d] rounded-2xl p-6 sm:p-8 border border-[#262933] shadow-xl space-y-6">
-              <div className="border-b border-[#262933] pb-4">
-                <h3 className="text-lg font-bold text-white tracking-tight">
-                  {current.title}
-                </h3>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {current.description}
-                </p>
+            {/* Banner Upload & Editing Sections */}
+            <div className="bg-[#14161d] rounded-2xl p-6 sm:p-8 border border-[#262933] shadow-xl space-y-8">
+              <div className="border-b border-[#262933] pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <h3 className="text-lg font-bold text-white tracking-tight">
+                    {current.title}
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {current.description}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {current.data.image && (
+                    <span className="text-[11px] px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                      Desktop: Ready
+                    </span>
+                  )}
+                  {current.data.mobileImage ? (
+                    <span className="text-[11px] px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                      Mobile: Custom
+                    </span>
+                  ) : (
+                    <span className="text-[11px] px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium">
+                      Mobile: Auto-Fallback
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {/* Graphic Banner Image URL & Upload */}
-              <div className="space-y-3">
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-300">
-                  Banner Graphic Image (Artwork)
-                </label>
+              {/* 1. DESKTOP BANNER CARD */}
+              <div className="p-5 rounded-xl bg-[#1a1d24] border border-[#2e3340] space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-gray-200 flex items-center gap-2">
+                    <Monitor className="w-4 h-4 text-[#dfa742]" />
+                    <span>1. Desktop View Banner (Artwork)</span>
+                  </label>
+                  {current.data.image && (
+                    <span className="text-emerald-400 text-xs font-medium inline-flex items-center gap-1">
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      Set
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400">
+                  Yeh banner desktop computers, laptops aur large screens per nazar aayega.
+                </p>
 
-                <div className="flex flex-col sm:flex-row gap-2.5">
+                <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
                   <input
                     type="text"
                     value={current.data.image}
-                    onChange={(e) => current.setter({ image: e.target.value })}
-                    placeholder="Upload image or enter file path (/uploads/...)"
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-[#2b2f3a] focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm bg-[#1a1d24] text-white placeholder-gray-500"
+                    onChange={(e) => current.setter((prev) => ({ ...prev, image: e.target.value }))}
+                    placeholder="Enter desktop image URL or file path (/uploads/...)"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-[#2b2f3a] focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm bg-[#14161d] text-white placeholder-gray-500"
                   />
 
                   <div className="flex gap-2">
-                    <label className="cursor-pointer bg-[#dfa742] hover:bg-[#caa638] text-black px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50">
+                    <label className="cursor-pointer bg-[#dfa742] hover:bg-[#caa638] text-black px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50">
                       <Upload className="w-4 h-4" />
-                      <span>{uploading ? "Uploading..." : "Upload Image"}</span>
+                      <span>{uploadingDesktop ? "Uploading..." : "Upload Desktop Image"}</span>
                       <input
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={(e) => handleImageUpload(e, activeTab)}
+                        onChange={(e) => handleImageUpload(e, activeTab, "desktop")}
                       />
                     </label>
 
                     {Boolean(current.data.image) && (
                       <button
                         type="button"
-                        onClick={() => current.setter({ image: "" })}
-                        className="px-3.5 py-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-medium inline-flex items-center gap-1 transition-colors"
-                        title="Remove banner"
+                        onClick={() => current.setter((prev) => ({ ...prev, image: "" }))}
+                        className="px-3 py-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-medium inline-flex items-center gap-1 transition-colors"
+                        title="Remove desktop banner"
                       >
                         <Trash2 className="w-4 h-4" />
                         <span className="hidden sm:inline">Remove</span>
@@ -416,24 +554,87 @@ export default function AdminBanners() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] text-gray-500 pt-1">
-                  <span>{current.aspectHint}</span>
-                  {current.data.image && (
-                    <span className="text-emerald-400 font-medium inline-flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" />
-                      Image Selected
+                <div className="text-[11px] text-gray-400 flex items-center justify-between pt-1">
+                  <span>{current.desktopAspectHint}</span>
+                </div>
+              </div>
+
+              {/* 2. MOBILE BANNER CARD */}
+              <div className="p-5 rounded-xl bg-[#1a1d24] border border-[#2e3340] space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-gray-200 flex items-center gap-2">
+                    <Smartphone className="w-4 h-4 text-[#dfa742]" />
+                    <span>2. Mobile View Banner (Artwork for Smartphones)</span>
+                  </label>
+                  {current.data.mobileImage ? (
+                    <span className="text-emerald-400 text-xs font-medium inline-flex items-center gap-1">
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      Mobile Banner Active
+                    </span>
+                  ) : (
+                    <span className="text-amber-400 text-xs font-medium">
+                      Optional (Desktop Fallback)
                     </span>
                   )}
+                </div>
+                <div className="p-3 bg-[#14161d] rounded-xl border border-blue-500/20 text-xs text-gray-300 flex items-start gap-2">
+                  <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Mobile View Option:</strong> Mobile screens (phones &lt; 768px) ke liye yahan alag portrait ya square banner add kar sakte hain. Agar mobile banner upload nahi karenge toh default desktop banner hi show hoga.
+                  </span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+                  <input
+                    type="text"
+                    value={current.data.mobileImage || ""}
+                    onChange={(e) => current.setter((prev) => ({ ...prev, mobileImage: e.target.value }))}
+                    placeholder="Enter mobile image URL or file path (/uploads/...)"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-[#2b2f3a] focus:outline-none focus:ring-2 focus:ring-[#dfa742] text-sm bg-[#14161d] text-white placeholder-gray-500"
+                  />
+
+                  <div className="flex gap-2">
+                    <label className="cursor-pointer bg-[#2b2f3a] hover:bg-[#383d4c] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-md border border-white/10 transition-all hover:scale-105 active:scale-95 disabled:opacity-50">
+                      <Upload className="w-4 h-4 text-[#dfa742]" />
+                      <span>{uploadingMobile ? "Uploading..." : "Upload Mobile Image"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleImageUpload(e, activeTab, "mobile")}
+                      />
+                    </label>
+
+                    {Boolean(current.data.mobileImage) && (
+                      <button
+                        type="button"
+                        onClick={() => current.setter((prev) => ({ ...prev, mobileImage: "" }))}
+                        className="px-3 py-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-medium inline-flex items-center gap-1 transition-colors"
+                        title="Remove mobile banner"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span className="hidden sm:inline">Remove</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-gray-400 flex items-center justify-between pt-1">
+                  <span>{current.mobileAspectHint}</span>
                 </div>
               </div>
 
               {/* Submit CTA */}
-              <div className="pt-4 border-t border-[#262933] flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-[#262933] flex items-center justify-between">
+                <p className="text-xs text-gray-400 hidden sm:block">
+                  Changes save hone ke baad website per Desktop aur Mobile dono views per apply ho jayengi.
+                </p>
+
                 <button
                   type="button"
                   onClick={() => handleSave(activeTab)}
                   disabled={saving}
-                  className="bg-[#dfa742] hover:bg-[#caa638] text-black font-bold text-sm px-8 py-3 rounded-xl inline-flex items-center gap-2 shadow-lg shadow-[#dfa742]/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                  className="bg-[#dfa742] hover:bg-[#caa638] text-black font-bold text-sm px-8 py-3 rounded-xl inline-flex items-center gap-2 shadow-lg shadow-[#dfa742]/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 ml-auto"
                 >
                   <Save className="w-4 h-4" />
                   <span>{saving ? "Saving..." : current.saveLabel}</span>

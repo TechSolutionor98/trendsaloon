@@ -16,6 +16,10 @@ const bannerSchema = mongoose.Schema(
       type: String,
       default: "",
     },
+    mobileImage: {
+      type: String,
+      default: "",
+    },
     backgroundImage: {
       type: String,
     },

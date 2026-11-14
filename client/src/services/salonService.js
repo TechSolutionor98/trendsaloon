@@ -192,14 +192,33 @@ export const isServiceItem = (item) => {
   return isDirectServiceTitle
 }
 
+const CATALOG_STORAGE_KEY = "trend_salon_catalog_v1"
+
+export const getCachedSalonCatalog = () => {
+  try {
+    const raw = localStorage.getItem(CATALOG_STORAGE_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed && Array.isArray(parsed.services) && Array.isArray(parsed.products)) {
+        return parsed
+      }
+    }
+  } catch {}
+  return {
+    services: DEFAULT_SERVICES,
+    products: DEFAULT_PRODUCTS,
+    isDynamic: false,
+  }
+}
+
 /**
  * Fetch dynamic products and services from backend API
  */
 export const fetchSalonCatalog = async () => {
   try {
-    // Fetch up to 2000 items so that all products added from Admin are loaded
-    const res = await axios.get(`${config.API_URL}/api/products?limit=2000&_t=${Date.now()}`, {
-      timeout: 10000,
+    // Fetch products cleanly without cache-busting so backend in-memory cache responds in ~2ms
+    const res = await axios.get(`${config.API_URL}/api/products?limit=500`, {
+      timeout: 8000,
     })
 
     const dbProducts = Array.isArray(res.data)
@@ -209,11 +228,7 @@ export const fetchSalonCatalog = async () => {
       : []
 
     if (dbProducts.length === 0) {
-      return {
-        services: DEFAULT_SERVICES,
-        products: DEFAULT_PRODUCTS,
-        isDynamic: false,
-      }
+      return getCachedSalonCatalog()
     }
 
     const dynamicServices = []
@@ -254,18 +269,20 @@ export const fetchSalonCatalog = async () => {
     // If database has products, use them; otherwise keep default mockup products
     const finalProducts = dynamicProducts.length > 0 ? dynamicProducts : DEFAULT_PRODUCTS
 
-    return {
+    const result = {
       services: finalServices,
       products: finalProducts,
       isDynamic: dynamicServices.length > 0 || dynamicProducts.length > 0,
     }
+
+    try {
+      localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(result))
+    } catch {}
+
+    return result
   } catch (err) {
-    console.warn("Could not load dynamic products from API, using default catalog:", err.message)
-    return {
-      services: DEFAULT_SERVICES,
-      products: DEFAULT_PRODUCTS,
-      isDynamic: false,
-    }
+    console.warn("Could not load dynamic products from API, using cached catalog:", err.message)
+    return getCachedSalonCatalog()
   }
 }
 
@@ -275,6 +292,7 @@ const BANNER_STORAGE_KEY = "trend_salon_banners_v1"
 export const DEFAULT_SALON_BANNERS = {
   home: {
     image: "/uploads/others/1st__1_-1794578064135-265383882.png",
+    mobileImage: "",
     title: "",
     subtitle: "",
     tagline: "",
@@ -282,6 +300,7 @@ export const DEFAULT_SALON_BANNERS = {
   },
   offers: {
     image: "/uploads/others/3rd_jpg-1794582252013-625192313.jpeg",
+    mobileImage: "",
     title: "",
     subtitle: "",
     buttonText: "",
@@ -289,16 +308,19 @@ export const DEFAULT_SALON_BANNERS = {
   },
   services: {
     image: "/uploads/others/2nd-1794582305379-234332284.png",
+    mobileImage: "",
     title: "",
     subtitle: "",
   },
   products: {
     image: "/uploads/others/2nd-1794582320874-530457510.png",
+    mobileImage: "",
     title: "",
     subtitle: "",
   },
   contact: {
     image: "",
+    mobileImage: "",
   },
 }
 
@@ -323,7 +345,7 @@ export const getCachedSalonBanners = () => {
 
 export const fetchSalonBanners = async () => {
   try {
-    const res = await axios.get(`${config.API_URL}/api/banners/salon-banners?_t=${Date.now()}`)
+    const res = await axios.get(`${config.API_URL}/api/banners/salon-banners`)
     if (res.data && typeof res.data === "object") {
       const merged = {
         home: { ...DEFAULT_SALON_BANNERS.home, ...(res.data.home || {}) },

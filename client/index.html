@@ -6,11 +6,39 @@
     <meta name="google-site-verification" content="7L9SSyoDKttO_Mq86f7kYHZoCKnZ76rBW5tZZYyxg1Y" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="dns-prefetch" href="https://api.trendcosmetica.com" />
+    <!-- Preconnect for image assets (no-cors) -->
+    <link rel="preconnect" href="https://api.trendcosmetica.com" />
+    <!-- Preconnect for API fetch requests (CORS) -->
     <link rel="preconnect" href="https://api.trendcosmetica.com" crossorigin />
-    <link rel="dns-prefetch" href="https://api.grabatoz.ae" />
-    <link rel="preconnect" href="https://api.grabatoz.ae" crossorigin />
     <title>Trend Saloon | Luxury Barber &amp; Wellness in Ajman</title>
     <meta name="description" content="Experience premium grooming, haircut, royal beard grooming, and Moroccan baths at Trend Saloon in Al Yasmeen, Ajman." />
+
+    <!-- Immediate Discovery Preload for Hero Banner (LCP Optimization) -->
+    <script>
+      (function() {
+        try {
+          var raw = localStorage.getItem("trend_salon_banners_v1");
+          var banner = raw ? JSON.parse(raw) : null;
+          var isMobile = window.innerWidth < 768;
+          var imgUrl = "";
+          if (banner && banner.home) {
+            imgUrl = (isMobile && banner.home.mobileImage) ? banner.home.mobileImage : banner.home.image;
+          }
+          if (!imgUrl) {
+            imgUrl = "/uploads/others/1st__1_-1794578064135-265383882.png";
+          }
+          if (imgUrl) {
+            var fullUrl = imgUrl.indexOf("http") === 0 ? imgUrl : ("https://api.trendcosmetica.com" + imgUrl);
+            var link = document.createElement("link");
+            link.rel = "preload";
+            link.as = "image";
+            link.href = fullUrl;
+            link.fetchPriority = "high";
+            document.head.appendChild(link);
+          }
+        } catch(e) {}
+      })();
+    </script>
 
 
 
@@ -149,10 +177,10 @@
 
         if ("requestIdleCallback" in window) {
           requestIdleCallback(function () {
-            setTimeout(loadThirdParty, 3500)
+            setTimeout(loadThirdParty, 5000)
           })
         } else {
-          setTimeout(loadThirdParty, 4000)
+          setTimeout(loadThirdParty, 5000)
         }
       })()
     </script>
